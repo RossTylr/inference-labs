@@ -40,6 +40,19 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-79 | Significance thresholds of 0.1 for benefit and 0.025 for harm | A stated exchange rate between two errors, written into a trial protocol. The cleanest real example of a utility hiding in a statistical threshold |
+| E-48 | The challenge's authors say the utility values can be chosen to reflect a hospital's preferences; the best entries by utility were not the best by area under the curve | The diagnosis case can rank three models by accuracy and again by utility and show the order change |
+| E-77 | A composite outcome of death or failure to clear lactate: 64% against 65% overall, with death 43% against 45% | A composite weighs a death and a laboratory value equally. Ask the reader what weights they would choose, then recompute |
+| E-20 | Vascular occlusive events 1.7% against 2.0%; deaths 14.5% against 16.0% | Both sides of the ledger for the treatment decision, from one trial |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

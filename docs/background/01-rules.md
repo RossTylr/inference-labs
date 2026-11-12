@@ -31,6 +31,20 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-54 | In the dual process model, repeated analytical working of the same presentation turns into recognition, and either mode can override the other | A rule is deliberation done once and stored. It also explains why crews override a protocol (E-88): the override is part of the model, not a breach of it |
+| E-59 | The choice of exits in a fast-and-frugal tree corresponds directly to where the decision criterion is set | Read the MPTT-24 this way: every early exit is to Priority One, which is a liberal criterion written as a flowchart |
+| E-30 | Risk of death from bleeding is U-shaped in heart rate and respiratory rate | Why a triage rule needs a band with two ends, not a single cut-off |
+| E-118 | A three-rule list on age, sex and prior offences set against a proprietary tool with over 130 inputs | A rule list is a model that can be learned from data and checked by eye. Sets up lens 04 |
+| E-20 | Entry to CRASH-2 was by the clinician's judgement that the patient was bleeding or at risk, not by a test | The rule 'give tranexamic acid to the bleeding casualty' inherits a judgement call at its first step |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

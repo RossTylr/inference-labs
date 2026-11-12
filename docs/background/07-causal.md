@@ -48,6 +48,19 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-81 | Among the critically injured, 6.8% of those who received a transfusion were killed in action against 51.0% of those who did not. The authors themselves list survival bias in the transfusion analysis as a limitation | A second survival-bias example, from military data, with the authors naming the bias. To be killed in action is to die before reaching a facility, where most blood is given |
+| E-20 | Transfusion was not reduced by tranexamic acid; the authors suggest survivors had more opportunity to be transfused | The same mechanism inside a randomised trial: randomisation protects the primary comparison, not every secondary outcome measured after survival |
+| E-120 | Mortality was lowest where the clinician's dose matched the algorithm's recommendation | An observational association offered as validation. Patients whose care departs from the usual may differ in ways the records do not hold. That reading is made here, not in the paper, and is the confounding question the lens teaches |
+| E-117 | Description, prediction, causal inference, with the statin example | Open the notebook with this table and sort the lens's own anchors into its three columns |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |
@@ -56,7 +69,7 @@
 | By hand | Twelve casualties, a coin for treatment, then the same twelve with treatment decided by who survives the first hour |
 | Diagnosis case | Weak fit: who gets scanned, and how that biases measured accuracy |
 | Treatment case | Effect of tranexamic acid from CRASH-2; then a generator-built observational version of the same patients, analysed naively and with time handled properly, set beside E-71 and E-80 |
-| Failure | Survival bias producing a benefit from a drug with none |
+| Failure | Survival bias producing a benefit from a drug with none; then the transfusion contrast from E-81 as the same bias in real military data |
 | Central figure | Cutting the arrow |
 
 ## What must not be claimed

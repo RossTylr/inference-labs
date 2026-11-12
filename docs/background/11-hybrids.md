@@ -41,6 +41,18 @@ Each has a characteristic way of failing, and the notebook can show all three on
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-54 | Both modes of reasoning pass through a calibration step before a diagnosis is reached | The source's own picture of a join between a fast and a slow system, to set beside the tool and clinician result (E-110) |
+| E-51 | A rule-based system generated 1.3 million synthetic patients on which learning systems were then trained | Rules feeding data feeding a model: a fourth kind of join, and the one this repository's generator uses |
+| E-119 | Guidance on learned policies written partly by the authors of the policy under dispute | Integration includes people revising their own claims; cite it where the notebook discusses checking a component before joining it to another |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

@@ -34,6 +34,18 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-120 | Some laboratory values available to the algorithm would not have been available to clinicians at the time; the test set used hospital mortality in place of 90-day mortality | The authors' own limitation is the first of the three questions in E-119: did the algorithm and the clinician see the same things. In the notebook, give the learner one variable the logged policy never saw and watch its estimated value rise |
+| E-120 | Vasopressors recommended 30% of the time against 17% given | The size of the departure from practice. The further a policy moves from the logged care, the fewer records support its score |
+| E-49 | Random policy 0.78, estimated clinician policy 0.78, optimal 0.88 | Ask the reader why the clinicians' policy scores no better than chance in this model before revealing that the model's states are coarse |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

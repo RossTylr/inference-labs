@@ -34,6 +34,18 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-48 | The winning sepsis entry scored 0.360 overall, 0.433 and 0.434 on the two hospital systems it had seen, and -0.123 on the one it had not | A negative utility means worse than raising no alerts at all. Pairs with the hospital-identification result (E-98) as a second, tabular, example of learning the site |
+| E-118 | A saliency map shows where the network looked and can look the same for two different labels | The caution to print beside every heat map in the notebook, including the planted-marker failure |
+| E-48 | Entries with the highest utility did not necessarily have a high area under the curve | Which model is 'best' depends on the score. Hands over to lens 10 |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |
@@ -42,7 +54,7 @@
 | By hand | A two-pixel, two-weight "network" trained by hand on eight examples |
 | Diagnosis case | Ultrasound classification on the proxy set, split by image and then by patient |
 | Treatment case | Weak fit: predicting need for intervention from vital signs, compared with the tree from lens 04 |
-| Failure | Plant a marker in the corner of one class, show the accuracy rise and the heat map move to the corner |
+| Failure | Plant a marker in the corner of one class, show the accuracy rise and the heat map move to the corner; then score the model on an unseen site, as in E-48 |
 | Central figure | What it saw: an image beside its heat map |
 
 ## What must not be claimed

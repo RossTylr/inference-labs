@@ -32,6 +32,19 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-30 | Heart rate and respiratory rate relate to bleeding death in a U shape; the model enters them as linear terms after checking | A tree finds a U shape with two splits and no instruction. A linear term cannot. A concrete reason trees suit vital signs |
+| E-30 | Simple model 0.84, full model 0.85; calibration slope 1.01 in development and 1.12 in the French registry. Penetrating injury was 51% of one cohort and 6% of the other | Discrimination held across two very different populations; calibration drifted. Shows the two properties are separate, and that the mix matters |
+| E-118 | The three-rule list, and the argument that the accuracy against interpretability trade-off is a myth for structured data with meaningful features | A counterweight to 'the forest came first' (E-90): on tabular clinical data the readable model may lose little |
+| E-59 | Exit structure sets the criterion; the trees search little information and are robust | Build the same three cues with two different exit orders and show the sensitivity and specificity move |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

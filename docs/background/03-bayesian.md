@@ -40,6 +40,19 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-77 | Death within 3 hours in RePHILL: relative risk 0.75 (0.50-1.13) | A second trial for the treatment case, and a UK one. With a flat prior on the log scale this interval corresponds to about a 92% probability that the relative risk is below 1. That figure is calculated here from the published interval, not reported by the trial, and must be labelled so |
+| E-20 | CRASH-2 prespecified that, without strong evidence of heterogeneity, the overall relative risk is the best guide to every subgroup | A prior stated in frequentist language: subgroup estimates are pulled towards the overall effect. Sets up partial pooling without the vocabulary |
+| E-16 | A third of pre-hospital abdominal scans were indeterminate; the counts behind 25% and 96% are 21 of 84 and 257 of 266 | The by-hand case builds the distribution from the two-by-two table. The failure section adds: the 25% describes scans that were called, not scans attempted |
+| E-79 | Thresholds of 0.1 for benefit and 0.025 for harm | An informal prior in a frequentist design: the investigators needed less evidence to accept benefit than harm |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |
@@ -47,7 +60,7 @@
 | Hook | The scan is clear. Is she safe? (Explainer already written: `../explainers/belief-as-a-random-variable.md`.) |
 | By hand | A hundred casualties as a grid, in hospital and before it; then ten draws of the scan's sensitivity |
 | Diagnosis case | Belief after a positive and a negative scan in both settings, as a distribution |
-| Treatment case | Reproduce the logic of E-74 on CRASH-3 with a CRASH-2 prior, then with a sceptical prior, and show the four-prior table in the style of E-108 |
+| Treatment case | Reproduce the logic of E-74 on CRASH-3 with a CRASH-2 prior, then with a sceptical prior, and show the four-prior table in the style of E-108. Then RePHILL's three-hour deaths as a second, UK, example |
 | Failure | A prior borrowed from the wrong population; updating twice on two readings of the same blood loss |
 | Central figure | A hundred casualties |
 

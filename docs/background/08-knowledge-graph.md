@@ -32,6 +32,18 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-51 | A knowledge base of 49 conditions, 110 symptoms and 113 antecedents, driving a rule-based system that outputs a differential diagnosis, not a single answer | The output of a graph traversal is a ranked list. The diagnosis case should return candidates with reasons, and the scorecard should score the list |
+| E-51 | The knowledge base and the rule system are proprietary | A graph whose edges cannot be inspected has no provenance. The contrast with this repository's graph, where every edge carries a source, is the point of the lens |
+| E-20 | The trial's entry criteria: adult, within 8 hours, bleeding or at risk by clinical judgement | Each is a condition on the edge from 'bleeding casualty' to 'tranexamic acid', with the trial as its source and the later three-hour limit (E-22) as a newer version |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |

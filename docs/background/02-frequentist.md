@@ -41,6 +41,20 @@
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-20 | CRASH-2 by time from injury, all-cause: 0.87 within 1 hour, 0.87 at 1 to 3 hours, 1.00 after 3 hours; heterogeneity p = 0.11 against a prespecified threshold of p < 0.001 | The trial that established the drug did not itself show a timing effect by its own rule. The timing result came from a later exploratory analysis (E-22). A clean lesson in prespecification |
+| E-20 | Blood products given to 50.4% against 51.3%, relative risk 0.98 (0.96-1.01) | A drug that cuts bleeding deaths and does not cut transfusion. The authors' explanation, that survivors live long enough to be transfused, hands the question to lens 07 |
+| E-77 | RePHILL stopped at 432 of 490. Composite outcome 64% against 65%. Death 43% against 45%. Death within 3 hours 16% against 22%, relative risk 0.75 (0.50-1.13) | A UK prehospital trial for the same exercise as PROPPR: the interval runs from halving early deaths to a 13% increase. 'No difference' and 'not enough patients to tell' are different statements |
+| E-79 | The brain injury trial set its significance thresholds at 0.1 for benefit and 0.025 for harm | The 0.05 line is a convention. Here the investigators moved it, and moved it differently in each direction |
+| E-76 | COMBAT's median transport was 19 and 16 minutes; median infusion before arrival was small | The trial tested plasma where there was little time to give it. The setting is part of the result |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |
@@ -48,7 +62,7 @@
 | Hook | 680 bleeding patients: 12.7% died with one transfusion ratio, 17.0% with the other. The paper reports no significant difference. Does the ratio matter? |
 | By hand | A hundred casualties sorted into hits, misses, false alarms and correct rejections for the MPTT-24, then again for the Military Sieve |
 | Diagnosis case | Protocol against practice (E-88) as two points on one curve; the scan in two settings |
-| Treatment case | Reading CRASH-2 beside PROPPR: same kind of question, very different certainty |
+| Treatment case | Reading CRASH-2 beside PROPPR and RePHILL: same kind of question, very different certainty. Then CRASH-2's own time subgroups against its prespecified rule |
 | Failure | One accuracy figure quoted for the wrong setting; a non-significant result read as no effect |
 | Central figure | Two hills and a sliding line |
 

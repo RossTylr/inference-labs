@@ -33,6 +33,17 @@ Evidence ids refer to [`../EVIDENCE.md`](../EVIDENCE.md). Status words (READ, SE
 
 ---
 
+## Added from the full text
+
+Findings taken from the papers themselves on 12 November 2026. Each is in the evidence register under the id shown.
+
+| Id | Finding | How the notebook can use it |
+|---|---|---|
+| E-117 | The three tasks, with the source's own example from health records: how can women with a history of stroke be grouped; what is the probability of a stroke next year; will starting a statin reduce the risk | The thread's three questions are now cited at source. Restate the example for the casualty: who is injured and how; who will die of bleeding; does tranexamic acid reduce those deaths |
+| E-81 | The golden hour authors say that, with several things changing at once and only 37.3% of casualties having matched records, only a descriptive reading was viable | An honest statement of which of the three questions a famous military result can answer |
+
+---
+
 ## Use in the notebook
 
 | Part | Material |
