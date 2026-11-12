@@ -25,7 +25,7 @@
 
 **Who was it written for?** The MPTT-24 loses thirteen points of sensitivity moving from soldiers to civilians (E-09). The needle rule fails in the other direction: written from civilian anatomy, it meets a military chest wall thicker than the needle is long (E-104), and the field record agrees (E-106). Both are the same failure. A rule carries its population with it and does not announce when it has left.
 
-**What does it throw away?** The ABC score counts a positive scan as one point whatever the scan showed and wherever it was done. A scan that moves belief to 61% and one that moves it to 90% score the same. That loss is the price of being usable in thirty seconds, and it is the comparison lens 03 exists to make.
+**What does it throw away?** The ABC score counts a positive scan as one point whatever the scan showed and wherever it was done. A scan that moves belief to 65% and one that moves it to 90% score the same. That loss is the price of being usable in thirty seconds, and it is the comparison lens 03 exists to make.
 
 **A rule can decay.** The ABC score's published sensitivity of 75% (E-31) became 36% in a later cohort (E-90). Nothing in the rule changed. Rules need revalidation as much as models do; they are simply less often given it.
 

@@ -9,13 +9,13 @@ This page explains one idea from that post and shows why the belief line in infe
 
 ## 1. Hook
 
-A positive pre-hospital scan moves the belief that a casualty is bleeding from 20% to 61%. The rule is: evacuate first if the belief is above 50%.
+A positive pre-hospital scan moves the belief that a casualty is bleeding from 20% to 65%. The rule is: evacuate first if the belief is above 50%.
 
 **Before reading on, guess.** Given what is known about how accurate that scan is, how often would the true answer fall below 50%?
 
 - Almost never
 - About 1 time in 100
-- About 1 time in 11
+- About 1 time in 25
 - About 1 time in 3
 
 ---
@@ -62,25 +62,25 @@ belief = (0.20 × sens) ÷ (0.20 × sens + 0.80 × (1 − spec))
 
 | Draw | Sensitivity | Specificity | Belief after a positive scan |
 |---|---|---|---|
-| 1 | 0.24 | 0.96 | 0.61 |
-| 2 | 0.17 | 0.96 | 0.49 |
-| 3 | 0.23 | 0.95 | 0.55 |
-| 4 | 0.24 | 0.97 | 0.69 |
-| 5 | 0.24 | 0.96 | 0.61 |
-| 6 | 0.21 | 0.97 | 0.67 |
-| 7 | 0.22 | 0.94 | 0.46 |
-| 8 | 0.22 | 0.95 | 0.50 |
-| 9 | 0.21 | 0.96 | 0.58 |
-| 10 | 0.26 | 0.96 | 0.60 |
+| 1 | 0.24 | 0.97 | 0.65 |
+| 2 | 0.17 | 0.96 | 0.53 |
+| 3 | 0.23 | 0.96 | 0.59 |
+| 4 | 0.24 | 0.98 | 0.75 |
+| 5 | 0.24 | 0.97 | 0.65 |
+| 6 | 0.21 | 0.98 | 0.72 |
+| 7 | 0.22 | 0.94 | 0.48 |
+| 8 | 0.22 | 0.95 | 0.54 |
+| 9 | 0.21 | 0.97 | 0.63 |
+| 10 | 0.26 | 0.96 | 0.63 |
 
-Ten rows, ten answers, from 0.46 to 0.69. Two of the ten are below one half. That table is the random variable. Everything after this is the same table with more rows and the loop hidden.
+Ten rows, ten answers, from 0.48 to 0.75. One of the ten is below one half. That table is the random variable. Everything after this is the same table with more rows and the loop hidden.
 
 ### The same thing with the loop hidden
 
 ```python
 rng  = np.random.default_rng(42)
-sens = RV(rng.beta(20, 60, 4000))     # assumption: fitted to 25% (16 to 36)
-spec = RV(rng.beta(288, 12, 4000))    # assumption: fitted to 96% (93 to 98)
+sens = RV(rng.beta(21, 63, 4000))     # 21 of 84 bleeds detected (E-16)
+spec = RV(rng.beta(257, 9, 4000))     # 257 of 266 without a bleed correctly clear (E-16)
 prior = 0.20                          # assumption
 
 belief = prior * sens / (prior * sens + (1 - prior) * (1 - spec))
@@ -90,9 +90,9 @@ The last line is the formula as you would write it on paper. There is no loop an
 
 | Question | Call | Answer |
 |---|---|---|
-| Best single figure | `belief.mean()` | 61% |
-| Plausible range | `belief.interval()` | 45% to 77% |
-| Chance it is above one half | `belief.prob(lambda d: d > 0.5)` | 91% |
+| Best single figure | `belief.mean()` | 65% |
+| Plausible range | `belief.interval()` | 48% to 82% |
+| Chance it is above one half | `belief.prob(lambda d: d > 0.5)` | 96% |
 
 ---
 
@@ -100,9 +100,9 @@ The last line is the formula as you would write it on paper. There is no loop an
 
 ### Diagnosis: the belief after a scan
 
-The answer to the hook is **about 1 time in 11**. The point estimate says 61%, comfortably above the line. The random variable says there is a 9% chance the belief is really below 50%, because the scan's sensitivity is itself known only roughly.
+The answer to the hook is **about 1 time in 25**. The point estimate says 65%, comfortably above the line. The random variable says there is a 4% chance the belief is really below 50%, because the scan's sensitivity is itself known only roughly.
 
-The same calculation with the in-hospital accuracy (74% and 98%, E-14) gives 90%, with a range of 83% to 96%. The whole range is above the line. So the setting changes not only the answer but how firmly it can be held.
+The same calculation with the in-hospital accuracy (74% and 98%, E-14) gives 90%, with a range of 83% to 96%. The source is a pooled analysis with no single table of counts, so the draws here are an assumption: sensitivity Beta(74, 26) and specificity Beta(294, 6). The whole range is above the line. So the setting changes not only the answer but how firmly it can be held.
 
 ### Treatment: carrying the belief into the benefit
 
@@ -115,7 +115,7 @@ weighted_reduction = belief * (1 - rr)
 
 | | Point arithmetic | Random variable |
 |---|---|---|
-| Belief-weighted relative reduction | 0.61 × 0.32 = 0.20 | 0.19, range 0.10 to 0.29 |
+| Belief-weighted relative reduction | 0.65 × 0.32 = 0.21 | 0.21, range 0.11 to 0.31 |
 
 The middle is the same. What the point arithmetic hides is that the plausible benefit spans nearly threefold. This step applies a population average to one casualty's belief, so it carries the **mechanism** label, not the evidence one (`DESIGN.md` section 12.4).
 
@@ -129,7 +129,7 @@ Now shuffle the draws of the miss rate, as would happen if the two were sampled 
 
 Nothing warns you. The arithmetic ran, and each array on its own still looks right. The rule that prevents it: quantities that come from the same source must come from the same draws, in the same order, and must never be sorted or resampled on their own.
 
-A second, quieter failure is summarising too early. Take the mean of the belief at the scan step, pass 61% on, and every later step inherits a false certainty. Summaries belong at the end of the pathway, not in the middle.
+A second, quieter failure is summarising too early. Take the mean of the belief at the scan step, pass 65% on, and every later step inherits a false certainty. Summaries belong at the end of the pathway, not in the middle.
 
 ---
 

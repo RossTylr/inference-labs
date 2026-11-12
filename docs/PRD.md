@@ -116,7 +116,7 @@ The thinnest slice that proves library, notebook and app together. Background: [
 |---|---|---|
 | R-1.1 | `lenses/bayesian.py` implements the Lens interface. `diagnose` returns the belief that the casualty is bleeding as an `RV` | G-2 |
 | R-1.2 | The belief line: prior from the mix, update on triage, update on the scan, carried unchanged to treatment and evacuation. Each step is a function that takes and returns an `RV` | G-2 |
-| R-1.3 | With seed 42, prior 0.20, sensitivity Beta(20, 60) and specificity Beta(288, 12), the belief after a positive pre-hospital scan is 61% (45 to 77%) and the probability it exceeds one half is 91%. With in-hospital accuracy it is 90% (83 to 96%). Tolerance one percentage point | G-2 |
+| R-1.3 | With seed 42, prior 0.20, sensitivity Beta(21, 63) and specificity Beta(257, 9) taken from the counts in E-16, 4,000 draws, the belief after a positive pre-hospital scan is 65% (48 to 82%) and the probability it exceeds one half is 96%. With in-hospital accuracy, drawn as Beta(74, 26) and Beta(294, 6) and marked as an assumption because E-14 is pooled, it is 90% (83 to 96%). Tolerance one percentage point | G-2 |
 | R-1.4 | The treatment case re-reads a trial with a prior: given a likelihood summary and a prior, return the posterior for the relative risk and the probability of benefit. Run on the fixture, and on real data only if a local path is supplied | G-2, G-6 |
 | R-1.5 | The failure case: a prior taken from the wrong population (in-hospital accuracy applied before hospital) and the belief it produces, shown beside the correct one | G-7 |
 | R-1.6 | The shuffled-draws failure from the explainer is reproduced as a test: sorting or resampling one of two paired quantities changes the answer | G-2 |
