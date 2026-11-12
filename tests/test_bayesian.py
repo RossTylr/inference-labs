@@ -110,12 +110,22 @@ def test_real_data_rows_are_labelled_evidence_and_need_a_path_outside_the_reposi
         b.BayesianLens(crash3_path=str(b.FIXTURE_CRASH3)).scorecard()
 
 
-def test_scorecard_rows_are_well_formed_and_the_baseline_is_pending(root):
+def test_scorecard_rows_are_well_formed_and_the_baseline_is_the_mptt24(root):
+    """R-2.11: the baseline column is the MPTT-24 under its default reading, scored on the same casualties against
+    the same target; the treatment row, for which the rule states no probability, holds NaN."""
+    from inference_labs import baseline
+
     rows = b.LENS.scorecard()
     assert rows and all(not row_problems(r, root) for r in rows)
-    assert all(r.baseline == "pending slice 2" for r in rows)
     assert {r.case for r in rows} == {"diagnosis", "treatment"}
     assert all(r.label == "mechanism" for r in rows)
+    diagnosis = [r for r in rows if r.case == "diagnosis"]
+    assert all(isinstance(r.baseline, float) and not math.isnan(r.baseline) for r in diagnosis)
+    assert all(math.isnan(r.baseline) for r in rows if r.case == "treatment")
+    observed, truth = b._battle(*b.generator.sample(b.EVAL_N, b.EVAL_SEED, setting="pre_hospital", return_truth=True))
+    expected = baseline.flag_metrics(baseline.priority_one(observed, "figure"), truth["free_fluid"].to_numpy(bool))
+    first = {key: diagnosis[i].baseline for i, (key, _) in enumerate(b.DIAGNOSIS_METRICS)}
+    assert first == {key: round(expected[key], 4) for key, _ in b.DIAGNOSIS_METRICS}
 
 
 def test_the_lens_is_calibrated_on_the_generator_that_made_the_data():

@@ -31,6 +31,11 @@ Where the numbers come from
 
 Every result computed on the generator or the fixtures carries the mechanism label (D-8). A result on a real
 trial file, read from a local path outside the repository, carries the evidence label.
+
+The baseline column of the scorecard is the MPTT-24 under its default reading (baseline.py), scored on the same
+casualties against the same target: its Priority 1 counted as a flag for abdominal bleeding. The rule was written
+to find casualties who need a life-saving intervention, not abdominal bleeding. It states no probability that a
+treatment works, so the treatment row has no baseline figure and holds NaN.
 """
 from __future__ import annotations
 
@@ -44,15 +49,16 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from inference_labs import generator
+from inference_labs import baseline, generator
 from inference_labs.belief import RV
 from inference_labs.interface import ScorecardRow, is_real_data_path
+from inference_labs.lenses import rules
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_CRASH3 = REPO_ROOT / "tests" / "fixtures" / "crash3.csv"
 
 LENS_NAME = "Bayesian"
-PENDING = "pending slice 2"          # the baseline row while the MPTT-24 is a stub (R-1.8)
+NO_BASELINE = float("nan")           # the MPTT-24 states no probability that a treatment works (R-2.11)
 
 N_DRAWS = 4000
 SEED = 42
@@ -361,6 +367,7 @@ def evaluate(setting: str, prior: float | None = None) -> dict:
         "specificity": float((~flagged[~target]).mean()),
         "brier": float(np.mean((belief - target) ** 2)),
         "calibration": float(belief.mean() - target.mean()),
+        "baseline": baseline.flag_metrics(baseline.priority_one(observed), target),
     }
 
 
@@ -395,16 +402,17 @@ class BayesianLens:
             result = evaluate(setting, self.prior)
             for key, metric in DIAGNOSIS_METRICS:
                 rows.append(ScorecardRow(LENS_NAME, "diagnosis", f"{metric}, {SETTING_NAMES[setting]}",
-                                         round(result[key], 4), PENDING, "mechanism", "native", "generator"))
+                                         round(result[key], 4), round(result["baseline"][key], 4), "mechanism",
+                                         "native", "generator"))
         metric = "probability tranexamic acid reduces head injury death, CRASH-2 prior"
         fixture = reread_trial(summary_from_file(FIXTURE_CRASH3), PRIORS["CRASH-2"])
-        rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(fixture.prob_benefit(), 4), PENDING,
+        rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(fixture.prob_benefit(), 4), NO_BASELINE,
                                  "mechanism", "weak", f"fixture:{FIXTURE_CRASH3.name}"))
         if self.crash3_path is not None:
             if not is_real_data_path(self.crash3_path, REPO_ROOT):
                 raise ValueError("a real-data path must be an absolute path outside the repository")
             real = reread_trial(summary_from_file(self.crash3_path), PRIORS["CRASH-2"])
-            rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(real.prob_benefit(), 4), PENDING,
+            rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(real.prob_benefit(), 4), NO_BASELINE,
                                      "evidence", "weak", self.crash3_path))
         return rows
 
@@ -444,6 +452,8 @@ class Walkthrough:
     line: dict
     reduction: RV
     band_name: str
+    needs_lsi: bool = False
+    significant_bleeding: bool = False
 
     def band(self) -> list[dict]:
         """The belief line as a band: mean and 95% interval at each step."""
@@ -496,7 +506,7 @@ class Walkthrough:
             ),
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),
-            "baseline": f"Baseline, the MPTT-24: {PENDING}.",
+            "baseline": rules.panel(self.record, self.needs_lsi, self.significant_bleeding, percent(final.mean())),
             "band": self.band(),
         }
 
@@ -516,4 +526,5 @@ def walkthrough(patient_type: str = "haemorrhage", setting: str = "pre_hospital"
     line = belief_line(record, prior)
     band_name, _ = delay_band(float(record["t_phec_min"]))
     return Walkthrough(patient_type, setting, prior, casualty, record, bool(truth["free_fluid"].iloc[i]), line,
-                       weighted_reduction(line["treatment"], float(record["t_phec_min"])), band_name)
+                       weighted_reduction(line["treatment"], float(record["t_phec_min"])), band_name,
+                       bool(truth["needs_lsi"].iloc[i]), bool(truth["bleeding"].iloc[i]))

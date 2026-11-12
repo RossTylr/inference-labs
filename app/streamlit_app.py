@@ -1,4 +1,5 @@
-"""inference-labs, page one: the casualty walk-through, with the Bayesian panel (R-1.9).
+"""inference-labs, page one: the casualty walk-through, with the Bayesian panel (R-1.9) and beside it the rules
+panel, the baseline (R-2.12).
 
     streamlit run app/streamlit_app.py
 
@@ -51,11 +52,27 @@ st.vega_lite_chart(shown["band"], BAND, width="stretch")
 st.caption("The band holds the middle of the draws at each step; the dotted line is one half. Treatment and "
            "evacuation use the belief without changing it.")
 
-st.table(shown["table"])
-st.markdown(shown["findings"])
-st.markdown(f"**{shown['truth']}**")
-st.markdown(shown["baseline"])
-st.caption("Every figure on this page other than the trial's absolute reduction is a mechanism: computed on "
-           "synthetic casualties, it can only confirm the model that made them. Scan accuracy before hospital comes from the published counts (E-16); in hospital "
-           "it is an assumption centred on pooled figures (E-14). Both studies are civilian. The triage reading is "
-           "systolic pressure at or below the ABC score's threshold (E-31).")
+left, right = st.columns(2)
+with left:
+    st.table(shown["table"])
+    st.markdown(shown["findings"])
+    st.markdown(f"**{shown['truth']}**")
+with right:
+    rules_panel = shown["baseline"]
+    st.subheader(rules_panel["heading"])
+    st.markdown(rules_panel["priority"])
+    st.markdown("\n".join(f"- {step}" for step in rules_panel["steps"]))
+    if rules_panel["action"]:
+        st.markdown(rules_panel["action"])
+    st.markdown(f"**{rules_panel['truth']}**")
+    st.markdown(rules_panel["transfusion"])
+    st.markdown(f"**{rules_panel['bleeding']}**")
+    st.markdown(rules_panel["txa"])
+    st.caption(rules_panel["published"])
+
+st.caption("Every figure on this page is a mechanism, computed on synthetic casualties, which can only confirm the "
+           "model that made them, except the published figures, each given with its evidence id: the trial's "
+           "absolute reduction and the rules' published accuracy. Scan accuracy before hospital comes from the "
+           "published counts (E-16); in hospital it is an assumption centred on pooled figures (E-14). Both studies "
+           "are civilian. The Bayesian triage reading is systolic pressure at or below the ABC score's threshold "
+           "(E-31). The MPTT-24 is coded from the published flowchart (E-08).")
