@@ -150,6 +150,29 @@ One row each. Before a slice starts, its row is expanded into a requirements tab
 | 10 | 06 Connectionist | `06-connectionist.md` | Method on a proxy image set, labelled as such; a shortcut feature learned and exposed | — |
 | 11 | Notebooks 00 and 11; app pages 2 to 4; lens pages and gallery | `00-casualty-thread.md`, `11-hybrids.md` | Conformal prediction on the baseline and the tree; the lens table generated from scorecards | At least five lenses BUILT |
 
+### 6.2 Slice 2 — lens 01, Rules
+
+The rule every later lens is compared against (D-9). Background: [`background/01-rules.md`](background/01-rules.md).
+
+| Id | Requirement | Gate |
+|---|---|---|
+| R-2.1 | `baseline.py` replaces the stub with the MPTT-24 coded as the six steps of E-08, in E-08's order and with E-08's thresholds and no others: catastrophic haemorrhage, yes gives Priority 1; walking, yes gives Priority 3; breathing, no gives Dead; responds to voice (R-2.2); respiratory rate 12 to 23, no gives Priority 1; heart rate below 100, yes gives Priority 2 and no gives Priority 1. It returns the priority and the step at which the casualty left. The generator records no breathing check, so its casualties are taken as breathing, and that is stated as an assumption | G-2 |
+| R-2.2 | The voice step has a switch. `figure`, the default, reads the published figure: only a casualty who does not respond to voice leaves for Priority 1. `text` reads the paper's text: anything below alert leaves for Priority 1. The notebook counts the casualties whose priority differs between the two readings on the generator's military cohort (n = 100,000, seed 42) | G-2, G-7 |
+| R-2.3 | A calibration check on the generator, not evidence about the rule: on the military cohort at n = 100,000, seed 42, the coded rule under the `text` reading, the one that matches the GCS below 14 on which E-09 was measured, reproduces E-09's sensitivity and specificity within the tolerances in `params.yaml`. The `figure` reading's figures are shown beside them and are not held to E-09 | G-2 |
+| R-2.4 | Notebook `01_rules.ipynb` follows the seven-part pattern and opens on the background file's hook: guidance recommended a needle of about 5 cm; in 100 soldiers the mean chest wall was 5.36 cm (E-104); what happened in the field? The reader guesses before the answer is given | G-7, G-10 |
+| R-2.5 | By hand: ten synthetic casualties from the generator are run through the MPTT-24 on paper, then in plain Python, then through the library, which must agree with the hand count | G-7 |
+| R-2.6 | Central figure: the sieve. Synthetic casualties drop through the six steps into the priority bins, shaded by whether they need a life-saving intervention, with the reading and the cohort as controls. Marked central | G-7 |
+| R-2.7 | Diagnosis case: MPTT-24 priority on the generator's casualties, with the Military Sieve beside it as E-10's published operating point and the MPTT-24's own as E-09's, both in the military registry: the newer rule finds more of those who need intervention and wrongly flags more of those who do not. The Sieve is not coded, because the register holds its performance and not its algorithm. Every published figure is said to come from first hospital observations (E-11) | G-7, G-10 |
+| R-2.8 | Treatment case: `lenses/rules.py` codes the ABC score (E-31) as a second rule, four unweighted items with a score of 2 or more activating transfusion, and runs it on the generator's battle casualties in both settings. Beside it: the four-item doctrine rule (E-86), of which only the two bedside items can be read at the point of injury, and tranexamic acid inside or outside three hours (E-86, from E-22). Which mechanisms count as penetrating, and significant bleeding as the stand-in for massive transfusion, are assumptions and are stated where used | G-2, G-7, G-10 |
+| R-2.9 | Failure: a rule meeting a population it was not written for. The needle rule is produced from E-104's mean and standard deviation under an assumed normal shape, checked against E-104's 99% for an 8 cm catheter, and set beside the field record (E-106). With it, from the background file: the MPTT-24 in the civilian registry (E-09), with its two predictive values reproduced from the two prevalences, and the ABC score's fall (E-31 against E-90) | G-2, G-7, G-10 |
+| R-2.10 | The lens's scorecard reports the seven axes of D-21. Axes 1, 2 and 6 are computed on the generator for the MPTT-24 (diagnosis) and the ABC score (treatment) and carry the mechanism label; axes 3, 4 and 5 are stated; axis 7 reads pending until lens 10. Fit is native for both cases | G-6, G-7 |
+| R-2.11 | The Bayesian scorecard's "pending slice 2" baselines are replaced by the MPTT-24 under its default reading, scored on the same casualties against the same target. The treatment row, for which the rule states no probability, holds NaN and the notebook says why. `03_bayesian.ipynb` is re-executed | G-6, G-7 |
+| R-2.12 | App page 1 gains the rules panel beside the Bayesian one for the selected casualty: the MPTT-24's steps and priority under both readings, the ABC score and its items, and the three-hour rule for tranexamic acid. Every number comes from the library and carries a label; a published figure carries its evidence id and population | G-8, G-9, G-10 |
+
+**Done when:** `python -m harness.validate --slice 2` writes BUILT.
+**Gates run:** all. The sceptic's review is checked by G-11.
+**Blocked by:** O-1, closed 12 November 2026.
+
 ---
 
 ## 7. Build plan

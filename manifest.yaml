@@ -104,10 +104,18 @@ slices:
       - tests/planted/test_g11_sceptic.py
   2:
     title: Lens 01, Rules
-    approved: null
+    approved: 2026-11-12
     blocked_by: [O-1]
+    background: docs/background/01-rules.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    # The sceptic's review, reviews/slice-2.md, is checked by G-11, not listed here.
+    files:
+      - src/inference_labs/baseline.py
+      - src/inference_labs/lenses/rules.py
+      - tests/test_baseline.py
+      - tests/test_rules.py
+      - notebooks/01_rules.ipynb
+      - app/streamlit_app.py
   3:
     title: Lens 02, Frequentist
     approved: null
