@@ -42,6 +42,9 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 | E-30 | Risk of death from bleeding is U-shaped in heart rate and respiratory rate | Why a triage rule needs a band with two ends, not a single cut-off |
 | E-118 | A three-rule list on age, sex and prior offences set against a proprietary tool with over 130 inputs | A rule list is a model that can be learned from data and checked by eye. Sets up lens 04 |
 | E-20 | Entry to CRASH-2 was by the clinician's judgement that the patient was bleeding or at risk, not by a test | The rule 'give tranexamic acid to the bleeding casualty' inherits a judgement call at its first step |
+| E-08 | The MPTT-24 flowchart, read from the paper: haemorrhage, walking, breathing, voice, respiratory rate 12 to 23, heart rate below 100 | The rule to code, step for step. Five of its six exits can end in Priority 1 or Dead before the last question is reached |
+| E-08 | The text says 'responds to voice' replaces 'GCS below 14'; the figure, read literally, lets a casualty who responds only to voice pass to the next step | A rule's prose and its diagram disagree for one group of patients. Code both readings, count how many casualties change priority, and let the reader see what a one-word ambiguity costs |
+| E-09 | The rule was tested on hospital respiratory rate and registry GCS, in a cohort where 47.6% were Priority 1; positive predictive value 67.0% there and 34.0% in a civilian cohort where 19.5% were | The same rule, two prevalences, two predictive values. Hands the base-rate point to lens 03 |
 
 ---
 

@@ -163,7 +163,7 @@ One row each. Before a slice starts, its row is expanded into a requirements tab
 | 5 | Builder | Slice 1 | Bayesian lens, notebook 03, app page 1 | All |
 | 6 | Sceptic | Review slice 1 in a fresh context | `reviews/slice-1.md` | G-11 |
 | 7 | Ross | Run the notebook and the app; decide whether the pattern is right before repeating it nine times | Go, or change the pattern once here | — |
-| 8 | Ross | Close O-1: confirm the MPTT-24 flowchart | Note in `EVIDENCE.md` | — |
+| 8 | Ross | Close O-1: confirm the MPTT-24 flowchart. Done 12 November 2026; the algorithm is recorded in E-08 | Note in `EVIDENCE.md` | — |
 | 9 | Builder, sceptic | Slices 2 to 10, one at a time: expand the row, approve, build, review | One lens each | All |
 | 10 | Builder, sceptic | Slice 11 | Notebooks 00 and 11, app pages 2 to 4 | All |
 
@@ -187,7 +187,7 @@ The build is run from [`BUILD.md`](BUILD.md), not from prompts. `CLAUDE.md` at t
 | Item | What Ross does | Blocks |
 |---|---|---|
 | O-6 | Confirmed on 12 November 2026 for E-14 to E-16. Mark it closed in the manifest once slice 0 has created it | Slice 1 verdict, until marked |
-| O-1 | Open Figure 2 of `vassallo2017d`; confirm step order and the heart rate comparison | Slice 2 |
+| O-1 | Closed 12 November 2026. The algorithm is in E-08, with one ambiguity between text and figure for the builder to expose as a switch | Nothing |
 | O-2 | Read the freeBIRD data sharing terms; register if content | Real-data cells only |
 | O-3 | Confirm the current edition of AJP-4.10 | Slice 8 |
 | O-9 | Read the papers behind E-76, E-79, E-81 | Nothing; tidy before publication |

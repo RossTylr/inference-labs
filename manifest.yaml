@@ -9,11 +9,11 @@ params: params.yaml
 frozen: null
 
 open_items:
-  O-1: {status: open, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
+  O-1: {status: closed, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
   O-2: {status: open, reason: "Read the freeBIRD data sharing terms before any CRASH-2 or CRASH-3 file enters a notebook"}
   O-3: {status: open, reason: "Confirm that AJP-4.10 Edition C is current"}
   O-4: {status: closed, reason: "Complete the citation for vassallo2017c"}
-  O-5: {status: open, reason: "Check the Table 2 confidence intervals in vassallo2017d against the version of record"}
+  O-5: {status: closed, reason: "Check the Table 2 confidence intervals in vassallo2017d against the version of record"}
   O-6: {status: closed, reason: "Re-read the CARRIED entries, E-14 to E-16 above all, against netherton2019 and partyka2022"}
   O-7: {status: open, reason: "Check volume and page numbers completed from general knowledge"}
   O-8: {status: open, reason: "Complete author lists and check the surnames listed in EVIDENCE.md Part C"}

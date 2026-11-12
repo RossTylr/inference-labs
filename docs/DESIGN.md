@@ -40,6 +40,7 @@ inference-labs is a learning repository: its aim is to learn inference through u
 | D-18 | Every lens opens with a plain general explainer of the idea before any clinical case, and is taught through many visuals, in three registers | Section 12. The explainer makes each notebook usable by someone who has never met the method |
 | D-19 | The belief is carried as a random variable: an array of draws with ordinary arithmetic defined on it, summarised only at the end of the pathway | The scan's accuracy is known only as an interval, so the belief is too. A point of 65% hides a 4% chance of being below one half. Idea from E-70; worked in `docs/explainers/belief-as-a-random-variable.md` |
 | D-20 | Every lens has a background file in `docs/background/` that the builder reads before writing the notebook. It fixes the hook, the by-hand case, the two worked cases and the failure against published findings, and lists what must not be claimed | Synthetic data show a mechanism; real findings are what the mechanism is checked against. Section 13 |
+| D-21 | The scorecard has seven axes, the same for every lens: (1) discrimination: sensitivity and specificity at the lens's operating point; (2) calibration: Brier score and mean prediction minus observed share; (3) uncertainty expressed: none, an interval, or a distribution; (4) what it needed: rules only, labelled cases and how many, or a stated causal structure; (5) readability: whether a medic could follow it at the point of care, with the number of steps; (6) robustness: axes 1 and 2 repeated with the care setting changed; (7) decision value: net benefit at a stated threshold, reported as pending until lens 10 is built | The pattern named 'seven axes' without defining them. Axes 1, 2 and 6 are computed; 3, 4 and 5 are stated per lens; 7 arrives with decision theory. Applies from slice 2; slice 1 already reports 1, 2 and 6 and gains the rest at the pattern review after it is BUILT |
 
 ---
 
@@ -268,7 +269,7 @@ Each principle is tied to a source read on 9 November 2026 (evidence ids E-61 to
 | 3. By hand | Ten casualties counted, then plain Python, then the library and the notation | T-3, T-4 |
 | 4. The two cases | Diagnosis and treatment, on the casualty thread, against the baseline | T-5, T-10 |
 | 5. The failure | The characteristic failure, produced deliberately | T-6 |
-| 6. Scorecard | The seven axes, the fit, the evidence labels | T-11 |
+| 6. Scorecard | The seven axes (D-21), the fit, the evidence labels | T-11 |
 | 7. Brain analogy | What it resembles, and where the resemblance stops | T-11 |
 
 ### 12.3 Explainers and visuals, lens by lens
@@ -305,7 +306,7 @@ The belief line is the integration visual and appears in notebook 11 and on app 
 | Treatment | Used: expected benefit is belief, times risk if bleeding, times relative reduction, times the benefit left after delay | Causal, stochastic |
 | Evacuation | Used: the decision acts on expected benefit, not on a yes or no | Decision theory |
 
-Three cautions are taught, not hidden. Physiology and scan both reflect blood loss, so updating on them as if independent overstates certainty; the generator knows the true dependence and the notebook shows the error. A rule discards the belief: the transfusion score treats a positive scan the same whether it moved belief to 61% or to 90%. And a trial's relative risk is a population average, so applying it to one casualty's probability is a modelling step and carries the mechanism label.
+Three cautions are taught, not hidden. Physiology and scan both reflect blood loss, so updating on them as if independent overstates certainty; the generator knows the true dependence and the notebook shows the error. A rule discards the belief: the transfusion score treats a positive scan the same whether it moved belief to 65% or to 90%. And a trial's relative risk is a population average, so applying it to one casualty's probability is a modelling step and carries the mechanism label.
 
 **The belief is a distribution (D-19).** From the scan step onward the belief is an array of draws, not one number. Related quantities share draws and are never sorted or resampled separately. The notebook shows the draws as a table before hiding them behind the type (T-4). On the app, moving the prior recomputes the draws; the walk-through page draws a band, not a bar.
 
