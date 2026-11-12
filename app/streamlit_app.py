@@ -30,6 +30,7 @@ shown = bayesian.walkthrough(patient_type, setting, prior, int(casualty)).displa
 st.subheader("Bayesian panel: is this casualty bleeding into the abdomen?")
 for column, (label, value) in zip(st.columns(len(shown["metrics"])), shown["metrics"].items()):
     column.metric(label, value)
+st.caption(shown["treatment"])
 
 BAND = {
     "height": 300,
@@ -54,7 +55,7 @@ st.table(shown["table"])
 st.markdown(shown["findings"])
 st.markdown(f"**{shown['truth']}**")
 st.markdown(shown["baseline"])
-st.caption("Every figure on this page is a mechanism: computed on synthetic casualties, it can only confirm the "
-           "model that made them. Scan accuracy before hospital comes from the published counts (E-16); in hospital "
+st.caption("Every figure on this page other than CRASH-2's absolute reduction is a mechanism: computed on "
+           "synthetic casualties, it can only confirm the model that made them. Scan accuracy before hospital comes from the published counts (E-16); in hospital "
            "it is an assumption centred on pooled figures (E-14). Both studies are civilian. The triage reading is "
            "systolic pressure at or below the ABC score's threshold (E-31).")

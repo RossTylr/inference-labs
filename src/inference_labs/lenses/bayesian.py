@@ -22,8 +22,9 @@ Where the numbers come from
 - The 90 mm Hg threshold is the systolic item of the ABC transfusion score (E-31). How often that reading is
   present with and without abdominal bleeding is counted on the generator, so it is a mechanism, not evidence.
 - The prior from the mix is counted on the generator: a mechanism.
-- Relative risk of bleeding death with tranexamic acid by delay band: E-22. The log-normal shape fitted to each
-  interval is an assumption.
+- Relative risk of bleeding death with tranexamic acid by delay band: CRASH-2 (E-22). CRASH-2 is civilian, so
+  using its figures for a military casualty is an assumption. The log-normal shape fitted to each interval is an
+  assumption.
 - Trial summaries for the treatment case: CRASH-3 head injury-related death (E-27) and its mild to moderate
   subgroup (E-28); CRASH-2 all-cause death (E-20); death within 3 hours in RePHILL (E-77), a secondary outcome.
   The sceptical, enthusiastic and minimally informative priors are assumptions.
@@ -80,12 +81,16 @@ SCAN_ACCURACY = {
     },
 }
 
-# E-22: relative risk of death from bleeding with tranexamic acid, by time from injury to treatment.
+# E-22: relative risk of death from bleeding with tranexamic acid, by time from injury to treatment, in CRASH-2,
+# a civilian trial. Using these figures for a military casualty is an assumption.
 TXA_RR_BANDS = (
     ("up to 1 hour", 60.0, (0.68, 0.57, 0.82)),
     ("1 to 3 hours", 180.0, (0.79, 0.64, 0.97)),
     ("over 3 hours", math.inf, (1.44, 1.12, 1.84)),
 )
+# E-22: deaths from bleeding when treated within an hour of injury, placebo against tranexamic acid, per cent.
+TXA_FIRST_HOUR_DEATHS = (7.7, 5.3)
+TXA_FIRST_HOUR_POINTS = round(TXA_FIRST_HOUR_DEATHS[0] - TXA_FIRST_HOUR_DEATHS[1], 1)   # absolute reduction
 
 
 # ------------------------------------------------------------------------------------------------ updating
@@ -456,13 +461,25 @@ class Walkthrough:
         scan_text = "not done" if scan is None else ("free fluid seen" if scan else "no free fluid seen")
         final = self.line["evacuation"]
         lo, hi = self.reduction.interval()
+        before, after = TXA_FIRST_HOUR_DEATHS
         return {
             "metrics": {
                 "Belief before any finding": percent(self.line["start"].mean()),
                 "Belief after the scan": percent(final.mean()),
                 "Chance the belief is above one half": percent(final.prob(lambda d: d > EVACUATE_ABOVE)),
-                "Belief-weighted reduction in bleeding death": f"{self.reduction.mean():.2f}",
+                "Belief times relative reduction (mechanism)": f"{self.reduction.mean():.2f}",
+                "CRASH-2 absolute reduction, within an hour (E-22)": f"{TXA_FIRST_HOUR_POINTS:.1f} points",
             },
+            "treatment": (
+                "Belief times relative reduction is the belief that this casualty is bleeding, multiplied by the "
+                "relative reduction in death from bleeding that CRASH-2 found for the delay (E-22). This step applies "
+                "a population average to one casualty's belief, so it is a modelling step and carries the mechanism "
+                "label. It is a diagnosis result put to use, not a treatment result, and it is not a change in this "
+                "casualty's risk of death. For scale, in CRASH-2 deaths from bleeding among those treated within an "
+                f"hour of injury were {before:.1f}% with placebo and {after:.1f}% with tranexamic acid, an absolute "
+                f"reduction of {TXA_FIRST_HOUR_POINTS:.1f} points (E-22). CRASH-2 is civilian, so using its figures "
+                "for a military casualty is an assumption."
+            ),
             "table": [
                 {"Step": STEP_NAMES[step], "Belief": percent(self.line[step].mean()),
                  "95% interval": interval_text(self.line[step]),
@@ -474,7 +491,8 @@ class Walkthrough:
                 f"({'at or below' if triage_reading(self.record) else 'above'} {TRIAGE_SBP_AT_OR_BELOW}). "
                 f"Scan {SETTING_NAMES[self.setting]}: {scan_text}. "
                 f"Time to pre-hospital care {self.record['t_phec_min']:.0f} minutes, so the tranexamic acid band is "
-                f"{self.band_name}; the reduction is {self.reduction.mean():.2f} ({lo:.2f} to {hi:.2f})."
+                f"{self.band_name}; belief times relative reduction is {self.reduction.mean():.2f} "
+                f"({lo:.2f} to {hi:.2f}), a mechanism figure."
             ),
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),

@@ -28,7 +28,7 @@ Read `manifest.yaml` and the last rows of `LEDGER.md`. Take the lowest-numbered 
 | S-5 | Approved, ready | Approved, nothing blocking, no BUILT row | Build the slice (section 4) | Builder |
 | S-6 | Built, awaiting review | Every gate other than G-11 passes, whether or not an open item is still unresolved | Stop. Tell Ross to open a new session and type `review` | — |
 | S-7 | Review found a breach | `reviews/slice-N.md` ends `VERDICT: BREACH` | Fix only the lines marked BREACH, re-run the validator, return to S-6 | Builder |
-| S-8 | Revise limit reached | Three consecutive REVISE rows for the slice | Stop. Tell Ross to type `unstick` | — |
+| S-8 | Revise limit reached | Three consecutive REVISE rows for the slice in which a gate other than G-11 fails. Rows where only G-11 fails are the normal state while a slice awaits review and do not count. | Stop. Tell Ross to type `unstick` | — |
 | S-9 | All slices built | Slice 11 is `BUILT` | Report completion. Do nothing else | — |
 
 An unresolved open item does not hold up the review: in state S-6 the review goes ahead. The slice is recorded `BUILT` only when G-11 passes and every item in its `blocked_by` list is closed or waived in the manifest.
@@ -88,6 +88,8 @@ The sceptic did not build the slice. If this session wrote any of the slice's co
    - a diagnosis result read as a treatment result;
    - each number traced to an evidence id, and the id says what the notebook says;
    - each figure: does it change what a reader would conclude.
+
+   The review is exhaustive in one pass: check every cell and every app element against every item, and where a later review raises a breach in lines that have not changed since the previous review, mark it MISSED.
 3. End the file with `VERDICT: HOLDS` or `VERDICT: BREACH`.
 4. Run `python -m harness.validate --slice N` and commit.
 
