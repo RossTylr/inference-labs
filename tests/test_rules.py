@@ -47,7 +47,8 @@ def test_the_doctrine_rule_cannot_be_met_from_the_bedside_alone():
 
 def test_tranexamic_acid_only_within_three_hours():
     assert r.txa_inside(180) and not r.txa_inside(181)
-    assert r.LENS.treat(_casualty(t_phec_min=200.0)).tranexamic_acid is False
+    assert r.LENS.treat(_casualty(t_phec_min=200.0)).tranexamic_acid_time_condition_met is False
+    assert r.LENS.treat(_casualty(t_phec_min=50.0)).tranexamic_acid_time_condition_met is True
 
 
 def test_the_military_sieve_is_only_a_published_operating_point():

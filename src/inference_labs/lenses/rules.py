@@ -217,12 +217,14 @@ def treatment_metric(name: str, setting: str) -> str:
 
 @dataclass(frozen=True)
 class Treatment:
-    """What the treatment rules say for one casualty."""
+    """What the treatment rules say for one casualty. For tranexamic acid the doctrine sets only a condition, that
+    it be started within 3 hours of injury (E-86); it does not say who is to receive it, so the field records whether
+    the condition is met, not a decision to give it."""
 
     abc_score: int
     transfusion: bool
     doctrine_bedside_items: int
-    tranexamic_acid: bool
+    tranexamic_acid_time_condition_met: bool
 
 
 class RulesLens:
@@ -347,10 +349,11 @@ def panel(record: Mapping[str, Any], needs_lsi: bool, significant_bleeding: bool
                 "In the generator this casualty is not bleeding significantly, the stand-in here for needing "
                 "transfusion (an assumption).")
     minutes = float(record["t_phec_min"])
+    condition = ("inside 3 hours, so the rule's time condition is met; the doctrine does not say who is to receive it"
+                 if txa_inside(minutes) else "outside 3 hours, so the rule withholds it")
     txa = (
         f"Tranexamic acid, US military resuscitation doctrine (E-86): given only if started within 3 hours of "
-        f"injury. Time to pre-hospital care {minutes:.0f} minutes: "
-        f"{'inside 3 hours, so the rule gives it' if txa_inside(minutes) else 'outside 3 hours, so the rule withholds it'}. "
+        f"injury. Time to pre-hospital care {minutes:.0f} minutes: {condition}. "
         "The limit is CRASH-2's exploratory result by time to treatment written as an instruction (E-22, E-23); "
         "CRASH-2 is civilian, so applying it to a military casualty is an assumption."
     )
