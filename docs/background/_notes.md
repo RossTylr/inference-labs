@@ -1,3 +1,5 @@
+These are working notes, taken as each source was read and kept as provenance; [`docs/EVIDENCE.md`](../EVIDENCE.md) is the register of record.
+
 # Raw notes (own words), taken at fetch time. Source route in brackets.
 
 ## proppr2015 [EuropePMC abstract] Holcomb JB, Tilley BC, Baraniuk S, Fox EE, Wade CE, Podbielski JM et al. JAMA 2015;313(5):471-482. doi:10.1001/jama.2015.12

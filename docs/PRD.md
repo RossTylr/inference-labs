@@ -129,7 +129,7 @@ The thinnest slice that proves library, notebook and app together. Background: [
 
 **Done when:** `python -m harness.validate --slice 1` writes BUILT.
 **Gates run:** all.
-**Blocked by:** O-6 for the scan accuracy rows (E-14 to E-16). The slice may be built with those rows marked provisional; the verdict is BLOCKED, not BUILT, until O-6 is closed or Ross records an explicit waiver in the manifest.
+**Blocked by:** O-6 for the scan accuracy rows (E-14 to E-16). The slice may be built with those rows marked provisional; the verdict is BLOCKED, not BUILT, until O-6 is closed or Ross records an explicit waiver in the manifest. The review is not held up by O-6: it goes ahead once every gate other than G-11 passes.
 
 ---
 

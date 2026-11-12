@@ -14,7 +14,7 @@ Ten ways of reasoning applied to one military casualty, from point of injury to 
 
 **Developer.** A Python package, `inference_labs`, holding a seeded casualty generator, a belief type, ten lens modules behind one interface (`diagnose`, `treat`, `scorecard`) and a small knowledge graph. Twelve notebooks teach the lenses one at a time. A Streamlit app runs them side by side on the same casualty.
 
-**Technical.** Each lens is an inference procedure with stated inputs, assumptions and a characteristic failure. Diagnosis is framed as abduction: inference to the best explanation of the findings. Lenses are compared on a common scorecard against a rule-based baseline, the MPTT-24, on synthetic data with known generating structure and, in notebooks only, on open trial data.
+**Technical.** Each lens is an inference procedure with stated inputs, assumptions and a characteristic failure. Diagnosis is framed as abduction: inference to the best explanation of the findings. Lenses are compared on a common scorecard against a rule-based baseline, the MPTT-24, on synthetic data with known generating structure and, in notebooks only, on trial data available on registration.
 
 ## The ten lenses
 

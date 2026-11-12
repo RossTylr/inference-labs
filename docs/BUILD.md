@@ -26,10 +26,12 @@ Read `manifest.yaml` and the last rows of `LEDGER.md`. Take the lowest-numbered 
 | S-3 | Specified, not approved | Section 6.N exists; manifest has no `approved` date for the slice | Stop. Show the table again and ask Ross to approve | Builder |
 | S-4 | Approved, open item unresolved | An item in the slice's `blocked_by` is not marked closed or waived in the manifest | Build with provisional marking if the PRD allows it for that item; otherwise stop and name the item | Builder |
 | S-5 | Approved, ready | Approved, nothing blocking, no BUILT row | Build the slice (section 4) | Builder |
-| S-6 | Built, awaiting review | All gates pass except G-11 | Stop. Tell Ross to open a new session and type `review` | — |
+| S-6 | Built, awaiting review | Every gate other than G-11 passes, whether or not an open item is still unresolved | Stop. Tell Ross to open a new session and type `review` | — |
 | S-7 | Review found a breach | `reviews/slice-N.md` ends `VERDICT: BREACH` | Fix only the lines marked BREACH, re-run the validator, return to S-6 | Builder |
 | S-8 | Revise limit reached | Three consecutive REVISE rows for the slice | Stop. Tell Ross to type `unstick` | — |
 | S-9 | All slices built | Slice 11 is `BUILT` | Report completion. Do nothing else | — |
+
+An unresolved open item does not hold up the review: in state S-6 the review goes ahead. The slice is recorded `BUILT` only when G-11 passes and every item in its `blocked_by` list is closed or waived in the manifest.
 
 Slices 0 and 1 are already specified in the PRD and count as approved. State S-2 first applies at slice 2.
 
