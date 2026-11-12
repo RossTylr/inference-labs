@@ -32,7 +32,7 @@ The builder reads the lens's background file before writing the notebook. The ho
 | Anchor | As stated | As verified |
 |---|---|---|
 | Triage | "In a prospective military cohort the MPTT reached 83.6% sensitivity and 51.0% specificity" under the heading MPTT-24 | That figure is the earlier MPTT in one cohort of 357 (E-07). The MPTT-24 itself reached 66.7% and 69.9% on the military registry and 53.5% and 74.8% on a civilian one (E-09). Derivation by logistic regression is confirmed (E-02) |
-| Ultrasound | In hospital 69% and 99% for pneumothorax, 74% and 98% for free fluid; before hospital 25% and 96% | Unchanged, but still read only from search extracts (O-6). New: published military work on automating the scan is on swine, dogs and phantoms (E-102, E-103, E-122) |
+| Ultrasound | In hospital 69% and 99% for pneumothorax, 74% and 98% for free fluid; before hospital 25% and 96% | Unchanged, and confirmed against the full text of both papers on 12 November 2026 (E-14 to E-16). New: published military work on automating the scan is on swine, dogs and phantoms (E-102, E-103, E-122) |
 | Tranexamic acid | CRASH-2, 20,211 patients; prognostic model C-statistic 0.84 | Consistent with the register: 10,096 and 10,115 allocated (20,211), 20,127 analysed (E-19, read through a secondary source; E-30). New: a military observational counterpart (E-71) and a Bayesian reanalysis that uses CRASH-2 as a prior (E-74) |
 
 ## What this pass changed in the design

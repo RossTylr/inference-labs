@@ -124,7 +124,7 @@ Under 200 words, in this order:
 | Once, before anything | Create the repository; commit `CLAUDE.md`, `docs/` and `library/` |
 | To move the build on | Open a session at the repository root and type `build` |
 | After slice 0 is BUILT | Spot-check the calibration table in the report |
-| Before slice 1 can be BUILT | Close O-6: confirm E-14 to E-16 against the two source papers, update `EVIDENCE.md`, and mark O-6 closed in the manifest (or record a waiver there) |
+| Before slice 1 can be BUILT | Mark O-6 closed in the manifest. E-14 to E-16 were confirmed against the two source papers on 12 November 2026 and `EVIDENCE.md` is updated |
 | When told a slice awaits review | Open a new session and type `review` |
 | After slice 1 is BUILT | Run the notebook and the app. If the pattern needs changing, change it now |
 | Before slice 2 | Close O-1: confirm the MPTT-24 flowchart |

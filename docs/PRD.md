@@ -129,7 +129,7 @@ The thinnest slice that proves library, notebook and app together. Background: [
 
 **Done when:** `python -m harness.validate --slice 1` writes BUILT.
 **Gates run:** all.
-**Blocked by:** O-6 for the scan accuracy rows (E-14 to E-16). The slice may be built with those rows marked provisional; the verdict is BLOCKED, not BUILT, until O-6 is closed or Ross records an explicit waiver in the manifest. The review is not held up by O-6: it goes ahead once every gate other than G-11 passes.
+**Blocked by:** O-6 for the scan accuracy rows (E-14 to E-16). Those rows were read in full and confirmed on 12 November 2026, so O-6 is to be marked closed in the manifest before this slice starts. Were it still open, the slice could be built with those rows marked provisional and the verdict would be BLOCKED, not BUILT, until it was closed or waived. The review is not held up by O-6: it goes ahead once every gate other than G-11 passes.
 
 ---
 
@@ -159,7 +159,7 @@ One row each. Before a slice starts, its row is expanded into a requirements tab
 | 1 | Ross | Create the repository and commit the `docs/` and `library/` folders | Repository with design, evidence, background, PRD | — |
 | 2 | Builder | Slice 0 | Manifest, parameters, generator, belief type, interface, graph store, harness | G-1 to G-6, G-12 |
 | 3 | Ross | Read the slice 0 ledger row; spot-check the calibration table | Go or revise | — |
-| 4 | Ross | Close O-6: confirm the scan accuracy figures from the two source papers | `EVIDENCE.md` rows E-14 to E-16 moved from CARRIED to READ, or corrected | — |
+| 4 | Ross | Close O-6. Done 12 November 2026: both source papers read in full and the figures confirmed. Remaining action: mark O-6 closed in the manifest | `EVIDENCE.md` rows E-14 to E-16 at READ | — |
 | 5 | Builder | Slice 1 | Bayesian lens, notebook 03, app page 1 | All |
 | 6 | Sceptic | Review slice 1 in a fresh context | `reviews/slice-1.md` | G-11 |
 | 7 | Ross | Run the notebook and the app; decide whether the pattern is right before repeating it nine times | Go, or change the pattern once here | — |
@@ -186,7 +186,7 @@ The build is run from [`BUILD.md`](BUILD.md), not from prompts. `CLAUDE.md` at t
 
 | Item | What Ross does | Blocks |
 |---|---|---|
-| O-6 | Open `netherton2019` and `partyka2022` and confirm the figures in E-14 to E-16 | Slice 1 verdict |
+| O-6 | Confirmed on 12 November 2026 for E-14 to E-16. Mark it closed in the manifest once slice 0 has created it | Slice 1 verdict, until marked |
 | O-1 | Open Figure 2 of `vassallo2017d`; confirm step order and the heart rate comparison | Slice 2 |
 | O-2 | Read the freeBIRD data sharing terms; register if content | Real-data cells only |
 | O-3 | Confirm the current edition of AJP-4.10 | Slice 8 |

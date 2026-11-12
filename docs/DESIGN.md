@@ -124,7 +124,7 @@ setting ──> scan accuracy, time to each echelon
 | Stream shares | 44 / 30 / 27 (disease, battle, non-battle; rounded, and the source rows do not sum exactly) | E-34 to E-36 | Evidence, one theatre |
 | Battle mechanism | Explosion 1,164 : small arms 974 : other 133 | E-35 | Evidence, one theatre |
 | Site of lethal haemorrhage | Truncal 67.3 : junctional 19.2 : extremity 13.5 | E-41 | Evidence, US deaths; applies to fatal bleeding only |
-| Scan accuracy, in hospital | Free fluid 74 / 98; pneumothorax 69 / 99 | E-14 | Evidence, provisional (O-6) |
+| Scan accuracy, in hospital | Free fluid 74 / 98; pneumothorax 69 / 99 | E-14 | Evidence, pooled in-hospital studies |
 | Scan accuracy, pre-hospital | Free fluid 25 / 96; pneumothorax 38 / 96 | E-16 | Evidence, civilian helicopter service |
 | Treatment effect on bleeding death | Relative risk 0.68 within 1 hour, 0.79 at 1 to 3 hours, 1.44 after 3 hours | E-22 | Evidence, exploratory analysis |
 | Decay of benefit | About 10% per 15 minutes; none after about 3 hours | E-24 | Evidence, half obstetric (E-26) |
@@ -229,7 +229,7 @@ Carried from `EVIDENCE.md` Part C. None blocks the PRD. O-1, O-2, O-3 and O-6 ea
 | O-2 | Read the freeBIRD data sharing terms | Any notebook using CRASH-2 or CRASH-3 |
 | O-3 | Confirm the current edition of AJP-4.10 | Slice 8 (knowledge graph) |
 | O-4, O-5, O-7 | Citation and table checks | Nothing; tidy before publication |
-| O-6 | Re-read the provisional entries, the eFAST sources above all | Slice 1 (Bayesian) |
+| O-6 | Re-read the provisional entries. The eFAST sources (E-14 to E-16) were read in full and confirmed on 12 November 2026 | Nothing further; the remaining entries are tidied before publication |
 
 ---
 

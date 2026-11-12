@@ -10,7 +10,7 @@
 
 | Id | Finding | Numbers | Limits |
 |---|---|---|---|
-| E-14, E-16 | Scan accuracy by setting | Free fluid 74% and 98% in hospital; 25% (16-36) and 96% before it | Provisional (O-6) |
+| E-14, E-16 | Scan accuracy by setting | Free fluid 74% and 98% in hospital; 25% (16-36) and 96% (93-98) before it, from 21 of 84 detected and 257 of 266 correctly clear | In hospital: pooled, heterogeneous. Before hospital: one civilian service, 98% blunt trauma, a third of abdominal scans indeterminate |
 | E-114 | Counting helps | Given frequencies in place of probabilities, untrained people reached Bayesian answers in up to 50% of inferences | Laboratory problems |
 | E-64 | Pictures help further | Adding a grid raised accuracy from 32% to 55% in patients | Patients, not clinicians |
 | E-70 | Belief as a random variable | Carry the belief as draws, not one number | Method, not finding |

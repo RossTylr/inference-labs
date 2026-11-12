@@ -13,7 +13,7 @@
 | E-03 to E-09 | One triage rule, four cohorts | Sensitivity from 53.5% to 83.6%; specificity from 51.0% to 74.8% | Different cohorts, sizes and versions of the tool |
 | E-87 | Field triage protocols in general | Across 21 studies sensitivity ran from 10% to 100% and specificity from 9% to 100%. Benchmark: under-triage below 5%, over-triage below 50% | Benchmark is for severe injury (ISS 16 or more), a different target from "needs a life-saving intervention" |
 | E-88 | A protocol against the people using it | Protocol alone: under-triage 63.8%, over-triage 7.4%. Crews in practice: 21.6% and 30.6% | One Dutch region |
-| E-14, E-16 | One scan, two settings | Free fluid: 74% and 98% in hospital; 25% and 96% before it | Provisional (O-6) |
+| E-14, E-16 | One scan, two settings | Free fluid: 74% and 98% in hospital; 25% and 96% before it | In hospital: pooled, heterogeneous. Before hospital: one civilian service, 98% blunt trauma, a third of abdominal scans indeterminate |
 | E-101 | One network, two operating points | 90.3% sensitivity with 98.1% specificity, or 97.5% with 93.4% | Retinal images |
 
 ### Trials: reading a result

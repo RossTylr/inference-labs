@@ -42,9 +42,9 @@ Open item: the MPTT-24 flowchart (Figure 2 of `vassallo2017d`) was not readable 
 
 | Id | Claim | Verified value | Source | Status |
 |---|---|---|---|---|
-| E-14 | In-hospital pooled accuracy | Pneumothorax 69% / 99%; pericardial effusion 91% / 94%; intra-abdominal free fluid 74% / 98% (sensitivity / specificity). Useful for ruling in, not for ruling out | `netherton2019` | CARRIED |
-| E-15 | Free fluid by blood pressure | Hypotensive 74% / 95%; normotensive adult 76% / 98% | `netherton2019` | CARRIED |
-| E-16 | Pre-hospital, helicopter service | 896 scanned, 411 analysed. Free fluid 25% (16–36) / 96% (93–98); pneumothorax 38% / 96%; haemothorax 17% / 97%; pericardial effusion 17% / 100% | `partyka2022` | CARRIED |
+| E-14 | In-hospital pooled accuracy | 75 studies, 24,350 patients. Pneumothorax 69% (66.0–72.7) / 99% (17 studies, 3,653 patients); pericardial effusion 91% (87.0–94.4) / 94% (92.2–95.7) (9 studies, 1,031 patients, penetrating trauma only); intra-abdominal free fluid 74% (72.6–75.8) / 98% (97.3–97.8) (52 studies) (sensitivity / specificity). Heterogeneity high throughout. Useful for ruling in, not for ruling out | `netherton2019` | READ (full text, 12 Nov 2026) |
+| E-15 | Free fluid by blood pressure | Hypotensive (systolic below 90 mm Hg) 74% (68.1–79.9) / 95% (92.6–96.6); normotensive adult 76% (73.9–78.1) / 98% (97.5–98.1); paediatric 71% / 95% | `netherton2019` | READ (full text, 12 Nov 2026) |
+| E-16 | Pre-hospital, helicopter service | New South Wales, 2013–2017. 896 scanned, 92 excluded before hospital and 393 in hospital, 411 analysed; 98% blunt trauma, median ISS 22. Free fluid 25% (16–36) / 96% (93–98), from 21 true positives, 63 false negatives, 9 false positives, 257 true negatives; pneumothorax 38% (29–47) / 96% (93–98); haemothorax 17% (6–36) / 97% (94–99); pericardial effusion 17% (0–64) / 100% (98–100), six cases only. 32% of abdominal scans were recorded as indeterminate. By shock index: high, sensitivity 50% and specificity 81%; low, 32% and 98%; intervals overlap. The results text gives haemothorax sensitivity as 20% (8–39), which disagrees with the abstract and Table 2; the table value is used | `partyka2022` | READ (full text, 12 Nov 2026) |
 | E-17 | Pre-hospital, multicentre cohort | Any abdominal injury 27% (22–32) / 96% (93–98); haemoperitoneum 38% (28–48) / 94% (91–96); pneumothorax 23% (17–31) / 97% (95–99) | `efast2025` | SECONDARY |
 | E-18 | Open human FAST image data | None found. Published models used private hospital archives or swine data | search, 9 Nov 2026 | CARRIED |
 
@@ -227,16 +227,16 @@ Each brief follows the same five headings. All text is written for this register
 - **Citation.** Netherton S, Milenkovic V, Taylor M, Davis PJ. Diagnostic accuracy of eFAST in the trauma patient: a systematic review and meta-analysis. *CJEM* 2019;21(6):727–738.
 - **What it shows.** The scan is highly specific and only moderately sensitive, so a positive result rules in and a negative result does not rule out.
 - **Numbers used.** E-14, E-15.
-- **What it cannot support here.** Pre-hospital or austere use; the pooled studies are largely in-hospital.
-- **Access.** <https://read.qxmd.com/read/31317856/>
+- **What it cannot support here.** Pre-hospital or austere use; the pooled studies are largely in-hospital. The pericardial figure comes from penetrating trauma only and should not be applied to blast or blunt injury.
+- **Access.** doi:10.1017/cem.2019.381. Full text read 12 November 2026.
 
 ### partyka2022 — Pre-hospital eFAST
 
-- **Citation.** Partyka C, Coggins A, Bliss J, and colleagues. A multicenter evaluation of the accuracy of prehospital eFAST by a physician-staffed helicopter emergency medical service. *Emergency Radiology* 2022;29(2):299–306.
+- **Citation.** Partyka C, Coggins A, Bliss J, Burns B, Fiorentino M, Goorkiz P, Miller M. A multicenter evaluation of the accuracy of prehospital eFAST by a physician-staffed helicopter emergency medical service. *Emergency Radiology* 2022;29(2):299–306.
 - **What it shows.** Scanning before hospital keeps its specificity and loses most of its sensitivity.
 - **Numbers used.** E-16.
-- **What it cannot support here.** Military pre-hospital use: physicians on a civilian helicopter service, and fewer than half the scanned patients had hospital data for comparison.
-- **Access.** <https://link.springer.com/article/10.1007/s10140-021-02002-4>
+- **What it cannot support here.** Military pre-hospital use: physicians on a civilian helicopter service, and fewer than half the scanned patients had hospital data for comparison. Almost all were blunt trauma. A third of abdominal scans were indeterminate, and the paper does not make clear how those enter the two-by-two table, so the 25% should be read as the sensitivity of a scan called positive, not of the examination as attempted.
+- **Access.** doi:10.1007/s10140-021-02002-4. Full text read 12 November 2026.
 
 ### efast2025 — Pre-hospital eFAST, multicentre cohort
 
@@ -392,7 +392,7 @@ Each brief follows the same five headings. All text is written for this register
 | O-3 | Confirm AJP-4.10 Edition C is current | Timelines and roles are cited to it |
 | O-4 | Complete the citation for `vassallo2017c` | Title and DOI missing |
 | O-5 | Check the Table 2 confidence intervals in `vassallo2017d` against the version of record | Possible typesetting errors reported by the reader |
-| O-6 | Re-read the CARRIED entries (E-14 to E-17, E-30, E-48, E-49, E-51) | Read only from search extracts |
-| O-7 | Check volume and page numbers for `crash2_2010`, `netherton2019`, `ageron2019`, `nunez2009`, `kragh2009`, `croskerry2009`, `lillicrap2020`, `luan2011` | Completed from general knowledge, not from the page read |
+| O-6 | Re-read the CARRIED entries. **E-14 to E-16 closed 12 November 2026** (full text read; figures confirmed). Remaining: E-17, E-30, E-48, E-49, E-51 | Read only from search extracts. The remaining entries do not block slice 1 |
+| O-7 | Check volume and page numbers for `crash2_2010`, `ageron2019`, `nunez2009`, `kragh2009`, `croskerry2009`, `lillicrap2020`, `luan2011` | Completed from general knowledge, not from the page read |
 | O-8 | Complete author lists marked "to complete" and check the surnames given for E-73, E-79, E-85, E-87, E-88, E-94 to E-96, E-104, E-105, E-108, E-109, E-111 | The abstract services returned titles and DOIs; several author names are from general knowledge |
 | O-9 | Read the full papers behind the SECONDARY entries E-76, E-79, E-81 and the 2022 RePHILL report | Read through summaries only |
