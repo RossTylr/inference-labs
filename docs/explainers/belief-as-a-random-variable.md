@@ -125,7 +125,7 @@ The middle is the same. What the point arithmetic hides is that the plausible be
 
 **Break the pairing.** Sensitivity and the miss rate are two views of one quantity: they must add to exactly 1. Compute `sens + (1 - sens)` and every draw gives 1.
 
-Now shuffle the draws of the miss rate, as would happen if the two were sampled separately or sorted, and add again. The sum now ranges from 0.87 to 1.13. The program is reporting scans that catch 113% of bleeds.
+Now shuffle the draws of the miss rate, as would happen if the two were sampled separately or sorted, and add again. The sum now ranges from 0.87 to 1.13. The program is reporting that up to 113% of bleeds were either found or missed, which cannot be: every bleed is one or the other, so the two must add to exactly 100%.
 
 Nothing warns you. The arithmetic ran, and each array on its own still looks right. The rule that prevents it: quantities that come from the same source must come from the same draws, in the same order, and must never be sorted or resampled on their own.
 

@@ -24,7 +24,7 @@
 | E-108 | EOLIA, four priors | 35% against 46%, not significant | Probability of any benefit 96% (minimal prior), 88% (sceptical), 99% (enthusiastic). Probability of the large effect the trial was sized for: 2% or less |
 | E-121 | Cold stored platelets | 5.9% against 10.2%, p=0.28 | 86% probability of reduced mortality |
 | E-109 | Method | — | A proposed standard way to do and report such reanalyses |
-| E-27, E-28 | CRASH-3 | RR 0.94 (0.86-1.02); mild to moderate subgroup 0.78 (0.64-0.95) | No published reanalysis found (E-33); the notebook's is its own |
+| E-27, E-28 | CRASH-3 | RR 0.94 (0.86-1.02) in the 9,202 treated within 3 hours, which is the primary analysis and not the whole trial; mild to moderate subgroup 0.78 (0.64-0.95) | No published reanalysis found (E-33); the notebook's is its own |
 
 ---
 
