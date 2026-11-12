@@ -43,6 +43,7 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 | E-77 | Death within 3 hours 16% against 22%; death within 30 days 42% against 45% | A six-point gap early and a three-point gap late. If benefit acts on early bleeding deaths, an outcome counted at 30 days dilutes it. Matches the front-loaded hazard in E-85 |
 | E-20 | All-cause effect 0.87 in the first hour and at 1 to 3 hours, 1.00 after 3 hours; the authors note digit preference in reported times | Time since injury is rounded by the people who record it. The notebook can round the generator's times to the nearest half hour and show what that does to a fitted decline |
 | E-81 | Only 37.3% of casualties had matched flight and facility records | Transport time, the central variable of this lens, was missing for most of the cohort it is famous for |
+| E-127 | In 42,135 hypotensive torso-injured patients, risk of death rose with prehospital time and most steeply in the first 30 minutes; median prehospital time was 37 minutes | A second, independent source for a front-loaded hazard, specific to torso bleeding and measured before hospital, where E-85 is measured after admission |
 
 ---
 

@@ -52,6 +52,7 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 | E-77 | RePHILL stopped at 432 of 490. Composite outcome 64% against 65%. Death 43% against 45%. Death within 3 hours 16% against 22%, relative risk 0.75 (0.50-1.13) | A UK prehospital trial for the same exercise as PROPPR: the interval runs from halving early deaths to a 13% increase. 'No difference' and 'not enough patients to tell' are different statements |
 | E-79 | The brain injury trial set its significance thresholds at 0.1 for benefit and 0.025 for harm | The 0.05 line is a convention. Here the investigators moved it, and moved it differently in each direction |
 | E-76 | COMBAT's median transport was 19 and 16 minutes; median infusion before arrival was small | The trial tested plasma where there was little time to give it. The setting is part of the result |
+| E-124 | The timing effect of tranexamic acid survived restriction to blunt trauma, to no head injury and to low blood pressure; the interaction stayed at p < 0.0001 | The follow-up to the subgroup lesson: an exploratory finding that was then tested against rival explanations. What makes a subgroup result more believable is shown, not asserted |
 
 ---
 

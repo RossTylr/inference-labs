@@ -50,6 +50,8 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 | E-48 | The challenge's authors say the utility values can be chosen to reflect a hospital's preferences; the best entries by utility were not the best by area under the curve | The diagnosis case can rank three models by accuracy and again by utility and show the order change |
 | E-77 | A composite outcome of death or failure to clear lactate: 64% against 65% overall, with death 43% against 45% | A composite weighs a death and a laboratory value equally. Ask the reader what weights they would choose, then recompute |
 | E-20 | Vascular occlusive events 1.7% against 2.0%; deaths 14.5% against 16.0% | Both sides of the ledger for the treatment decision, from one trial |
+| E-125 | In a simulation, over-triage raised, lowered or left critical mortality unchanged depending on its cause; the ratio of critical patients to treatment capability mattered more | The cost of a false alarm is not a constant. It depends on how full the system is, which is why a threshold fixed in advance can be wrong on the day |
+| E-126 | London 2005: scene over-triage 64%, critical mortality 15%, judged unrelated to over-triage. Over-triage was 33% where advanced teams triaged and 82% where they did not | A real incident set against the benchmark of 50% (E-87): over-triage above the benchmark with low mortality. Also shows that who applies the rule changes its error rates |
 
 ---
 

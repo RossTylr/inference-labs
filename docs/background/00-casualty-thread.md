@@ -41,6 +41,7 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 |---|---|---|
 | E-117 | The three tasks, with the source's own example from health records: how can women with a history of stroke be grouped; what is the probability of a stroke next year; will starting a statin reduce the risk | The thread's three questions are now cited at source. Restate the example for the casualty: who is injured and how; who will die of bleeding; does tranexamic acid reduce those deaths |
 | E-81 | The golden hour authors say that, with several things changing at once and only 37.3% of casualties having matched records, only a descriptive reading was viable | An honest statement of which of the three questions a famous military result can answer |
+| E-128 | Of 71 UK casualties who died after reaching care, 47% died of isolated head injury and 21% of haemorrhage after severe lower limb trauma; 54% died within 24 hours | A UK picture of deaths after arrival, to set beside the US figures. It shows why the thread's haemorrhage and head injury patients are the ones that matter after Role 1 |
 
 ---
 

@@ -58,6 +58,9 @@ Findings taken from the papers themselves on 12 November 2026. Each is in the ev
 | E-20 | Transfusion was not reduced by tranexamic acid; the authors suggest survivors had more opportunity to be transfused | The same mechanism inside a randomised trial: randomisation protects the primary comparison, not every secondary outcome measured after survival |
 | E-120 | Mortality was lowest where the clinician's dose matched the algorithm's recommendation | An observational association offered as validation. Patients whose care departs from the usual may differ in ways the records do not hold. That reading is made here, not in the paper, and is the confounding question the lens teaches |
 | E-117 | Description, prediction, causal inference, with the statin example | Open the notebook with this table and sort the lens's own anchors into its three columns |
+| E-123 | The same team re-analysed the golden hour data with inverse probability weighting and five rival explanations. No gradual time trend; transport within one hour 0.61 (0.51-0.74); 135 more killed in action had transport times not changed, against 359 lives saved in the first paper | The second half of the Kotwal anchor. The first paper could only describe; this one names its rivals and tests them, and the estimate shrinks. A worked case of moving from description towards a causal claim |
+| E-123 | Among the most severely injured, odds of being killed in action were 0.17 with prehospital transfusion | The same contrast that E-81 flagged for survival bias, now adjusted and weighted. Ask what the weighting can and cannot remove |
+| E-124 | Patient characteristics changed with time to treatment, and none of them explained the timing effect | Confounding by time checked directly, inside a randomised trial |
 
 ---
 
