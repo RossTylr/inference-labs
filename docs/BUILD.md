@@ -77,7 +77,7 @@ When Ross replies "approved", write today's date to the slice's `approved` field
 
 ## 5. Review
 
-The sceptic did not build the slice. If this session wrote any of the slice's code, stop and tell Ross to open a new session.
+The sceptic did not build the slice. A subagent started with a fresh context, given only the review instructions and the file paths, counts as a new session. If this session wrote any of the slice's code, stop and tell Ross to open a new session.
 
 1. Read `PRD.md` section 3 and the slice's section, and the background file. Then read the notebook, library module and app panel. Run the notebook.
 2. Write `reviews/slice-N.md`, one line per check, each marked HOLDS or BREACH with the cell or line number:
