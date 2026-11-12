@@ -34,8 +34,8 @@ it by hand: change `params.yaml` and regenerate.
 | generator | `avpu_abnormal_shares`: Level of response when it is abnormal | V 0.5, P 0.3, U 0.2 | share of casualties not alert | assumption | true | — |
 | generator | `sbp_not_bleeding`: Systolic pressure in casualties not bleeding significantly | mean 125, sd 12 | mm Hg | assumption | true | — |
 | generator | `sbp_bleeding`: Systolic pressure in bleeding casualties, falling with severity | mean 105, severity_slope -12, residual_sd 12 | mm Hg | assumption | true | — |
-| generator | `scan_accuracy_in_hospital`: eFAST accuracy in hospital | free_fluid (sensitivity 0.74, specificity 0.98); pneumothorax (sensitivity 0.69, specificity 0.99) | proportion | E-14 (provisional) | false | — |
-| generator | `scan_accuracy_pre_hospital`: eFAST accuracy before hospital | free_fluid (sensitivity 0.25, specificity 0.96); pneumothorax (sensitivity 0.38, specificity 0.96) | proportion | E-16 (provisional) | false | — |
+| generator | `scan_accuracy_in_hospital`: eFAST accuracy in hospital | free_fluid (sensitivity 0.74, specificity 0.98); pneumothorax (sensitivity 0.69, specificity 0.99) | proportion | E-14 | false | — |
+| generator | `scan_accuracy_pre_hospital`: eFAST accuracy before hospital | free_fluid (sensitivity 0.25, specificity 0.96); pneumothorax (sensitivity 0.38, specificity 0.96) | proportion | E-16 | false | — |
 | generator | `time_to_phec_min`: Time from injury to pre-hospital emergency care, when tranexamic acid is given | median 56, log_sd 0.5 | minutes (lognormal) | assumption | true | — |
 | generator | `phec_to_role2_min`: Time from pre-hospital emergency care to arrival at Role 2 | median 50, log_sd 0.4 | minutes (lognormal) | assumption | true | — |
 | generator | `lethal_haemorrhage_site`: Site of bleeding among deaths from bleeding | truncal 0.673, junctional 0.192, extremity 0.135 | share of bleeding deaths | E-41 | false | — |

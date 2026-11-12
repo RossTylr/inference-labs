@@ -275,7 +275,6 @@ parameters:
     tolerance: {sensitivity: 0.025, specificity: 0.01}
     source: [E-14]
     label: registry evidence
-    provisional: true
     population: Trauma patients in pooled in-hospital accuracy studies
     note: Provisional until O-6 is closed. Free fluid is generated for truncal bleeding only, an assumption.
 
@@ -290,7 +289,6 @@ parameters:
     tolerance: {sensitivity: 0.025, specificity: 0.01}
     source: [E-16]
     label: registry evidence
-    provisional: true
     population: Civilian physician-staffed helicopter service
     note: Provisional until O-6 is closed. Civilian figures applied to military casualties, an assumption.
 

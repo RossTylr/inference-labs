@@ -31,7 +31,7 @@ def test_a_number_combines_with_every_draw_from_either_side():
 
 
 def test_pairing_is_preserved_through_a_chain_of_arithmetic():
-    sens = RV(np.random.default_rng(1).beta(20, 60, 4000))
+    sens = RV(np.random.default_rng(1).beta(21, 63, 4000))
     total = sens + (1 - sens)
     assert np.allclose(total.draws, 1.0)
 
