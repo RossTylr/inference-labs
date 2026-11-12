@@ -6,7 +6,10 @@ version: 1
 params: params.yaml
 
 # Written at the end of slice 1 (R-1.12): hashes of generator.py and params.yaml, checked by G-13.
-frozen: null
+frozen:
+  version: 1
+  generator_sha256: ea5c0785e5b93e725ba99f84f5b123df47ede615d3e6e67e71befc50cd289dae
+  params_sha256: 78d1226cad855090962dbc2ae4ec771947f01c7969f5f4dae9037bb9ae6873ae
 
 open_items:
   O-1: {status: closed, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
@@ -78,12 +81,27 @@ slices:
     title: Lens 03, Bayesian
     approved: 2026-11-12
     blocked_by: [O-6]
+    background: docs/background/03-bayesian.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    # The sceptic's review, reviews/slice-1.md, is checked by G-11, not listed here.
     files:
       - src/inference_labs/lenses/bayesian.py
+      - tests/test_bayesian.py
       - notebooks/03_bayesian.ipynb
       - app/streamlit_app.py
-      - reviews/slice-1.md
+      - harness/gates/__init__.py
+      - harness/gates/g06_labels.py
+      - harness/gates/g07_notebook.py
+      - harness/gates/g08_parity.py
+      - harness/gates/g09_synthetic_app.py
+      - harness/gates/g10_evidence.py
+      - harness/gates/g11_sceptic.py
+      - tests/planted/test_g06_labels.py
+      - tests/planted/test_g07_notebook.py
+      - tests/planted/test_g08_parity.py
+      - tests/planted/test_g09_synthetic_app.py
+      - tests/planted/test_g10_evidence.py
+      - tests/planted/test_g11_sceptic.py
   2:
     title: Lens 01, Rules
     approved: null
