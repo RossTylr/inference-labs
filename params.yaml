@@ -276,7 +276,7 @@ parameters:
     source: [E-14]
     label: registry evidence
     population: Trauma patients in pooled in-hospital accuracy studies
-    note: Provisional until O-6 is closed. Free fluid is generated for truncal bleeding only, an assumption.
+    note: Free fluid is generated for truncal bleeding only, an assumption.
 
   scan_accuracy_pre_hospital:
     description: eFAST accuracy before hospital
@@ -290,7 +290,7 @@ parameters:
     source: [E-16]
     label: registry evidence
     population: Civilian physician-staffed helicopter service
-    note: Provisional until O-6 is closed. Civilian figures applied to military casualties, an assumption.
+    note: Civilian figures applied to military casualties, an assumption.
 
   # ---------------------------------------------------------------- time
 

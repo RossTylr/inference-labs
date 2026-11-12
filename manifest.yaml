@@ -8,8 +8,8 @@ params: params.yaml
 # Written at the end of slice 1 (R-1.12): hashes of generator.py and params.yaml, checked by G-13.
 frozen:
   version: 1
-  generator_sha256: ea5c0785e5b93e725ba99f84f5b123df47ede615d3e6e67e71befc50cd289dae
-  params_sha256: 78d1226cad855090962dbc2ae4ec771947f01c7969f5f4dae9037bb9ae6873ae
+  generator_sha256: 493a04dbe3a8de673fa2b3027ef11313f9ecaed4ae399fa76db0078a42a5036e
+  params_sha256: 2da6d7831f1c9d0917dfd0f4f043609801032027e96875a83d78179d9d14d90d
 
 open_items:
   O-1: {status: closed, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}

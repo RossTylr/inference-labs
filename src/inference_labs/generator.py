@@ -23,8 +23,8 @@ How the evidence enters
   on the probability of bleeding death, not on its timing.
 - Physiology is drawn so that the MPTT-24 reproduces the cohort's sensitivity and specificity (E-09).
   No generated value sits where the readings still open under O-1 would disagree.
-- Scan accuracy is a table keyed by setting (E-14 in hospital, E-16 before hospital, both provisional
-  until O-6 is closed); triage accuracy is a table keyed by cohort (D-13).
+- Scan accuracy is a table keyed by setting (E-14 in hospital, E-16 before hospital); triage accuracy is
+  a table keyed by cohort (D-13).
 """
 from __future__ import annotations
 
