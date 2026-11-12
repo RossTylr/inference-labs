@@ -12,7 +12,7 @@ inference-labs is a learning repository: its aim is to learn inference through u
 
 **Developer.** A Python library (`inference_labs`) holds a seeded casualty generator, ten lens modules behind one interface, and a small knowledge graph. Twelve notebooks teach the lenses one at a time. A Streamlit app runs them together on the same casualty. A manifest generates the scaffold and a validator gates every slice.
 
-**Technical.** Each lens is treated as an inference procedure with stated inputs, assumptions and a characteristic failure. Diagnosis is framed as abduction: inference to the best explanation of the findings. Lenses are compared on a common scorecard and against a common rule-based baseline, on synthetic data with known generating structure (mechanism) and on open trial and registry data (evidence), with the two kept labelled apart.
+**Technical.** Each lens is treated as an inference procedure with stated inputs, assumptions and a characteristic failure. Diagnosis is framed as abduction: inference to the best explanation of the findings. Lenses are compared on a common scorecard and against a common rule-based baseline, on synthetic data with known generating structure (mechanism) and on trial data available on registration and registry data (evidence), with the two kept labelled apart.
 
 ---
 
