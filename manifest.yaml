@@ -1,0 +1,148 @@
+# manifest.yaml: the single source of truth for the build (PRD section 2, R-0.1).
+# The validator reads slices, gates, blocking items and open items from here.
+# Closing an open item: set its status to closed, or to waived with a reason (BUILD.md section 8).
+
+version: 1
+params: params.yaml
+
+# Written at the end of slice 1 (R-1.12): hashes of generator.py and params.yaml, checked by G-13.
+frozen: null
+
+open_items:
+  O-1: {status: open, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
+  O-2: {status: open, reason: "Read the freeBIRD data sharing terms before any CRASH-2 or CRASH-3 file enters a notebook"}
+  O-3: {status: open, reason: "Confirm that AJP-4.10 Edition C is current"}
+  O-4: {status: open, reason: "Complete the citation for vassallo2017c"}
+  O-5: {status: open, reason: "Check the Table 2 confidence intervals in vassallo2017d against the version of record"}
+  O-6: {status: open, reason: "Re-read the CARRIED entries, E-14 to E-16 above all, against netherton2019 and partyka2022"}
+  O-7: {status: open, reason: "Check volume and page numbers completed from general knowledge"}
+  O-8: {status: open, reason: "Complete author lists and check the surnames listed in EVIDENCE.md Part C"}
+  O-9: {status: open, reason: "Read the full papers behind E-76, E-79, E-81 and the 2022 RePHILL report"}
+
+slices:
+  0:
+    title: Foundations
+    approved: 2026-11-12
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-12]
+    files:
+      - pyproject.toml
+      - manifest.yaml
+      - params.yaml
+      - docs/ASSUMPTIONS.md
+      - src/inference_labs/__init__.py
+      - src/inference_labs/generator.py
+      - src/inference_labs/calibration.py
+      - src/inference_labs/belief.py
+      - src/inference_labs/interface.py
+      - src/inference_labs/baseline.py
+      - src/inference_labs/graph/__init__.py
+      - src/inference_labs/graph/schema.py
+      - src/inference_labs/graph/store.py
+      - src/inference_labs/graph/provenance.py
+      - src/inference_labs/lenses/__init__.py
+      - harness/__init__.py
+      - harness/common.py
+      - harness/validate.py
+      - harness/gates/__init__.py
+      - harness/gates/g01_manifest.py
+      - harness/gates/g02_tests.py
+      - harness/gates/g03_determinism.py
+      - harness/gates/g04_calibration.py
+      - harness/gates/g05_provenance.py
+      - harness/gates/g06_labels.py
+      - harness/gates/g12_planted.py
+      - harness/gates/g13_frozen.py
+      - tests/conftest.py
+      - tests/test_belief.py
+      - tests/test_interface.py
+      - tests/test_graph.py
+      - tests/test_generator.py
+      - tests/test_calibration.py
+      - tests/test_baseline.py
+      - tests/test_provenance.py
+      - tests/test_fixtures.py
+      - tests/test_validate.py
+      - tests/planted/test_g01_manifest.py
+      - tests/planted/test_g02_tests.py
+      - tests/planted/test_g03_determinism.py
+      - tests/planted/test_g04_calibration.py
+      - tests/planted/test_g05_provenance.py
+      - tests/planted/test_g06_labels.py
+      - tests/planted/test_g12_planted.py
+      - tests/planted/test_g13_frozen.py
+      - tests/fixtures/make_fixtures.py
+      - tests/fixtures/crash2.csv
+      - tests/fixtures/crash3.csv
+  1:
+    title: Lens 03, Bayesian
+    approved: 2026-11-12
+    blocked_by: [O-6]
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files:
+      - src/inference_labs/lenses/bayesian.py
+      - notebooks/03_bayesian.ipynb
+      - app/streamlit_app.py
+      - reviews/slice-1.md
+  2:
+    title: Lens 01, Rules
+    approved: null
+    blocked_by: [O-1]
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  3:
+    title: Lens 02, Frequentist
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  4:
+    title: Lens 04, Decision trees
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  5:
+    title: Lens 10, Decision theory
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  6:
+    title: Lens 05, Stochastic
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  7:
+    title: Lens 07, Causal
+    approved: null
+    blocked_by: [O-2]
+    note: O-2 blocks real-data cells only
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  8:
+    title: Lens 08, Knowledge graph
+    approved: null
+    blocked_by: [O-3]
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  9:
+    title: Lens 09, Reinforcement learning
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  10:
+    title: Lens 06, Connectionist
+    approved: null
+    blocked_by: []
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []
+  11:
+    title: Notebooks 00 and 11; app pages 2 to 4
+    approved: null
+    blocked_by: []
+    note: Starts only when at least five lenses are BUILT
+    gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
+    files: []

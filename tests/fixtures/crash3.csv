@@ -1,0 +1,201 @@
+entryid,sex,age,injurytime,sbp,gcseye,gcsmotor,gcsverbal,gcs,pupilreact,treatment,death28,headinjurydeath
+SYN-C3-0001,M,21,3.6,128,4,6,2,12,both,placebo,0,0
+SYN-C3-0002,M,67,5.4,118,1,3,4,8,one,TXA,0,0
+SYN-C3-0003,M,27,6.7,125,1,6,3,10,one,placebo,0,0
+SYN-C3-0004,F,38,4.0,78,1,4,3,8,none,TXA,0,0
+SYN-C3-0005,M,40,6.9,68,1,5,1,7,unable to assess,TXA,0,0
+SYN-C3-0006,M,38,6.6,142,4,5,1,10,both,TXA,1,1
+SYN-C3-0007,F,34,6.9,137,4,3,2,9,unable to assess,TXA,0,0
+SYN-C3-0008,M,39,3.0,71,3,3,3,9,both,placebo,1,1
+SYN-C3-0009,M,46,4.0,115,1,5,3,9,none,TXA,1,1
+SYN-C3-0010,M,55,1.7,111,1,1,5,7,one,placebo,0,0
+SYN-C3-0011,M,62,4.9,124,2,4,1,7,one,TXA,0,0
+SYN-C3-0012,M,59,0.8,115,2,4,4,10,both,TXA,0,0
+SYN-C3-0013,M,43,4.0,97,3,1,2,6,both,TXA,0,0
+SYN-C3-0014,F,24,1.7,115,2,2,4,8,one,placebo,1,1
+SYN-C3-0015,M,32,4.1,114,2,1,1,4,unable to assess,placebo,0,0
+SYN-C3-0016,F,35,1.9,109,1,5,2,8,both,TXA,0,0
+SYN-C3-0017,M,49,0.5,64,3,5,1,9,one,TXA,0,0
+SYN-C3-0018,F,20,3.7,40,3,3,2,8,one,placebo,1,0
+SYN-C3-0019,M,50,3.7,90,1,6,1,8,none,TXA,0,0
+SYN-C3-0020,M,30,4.6,69,1,3,4,8,one,placebo,1,1
+SYN-C3-0021,M,38,1.4,116,2,2,4,8,both,TXA,0,0
+SYN-C3-0022,M,56,4.2,128,2,6,1,9,none,placebo,0,0
+SYN-C3-0023,M,66,2.7,117,4,1,2,7,one,placebo,0,0
+SYN-C3-0024,M,67,1.1,101,3,3,5,11,unable to assess,TXA,1,1
+SYN-C3-0025,F,29,3.6,112,2,1,5,8,unable to assess,TXA,1,0
+SYN-C3-0026,M,69,5.5,139,2,3,5,10,one,TXA,0,0
+SYN-C3-0027,M,44,2.8,92,3,5,1,9,both,TXA,0,0
+SYN-C3-0028,M,21,5.9,133,3,3,5,11,one,TXA,0,0
+SYN-C3-0029,M,55,6.4,128,1,3,3,7,unable to assess,TXA,1,0
+SYN-C3-0030,F,39,0.6,117,3,3,1,7,unable to assess,placebo,0,0
+SYN-C3-0031,M,52,2.1,146,4,1,4,9,none,TXA,0,0
+SYN-C3-0032,M,64,2.6,92,4,1,1,6,both,placebo,0,0
+SYN-C3-0033,M,30,4.9,134,4,2,1,7,one,placebo,0,0
+SYN-C3-0034,M,44,4.2,87,2,4,5,11,none,placebo,0,0
+SYN-C3-0035,M,64,4.8,91,2,1,1,4,unable to assess,placebo,0,0
+SYN-C3-0036,M,36,1.1,84,3,6,3,12,both,TXA,0,0
+SYN-C3-0037,M,23,2.7,121,3,6,5,14,unable to assess,placebo,0,0
+SYN-C3-0038,M,59,1.7,87,3,4,2,9,both,TXA,0,0
+SYN-C3-0039,M,46,6.1,111,4,5,2,11,unable to assess,TXA,0,0
+SYN-C3-0040,M,63,5.6,82,2,5,2,9,unable to assess,TXA,0,0
+SYN-C3-0041,F,43,2.8,137,4,1,4,9,one,TXA,1,1
+SYN-C3-0042,M,25,7.1,156,1,6,4,11,none,placebo,1,0
+SYN-C3-0043,M,53,1.5,116,1,1,2,4,one,TXA,0,0
+SYN-C3-0044,M,45,0.6,151,4,6,1,11,one,TXA,0,0
+SYN-C3-0045,M,56,3.3,124,4,5,3,12,none,placebo,0,0
+SYN-C3-0046,M,25,5.5,164,2,5,3,10,unable to assess,placebo,1,1
+SYN-C3-0047,M,30,7.6,112,1,1,3,5,one,placebo,0,0
+SYN-C3-0048,M,27,4.3,71,2,5,4,11,unable to assess,TXA,0,0
+SYN-C3-0049,M,65,1.5,147,1,6,1,8,both,TXA,0,0
+SYN-C3-0050,M,46,5.0,107,4,5,4,13,none,placebo,0,0
+SYN-C3-0051,F,35,0.6,84,3,5,3,11,one,placebo,0,0
+SYN-C3-0052,F,31,6.6,94,3,2,1,6,one,placebo,0,0
+SYN-C3-0053,M,40,2.9,69,1,4,4,9,both,placebo,0,0
+SYN-C3-0054,M,60,1.3,106,2,3,5,10,both,TXA,0,0
+SYN-C3-0055,M,49,1.6,83,1,6,2,9,both,TXA,0,0
+SYN-C3-0056,M,37,6.7,147,4,3,3,10,unable to assess,TXA,0,0
+SYN-C3-0057,M,42,7.3,127,2,3,3,8,both,TXA,0,0
+SYN-C3-0058,M,27,1.9,68,1,2,3,6,unable to assess,placebo,0,0
+SYN-C3-0059,M,40,8.0,72,2,3,3,8,both,TXA,1,1
+SYN-C3-0060,M,51,7.0,96,3,4,3,10,both,placebo,0,0
+SYN-C3-0061,F,43,3.0,62,3,3,3,9,both,TXA,0,0
+SYN-C3-0062,F,31,0.9,107,2,2,2,6,one,placebo,0,0
+SYN-C3-0063,M,24,1.6,109,2,4,1,7,unable to assess,placebo,0,0
+SYN-C3-0064,M,21,3.8,91,1,4,5,10,both,placebo,0,0
+SYN-C3-0065,M,18,2.0,96,3,2,3,8,one,TXA,0,0
+SYN-C3-0066,M,70,1.9,122,3,4,2,9,unable to assess,placebo,1,1
+SYN-C3-0067,M,69,2.5,146,3,5,5,13,both,placebo,1,1
+SYN-C3-0068,M,27,7.1,147,4,1,3,8,one,TXA,1,0
+SYN-C3-0069,F,66,0.8,111,4,4,2,10,unable to assess,placebo,0,0
+SYN-C3-0070,M,24,7.4,131,1,3,1,5,both,placebo,0,0
+SYN-C3-0071,F,35,3.9,92,3,6,1,10,one,placebo,0,0
+SYN-C3-0072,M,43,6.0,120,3,3,4,10,unable to assess,TXA,0,0
+SYN-C3-0073,F,54,4.3,86,1,2,4,7,one,TXA,0,0
+SYN-C3-0074,M,18,7.6,128,2,5,5,12,one,placebo,0,0
+SYN-C3-0075,M,37,1.9,79,2,6,5,13,one,placebo,1,1
+SYN-C3-0076,M,59,2.4,86,3,1,5,9,both,placebo,0,0
+SYN-C3-0077,M,54,4.3,110,2,1,1,4,unable to assess,placebo,0,0
+SYN-C3-0078,M,21,4.3,124,3,2,1,6,both,TXA,1,1
+SYN-C3-0079,M,48,3.0,74,3,3,3,9,unable to assess,placebo,0,0
+SYN-C3-0080,M,20,2.8,97,1,4,4,9,both,TXA,1,1
+SYN-C3-0081,M,49,1.2,113,2,4,2,8,one,placebo,0,0
+SYN-C3-0082,M,69,4.3,116,4,3,5,12,one,placebo,0,0
+SYN-C3-0083,F,30,6.7,89,4,6,5,15,unable to assess,TXA,0,0
+SYN-C3-0084,M,45,7.0,112,3,4,2,9,one,TXA,0,0
+SYN-C3-0085,M,23,3.6,103,1,1,4,6,both,placebo,0,0
+SYN-C3-0086,M,67,7.8,145,3,2,3,8,none,placebo,0,0
+SYN-C3-0087,F,41,7.8,124,1,2,3,6,both,placebo,0,0
+SYN-C3-0088,M,65,2.9,77,4,2,4,10,unable to assess,placebo,0,0
+SYN-C3-0089,M,60,1.4,55,4,6,3,13,one,placebo,0,0
+SYN-C3-0090,M,56,6.8,112,2,6,4,12,both,TXA,0,0
+SYN-C3-0091,M,49,7.6,140,4,3,2,9,one,TXA,0,0
+SYN-C3-0092,F,19,5.4,114,4,2,3,9,both,TXA,0,0
+SYN-C3-0093,M,52,7.7,132,2,6,1,9,none,TXA,0,0
+SYN-C3-0094,M,52,4.1,98,4,1,4,9,unable to assess,TXA,0,0
+SYN-C3-0095,M,64,4.4,76,2,1,2,5,unable to assess,placebo,0,0
+SYN-C3-0096,M,21,1.1,129,1,2,4,7,none,placebo,0,0
+SYN-C3-0097,M,44,3.3,112,3,3,5,11,unable to assess,placebo,0,0
+SYN-C3-0098,M,18,7.4,127,4,3,2,9,unable to assess,placebo,1,1
+SYN-C3-0099,M,27,1.3,75,3,2,4,9,one,TXA,1,1
+SYN-C3-0100,M,62,1.5,115,2,2,4,8,both,TXA,0,0
+SYN-C3-0101,M,50,0.7,94,4,4,4,12,both,placebo,0,0
+SYN-C3-0102,M,34,4.2,130,2,4,3,9,none,placebo,0,0
+SYN-C3-0103,M,50,5.0,95,2,4,2,8,both,placebo,0,0
+SYN-C3-0104,M,57,4.5,95,1,6,4,11,one,placebo,0,0
+SYN-C3-0105,F,45,7.1,95,1,6,2,9,both,TXA,0,0
+SYN-C3-0106,M,46,5.6,142,3,1,3,7,both,TXA,0,0
+SYN-C3-0107,M,65,5.3,111,4,5,3,12,one,placebo,0,0
+SYN-C3-0108,M,59,5.0,91,2,3,2,7,one,TXA,0,0
+SYN-C3-0109,M,60,4.3,84,3,5,3,11,one,TXA,0,0
+SYN-C3-0110,M,51,1.1,84,4,5,3,12,unable to assess,placebo,1,1
+SYN-C3-0111,F,64,1.2,147,1,1,2,4,both,placebo,0,0
+SYN-C3-0112,F,69,5.3,65,2,6,5,13,unable to assess,placebo,0,0
+SYN-C3-0113,M,63,2.1,89,3,6,5,14,both,placebo,0,0
+SYN-C3-0114,M,43,3.6,126,3,6,1,10,unable to assess,TXA,0,0
+SYN-C3-0115,M,43,5.4,139,2,1,2,5,unable to assess,placebo,0,0
+SYN-C3-0116,M,63,5.0,106,2,1,1,4,both,TXA,0,0
+SYN-C3-0117,M,25,2.3,130,1,4,1,6,none,placebo,0,0
+SYN-C3-0118,M,61,2.5,129,3,4,1,8,one,placebo,1,1
+SYN-C3-0119,M,29,1.6,135,4,1,2,7,unable to assess,placebo,0,0
+SYN-C3-0120,F,49,5.5,111,1,6,5,12,both,TXA,0,0
+SYN-C3-0121,M,64,5.9,151,4,2,2,8,both,TXA,0,0
+SYN-C3-0122,M,44,1.5,115,1,1,5,7,both,placebo,0,0
+SYN-C3-0123,M,26,2.5,149,1,6,5,12,one,placebo,0,0
+SYN-C3-0124,M,40,1.6,83,3,4,2,9,unable to assess,placebo,0,0
+SYN-C3-0125,M,53,5.1,134,1,1,1,3,one,placebo,0,0
+SYN-C3-0126,M,52,2.7,79,4,2,2,8,both,TXA,1,1
+SYN-C3-0127,M,19,7.0,73,2,6,3,11,both,TXA,0,0
+SYN-C3-0128,M,28,2.5,123,3,5,1,9,unable to assess,placebo,1,1
+SYN-C3-0129,M,65,5.3,90,4,6,4,14,none,placebo,0,0
+SYN-C3-0130,M,41,5.3,122,4,6,4,14,unable to assess,TXA,0,0
+SYN-C3-0131,M,38,7.6,84,2,2,4,8,both,placebo,0,0
+SYN-C3-0132,M,52,5.9,151,1,4,3,8,one,placebo,0,0
+SYN-C3-0133,M,60,7.5,111,2,3,3,8,unable to assess,placebo,0,0
+SYN-C3-0134,F,34,4.9,83,4,1,5,10,none,placebo,0,0
+SYN-C3-0135,M,42,0.5,115,3,2,3,8,none,placebo,0,0
+SYN-C3-0136,M,29,2.9,133,1,1,2,4,unable to assess,placebo,0,0
+SYN-C3-0137,M,24,6.1,92,4,1,5,10,one,TXA,0,0
+SYN-C3-0138,M,23,3.1,124,4,3,5,12,none,placebo,0,0
+SYN-C3-0139,M,42,5.4,162,4,6,3,13,one,placebo,0,0
+SYN-C3-0140,M,60,1.4,133,3,6,3,12,unable to assess,TXA,0,0
+SYN-C3-0141,M,24,5.3,111,4,4,4,12,none,TXA,0,0
+SYN-C3-0142,M,64,3.4,97,3,2,5,10,none,TXA,0,0
+SYN-C3-0143,M,20,7.6,126,3,1,4,8,none,placebo,1,1
+SYN-C3-0144,M,62,1.0,73,4,5,5,14,both,TXA,0,0
+SYN-C3-0145,M,33,3.2,40,3,5,2,10,both,placebo,0,0
+SYN-C3-0146,F,55,6.3,95,4,3,5,12,unable to assess,TXA,0,0
+SYN-C3-0147,F,39,3.4,84,2,1,1,4,none,TXA,0,0
+SYN-C3-0148,M,50,4.0,155,4,2,3,9,none,TXA,0,0
+SYN-C3-0149,M,22,3.0,115,4,6,3,13,unable to assess,TXA,0,0
+SYN-C3-0150,M,21,1.2,87,1,5,4,10,one,placebo,1,1
+SYN-C3-0151,M,23,2.9,82,3,4,4,11,none,TXA,0,0
+SYN-C3-0152,F,64,7.1,124,2,2,3,7,both,placebo,0,0
+SYN-C3-0153,M,19,6.3,91,1,6,1,8,unable to assess,placebo,0,0
+SYN-C3-0154,M,43,2.8,97,1,3,1,5,one,TXA,0,0
+SYN-C3-0155,M,43,5.5,109,2,3,3,8,one,placebo,1,0
+SYN-C3-0156,F,54,6.5,114,1,5,3,9,none,TXA,0,0
+SYN-C3-0157,M,28,6.5,114,3,3,2,8,both,placebo,1,1
+SYN-C3-0158,M,24,0.9,114,1,3,5,9,one,TXA,1,1
+SYN-C3-0159,M,18,1.7,144,3,1,1,5,none,TXA,1,1
+SYN-C3-0160,M,57,7.7,154,4,5,5,14,none,placebo,0,0
+SYN-C3-0161,M,36,2.6,70,2,2,4,8,both,placebo,0,0
+SYN-C3-0162,M,25,6.3,176,1,4,1,6,one,TXA,0,0
+SYN-C3-0163,M,25,5.2,115,1,4,2,7,none,TXA,0,0
+SYN-C3-0164,M,68,7.0,143,2,1,4,7,none,TXA,1,1
+SYN-C3-0165,M,25,1.1,93,2,2,1,5,none,placebo,0,0
+SYN-C3-0166,M,55,7.5,120,2,3,2,7,unable to assess,TXA,1,1
+SYN-C3-0167,M,47,7.1,117,2,1,5,8,unable to assess,placebo,0,0
+SYN-C3-0168,M,46,2.3,115,4,6,1,11,both,placebo,0,0
+SYN-C3-0169,M,28,5.8,133,3,3,5,11,none,TXA,1,0
+SYN-C3-0170,M,52,0.5,128,4,4,1,9,none,placebo,0,0
+SYN-C3-0171,M,21,7.0,87,4,1,3,8,unable to assess,TXA,0,0
+SYN-C3-0172,M,30,3.6,109,3,6,4,13,unable to assess,placebo,1,1
+SYN-C3-0173,M,26,6.1,130,1,3,1,5,one,TXA,0,0
+SYN-C3-0174,M,44,6.5,129,1,1,5,7,both,placebo,0,0
+SYN-C3-0175,F,26,0.7,103,3,3,4,10,one,placebo,1,1
+SYN-C3-0176,M,22,7.1,105,3,3,3,9,one,TXA,0,0
+SYN-C3-0177,M,40,1.3,108,4,2,4,10,both,TXA,0,0
+SYN-C3-0178,F,32,1.7,84,3,5,2,10,unable to assess,placebo,0,0
+SYN-C3-0179,M,40,3.9,80,4,6,4,14,unable to assess,placebo,0,0
+SYN-C3-0180,M,33,2.4,151,1,5,3,9,none,placebo,1,1
+SYN-C3-0181,M,31,5.4,102,2,2,1,5,one,placebo,1,1
+SYN-C3-0182,M,26,1.9,114,3,4,5,12,one,TXA,0,0
+SYN-C3-0183,M,40,5.2,93,3,3,5,11,one,placebo,0,0
+SYN-C3-0184,M,40,6.2,144,2,4,4,10,one,TXA,0,0
+SYN-C3-0185,F,44,7.7,156,1,6,4,11,unable to assess,placebo,0,0
+SYN-C3-0186,F,21,3.5,106,3,6,1,10,both,TXA,0,0
+SYN-C3-0187,M,44,2.6,125,1,5,1,7,unable to assess,placebo,0,0
+SYN-C3-0188,M,19,4.8,93,3,5,2,10,none,TXA,0,0
+SYN-C3-0189,M,23,5.4,156,4,3,2,9,none,TXA,0,0
+SYN-C3-0190,F,35,7.4,135,3,4,5,12,unable to assess,placebo,0,0
+SYN-C3-0191,M,57,4.9,91,1,2,1,4,none,placebo,0,0
+SYN-C3-0192,M,70,3.8,143,3,4,3,10,unable to assess,TXA,0,0
+SYN-C3-0193,M,23,2.7,121,2,4,5,11,one,TXA,0,0
+SYN-C3-0194,M,56,5.9,122,3,4,4,11,none,placebo,0,0
+SYN-C3-0195,M,63,5.3,121,3,3,4,10,both,TXA,0,0
+SYN-C3-0196,M,40,1.0,95,1,2,4,7,one,TXA,0,0
+SYN-C3-0197,M,68,2.7,98,1,4,2,7,one,TXA,0,0
+SYN-C3-0198,M,28,1.8,127,2,5,4,11,both,placebo,0,0
+SYN-C3-0199,M,21,4.2,111,3,2,1,6,none,placebo,0,0
+SYN-C3-0200,M,24,3.4,88,1,4,4,9,one,TXA,0,0

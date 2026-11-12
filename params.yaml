@@ -1,0 +1,390 @@
+# params.yaml: every number the casualty generator uses or must reproduce (PRD R-0.2, design section 5).
+#
+# value      what the generator uses, or the figure it must reproduce
+# tolerance  the largest absolute difference gate G-4 accepts at n = 100,000, seed 42. A single number
+#            applies to every entry of the value; a mapping gives a tolerance per key. Tolerances are set
+#            at about three standard errors of the estimate at that sample size, or at the precision of
+#            the source where that is coarser.
+# comparison at_most: the achieved figure must not exceed value + tolerance (one-sided sources)
+# normalise  true: a mapping of shares or counts is compared after scaling it to sum to one
+# source     evidence ids in docs/EVIDENCE.md, or "assumption"
+# label      doctrine | trial evidence | registry evidence | assumption (the edge labels in R-0.9)
+# provisional true wherever a source is CARRIED in the evidence register
+# population who the figure describes
+#
+# How each figure is measured on the generator is in src/inference_labs/calibration.py.
+# Frozen at the end of slice 1 (G-13). A change after that is a manifest version bump.
+
+version: 1
+valid_from: 2026-11-12
+
+defaults:
+  cohort: military          # R-0.6: the military registry row of E-09
+  setting: pre_hospital
+
+parameters:
+
+  # ---------------------------------------------------------------- casualty mix
+
+  stream_shares:
+    description: Share of admissions by stream
+    value: {disease: 0.44, battle: 0.30, non_battle: 0.27}
+    unit: share of admissions
+    tolerance: 0.01
+    normalise: true
+    source: [E-34, E-35, E-36]
+    label: registry evidence
+    population: UK Service personnel admitted to field hospitals, Afghanistan 2006-2014
+    note: Rounded, and the source rows do not sum exactly; the generator scales the three shares to sum to one. One theatre.
+
+  battle_mechanism:
+    description: Mechanism of battle injury
+    value: {explosion: 1164, small_arms: 974, other: 133}
+    unit: count (used as a ratio)
+    tolerance: 0.01
+    normalise: true
+    source: [E-35]
+    label: registry evidence
+    population: UK battle injury admissions, Afghanistan 2006-2014
+    note: One theatre.
+
+  non_battle_mechanism:
+    description: Mechanism of non-battle injury
+    value: {other: 1949, small_arms: 52, explosion: 18}
+    unit: count (used as a ratio)
+    tolerance: 0.01
+    normalise: true
+    source: [E-35]
+    label: registry evidence
+    population: UK non-battle injury admissions, Afghanistan 2006-2014
+    note: One theatre.
+
+  battle_patient_type:
+    description: Patient type among battle casualties
+    value: {haemorrhage: 0.6, chest: 0.2, head: 0.2}
+    unit: share of battle casualties
+    tolerance: 0.01
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Disease and non-battle injury casualties form the fourth patient type.
+
+  significant_bleeding_given_haemorrhage:
+    description: Share of haemorrhage-type casualties who are bleeding significantly
+    value: 0.6
+    unit: probability
+    tolerance: 0.015
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  site_given_mechanism:
+    description: Site of the wound in haemorrhage-type casualties, by mechanism
+    value:
+      explosion: {truncal: 0.25, junctional: 0.15, extremity: 0.60}
+      small_arms: {truncal: 0.47, junctional: 0.15, extremity: 0.38}
+      other: {truncal: 0.35, junctional: 0.15, extremity: 0.50}
+    unit: share of haemorrhage-type casualties
+    tolerance: {explosion: 0.02, small_arms: 0.02, other: 0.05}
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Chosen so that bleeding casualties are about 35% truncal, 15% junctional and 50% extremity, which lets the lethal-site mix of E-41 be met with every site's death probability below one half.
+
+  pneumothorax_given_chest:
+    description: Share of chest-injury casualties with a pneumothorax
+    value: 0.6
+    unit: probability
+    tolerance: 0.02
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  tension_given_pneumothorax:
+    description: Share of pneumothoraces under tension, needing a life-saving intervention
+    value: 0.5
+    unit: probability
+    tolerance: 0.025
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  severe_given_head:
+    description: Share of head-injury casualties with a severe injury needing a life-saving intervention
+    value: 0.4
+    unit: probability
+    tolerance: 0.02
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  sepsis_given_disease:
+    description: Share of disease admissions with sepsis
+    value: 0.10
+    unit: probability
+    tolerance: 0.01
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  septic_shock_given_sepsis:
+    description: Share of sepsis cases in septic shock, needing a life-saving intervention
+    value: 0.4
+    unit: probability
+    tolerance: 0.025
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  # ---------------------------------------------------------------- triage and physiology
+
+  triage_accuracy_military:
+    description: MPTT-24 Priority One against need for a life-saving intervention, military registry
+    cohort: military
+    setting: in_hospital
+    value: {sensitivity: 0.667, specificity: 0.699}
+    unit: proportion
+    tolerance: {sensitivity: 0.015, specificity: 0.01}
+    source: [E-09]
+    label: registry evidence
+    population: UK Joint Theatre Trauma Registry
+    note: Measured on first hospital observations, not pre-hospital ones (E-11). Physiology is drawn so the MPTT-24 reproduces this row whatever the outcome of O-1.
+
+  triage_accuracy_civilian:
+    description: MPTT-24 Priority One against need for a life-saving intervention, civilian registry
+    cohort: civilian
+    setting: in_hospital
+    value: {sensitivity: 0.535, specificity: 0.748}
+    unit: proportion
+    tolerance: {sensitivity: 0.015, specificity: 0.01}
+    source: [E-09]
+    label: registry evidence
+    population: Trauma Audit and Research Network, England and Wales
+    note: Measured on first hospital observations (E-11).
+
+  mptt24_thresholds:
+    description: MPTT-24 physiological thresholds the generated physiology must not straddle
+    value: {respiratory_rate_below: 12, respiratory_rate_at_or_above: 24, heart_rate_at_or_above: 100}
+    unit: breaths or beats per minute
+    tolerance: 0
+    source: [E-04, E-08]
+    label: registry evidence
+    population: UK Joint Theatre Trauma Registry
+    note: The step order and the heart rate comparison await O-1. No generated value lies where the two readings would disagree, so the generator does not depend on how O-1 resolves.
+
+  walking_given_not_priority_one:
+    description: Share of casualties not in Priority One who are walking
+    value: 0.6
+    unit: probability
+    tolerance: 0.01
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Part of the physiology chosen so the MPTT-24 reproduces E-09.
+
+  catastrophic_haemorrhage_share:
+    description: Share of Priority One casualties bleeding from an extremity or junction who have catastrophic external haemorrhage
+    value: 0.5
+    unit: probability
+    tolerance: 0.025
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Part of the physiology chosen so the MPTT-24 reproduces E-09.
+
+  abnormal_sign_weights:
+    description: Which vital sign is abnormal in a Priority One casualty
+    value: {heart_rate: 0.5, respiratory_rate: 0.3, avpu: 0.2}
+    unit: share of Priority One casualties
+    tolerance: 0.01
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Exactly one of the three signs is abnormal. Part of the physiology chosen so the MPTT-24 reproduces E-09.
+
+  heart_rate_ranges:
+    description: Range of heart rate, normal and abnormal, drawn uniformly in whole beats
+    value: {normal: [60, 99], abnormal: [101, 150]}
+    unit: beats per minute
+    tolerance: 0
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Leaves 100 empty so either reading of the heart rate comparison gives the same priority (O-1).
+
+  respiratory_rate_ranges:
+    description: Range of respiratory rate, normal, abnormally low and abnormally high, drawn uniformly in whole breaths
+    value: {normal: [12, 21], low: [6, 10], high: [25, 40]}
+    unit: breaths per minute
+    tolerance: 0
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Leaves 22 to 24 empty, so the MPTT and MPTT-24 thresholds give the same priority.
+
+  respiratory_rate_low_share:
+    description: Share of abnormal respiratory rates that are low
+    value: 0.2
+    unit: probability
+    tolerance: 0.015
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  avpu_abnormal_shares:
+    description: Level of response when it is abnormal
+    value: {V: 0.5, P: 0.3, U: 0.2}
+    unit: share of casualties not alert
+    tolerance: 0.02
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  sbp_not_bleeding:
+    description: Systolic pressure in casualties not bleeding significantly
+    value: {mean: 125, sd: 12}
+    unit: mm Hg
+    tolerance: {mean: 0.5, sd: 0.5}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  sbp_bleeding:
+    description: Systolic pressure in bleeding casualties, falling with severity
+    value: {mean: 105, severity_slope: -12, residual_sd: 12}
+    unit: mm Hg
+    tolerance: {mean: 1.0, severity_slope: 0.5, residual_sd: 0.5}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  # ---------------------------------------------------------------- scan
+
+  scan_accuracy_in_hospital:
+    description: eFAST accuracy in hospital
+    cohort: civilian
+    setting: in_hospital
+    value:
+      free_fluid: {sensitivity: 0.74, specificity: 0.98}
+      pneumothorax: {sensitivity: 0.69, specificity: 0.99}
+    unit: proportion
+    tolerance: {sensitivity: 0.025, specificity: 0.01}
+    source: [E-14]
+    label: registry evidence
+    provisional: true
+    population: Trauma patients in pooled in-hospital accuracy studies
+    note: Provisional until O-6 is closed. Free fluid is generated for truncal bleeding only, an assumption.
+
+  scan_accuracy_pre_hospital:
+    description: eFAST accuracy before hospital
+    cohort: civilian
+    setting: pre_hospital
+    value:
+      free_fluid: {sensitivity: 0.25, specificity: 0.96}
+      pneumothorax: {sensitivity: 0.38, specificity: 0.96}
+    unit: proportion
+    tolerance: {sensitivity: 0.025, specificity: 0.01}
+    source: [E-16]
+    label: registry evidence
+    provisional: true
+    population: Civilian physician-staffed helicopter service
+    note: Provisional until O-6 is closed. Civilian figures applied to military casualties, an assumption.
+
+  # ---------------------------------------------------------------- time
+
+  time_to_phec_min:
+    description: Time from injury to pre-hospital emergency care, when tranexamic acid is given
+    value: {median: 56, log_sd: 0.5}
+    unit: minutes (lognormal)
+    tolerance: {median: 1.0, log_sd: 0.01}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Chosen, with the benefit at zero delay, so the generator reproduces the E-22 bands. Most casualties meet the 1-hour timeline of E-42.
+
+  phec_to_role2_min:
+    description: Time from pre-hospital emergency care to arrival at Role 2
+    value: {median: 50, log_sd: 0.4}
+    unit: minutes (lognormal)
+    tolerance: {median: 1.0, log_sd: 0.01}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Puts the median arrival at Role 2 inside the 2-hour timeline of E-42.
+
+  # ---------------------------------------------------------------- outcome
+
+  lethal_haemorrhage_site:
+    description: Site of bleeding among deaths from bleeding
+    value: {truncal: 0.673, junctional: 0.192, extremity: 0.135}
+    unit: share of bleeding deaths
+    tolerance: 0.02
+    normalise: true
+    source: [E-41]
+    label: registry evidence
+    population: US potentially survivable pre-facility deaths, 2001-2011
+    note: Applies to fatal bleeding only. The generator sets each site's death probability to meet it.
+
+  bleeding_death_hazard:
+    description: Hourly death rate from bleeding, at 1, 6 and 9 hours
+    value: {h_1h: 0.046, h_6h: 0.010, h_9h: 0.001}
+    unit: deaths per casualty-hour at risk
+    tolerance: {h_1h: 0.006, h_6h: 0.0035, h_9h: 0.001}
+    comparison: {h_9h: at_most}
+    source: [E-85]
+    label: registry evidence
+    population: Haemorrhaging patients in five prospective civilian studies
+    note: Measured from hospital admission; the generator applies it from injury, an assumption. The 9-hour figure is "under 0.1%" and is fitted as 0.1%. Taken as the hazard without tranexamic acid.
+
+  bleeding_death_severity_log_odds:
+    description: Change in the log odds of bleeding death per standard deviation of severity
+    value: 0.75
+    unit: log odds per standard deviation
+    tolerance: 0.01
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  txa_allocation:
+    description: Share of battle casualties allocated tranexamic acid, at random
+    value: 0.5
+    unit: probability
+    tolerance: 0.01
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Random allocation, as in a trial, so the effect can be recovered.
+
+  txa_benefit_at_zero_delay:
+    description: Relative reduction in bleeding death from tranexamic acid given at the moment of injury
+    value: 0.41
+    unit: relative reduction
+    tolerance: 0.01
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Chosen, with the delay distribution, so the generator reproduces the E-22 bands.
+
+  txa_rr_by_delay:
+    description: Relative risk of bleeding death with tranexamic acid, by time from injury to treatment
+    value: {up_to_1h: 0.68, from_1h_to_3h: 0.79, over_3h: 1.44}
+    unit: relative risk
+    tolerance: 0.03
+    source: [E-22]
+    label: trial evidence
+    population: CRASH-2 trial participants
+    note: Exploratory analysis (E-23). Used directly after 3 hours; up to 3 hours it is reproduced by the linear decline below.
+
+  txa_benefit_decay:
+    description: Decline of the benefit of tranexamic acid with delay
+    value: {decline_per_15min: 0.10, none_after_h: 3.0}
+    unit: share of the benefit at zero delay; hours
+    tolerance: {decline_per_15min: 0.02, none_after_h: 0.25}
+    source: [E-24]
+    label: trial evidence
+    population: Pooled CRASH-2 and WOMAN trial participants
+    note: Half the patients are obstetric (E-26). The generator's benefit falls linearly to none at 3 hours, which is a decline of about 8% of the initial benefit per 15 minutes.

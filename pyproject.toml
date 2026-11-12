@@ -1,0 +1,31 @@
+[project]
+name = "inference-labs"
+version = "0.1.0"
+description = "Ten ways of reasoning applied to one military casualty. Teaching material. Not for clinical use."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Ross Taylor"}]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "scipy>=1.11",
+  "scikit-learn>=1.3",
+  "matplotlib>=3.8",
+  "pyyaml>=6.0",
+  "streamlit>=1.30",
+  "pytest>=8",
+  "nbclient>=0.9",
+  "nbformat>=5.9",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--import-mode=importlib -p no:cacheprovider"

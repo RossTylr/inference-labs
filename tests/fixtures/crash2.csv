@@ -1,0 +1,201 @@
+entryid,sex,age,injurytime,injurytype,sbp,rr,cc,hr,gcseye,gcsmotor,gcsverbal,gcs,treatment,condition,cause,ddeath
+SYN-C2-0001,M,34,1.9,penetrating,92,21,4,112,4,5,1,10,TXA,alive,,
+SYN-C2-0002,M,54,3.9,penetrating,101,15,5,65,2,3,5,10,placebo,alive,,
+SYN-C2-0003,M,26,6.9,blunt and penetrating,143,28,4,97,1,5,5,11,placebo,alive,,
+SYN-C2-0004,M,69,5.4,penetrating,74,33,3,143,2,2,2,6,placebo,dead,bleeding,20
+SYN-C2-0005,F,60,5.0,blunt,76,13,4,108,2,2,5,9,TXA,alive,,
+SYN-C2-0006,F,23,1.3,blunt and penetrating,126,11,5,135,4,4,3,11,placebo,alive,,
+SYN-C2-0007,M,24,6.7,penetrating,57,35,1,145,2,1,3,6,placebo,alive,,
+SYN-C2-0008,M,41,5.1,blunt and penetrating,118,12,1,126,1,2,2,5,placebo,alive,,
+SYN-C2-0009,M,32,7.6,blunt and penetrating,99,36,5,156,2,5,5,12,placebo,alive,,
+SYN-C2-0010,M,53,7.5,blunt,71,13,6,116,3,6,1,10,placebo,dead,bleeding,0
+SYN-C2-0011,M,60,7.5,blunt and penetrating,99,11,2,136,4,3,2,9,TXA,alive,,
+SYN-C2-0012,M,32,4.5,penetrating,85,14,4,104,3,6,3,12,placebo,alive,,
+SYN-C2-0013,M,62,6.3,blunt,114,15,1,88,4,2,3,9,TXA,dead,bleeding,26
+SYN-C2-0014,M,67,1.3,blunt and penetrating,119,35,1,99,1,1,1,3,placebo,alive,,
+SYN-C2-0015,M,43,0.8,blunt and penetrating,147,13,3,56,4,5,5,14,TXA,alive,,
+SYN-C2-0016,F,49,6.4,blunt and penetrating,110,10,2,64,1,2,4,7,placebo,alive,,
+SYN-C2-0017,M,38,5.5,blunt and penetrating,113,13,1,58,3,6,4,13,TXA,dead,head injury,19
+SYN-C2-0018,M,22,7.6,blunt and penetrating,96,19,3,105,2,4,4,10,placebo,dead,bleeding,25
+SYN-C2-0019,F,42,2.8,blunt,109,31,5,68,1,6,5,12,placebo,alive,,
+SYN-C2-0020,F,26,4.2,blunt,136,27,1,113,3,5,2,10,TXA,alive,,
+SYN-C2-0021,F,61,6.4,penetrating,62,39,2,140,2,5,2,9,placebo,alive,,
+SYN-C2-0022,M,25,5.1,blunt and penetrating,126,26,3,120,3,1,5,9,TXA,alive,,
+SYN-C2-0023,M,30,6.9,penetrating,97,26,6,52,2,6,1,9,placebo,dead,bleeding,17
+SYN-C2-0024,M,42,3.5,penetrating,112,31,4,59,1,2,2,5,placebo,alive,,
+SYN-C2-0025,M,18,6.8,blunt and penetrating,118,10,1,89,3,1,1,5,placebo,alive,,
+SYN-C2-0026,M,66,7.0,blunt and penetrating,131,26,4,151,2,3,4,9,TXA,alive,,
+SYN-C2-0027,F,39,7.3,penetrating,116,33,5,134,3,1,5,9,placebo,alive,,
+SYN-C2-0028,M,23,3.5,blunt and penetrating,100,14,3,126,3,5,4,12,placebo,alive,,
+SYN-C2-0029,M,20,7.3,blunt,118,33,5,78,4,6,5,15,TXA,alive,,
+SYN-C2-0030,F,26,2.8,blunt and penetrating,110,12,2,123,2,6,2,10,placebo,alive,,
+SYN-C2-0031,M,22,5.0,penetrating,105,33,3,104,1,6,1,8,TXA,alive,,
+SYN-C2-0032,M,29,7.8,blunt,115,34,5,77,3,6,1,10,TXA,alive,,
+SYN-C2-0033,F,30,5.3,penetrating,132,34,5,124,4,2,1,7,TXA,alive,,
+SYN-C2-0034,M,48,4.9,blunt,113,18,3,105,4,5,5,14,placebo,alive,,
+SYN-C2-0035,F,67,3.2,blunt,114,14,6,160,4,2,2,8,TXA,alive,,
+SYN-C2-0036,M,40,4.4,blunt and penetrating,78,14,1,119,3,1,5,9,TXA,alive,,
+SYN-C2-0037,M,50,4.2,blunt and penetrating,107,20,2,132,2,5,1,8,TXA,dead,other,18
+SYN-C2-0038,M,40,5.6,penetrating,64,18,5,71,2,6,1,9,TXA,alive,,
+SYN-C2-0039,M,65,4.5,penetrating,128,16,3,85,1,5,2,8,placebo,alive,,
+SYN-C2-0040,F,25,2.9,blunt and penetrating,87,13,1,123,1,4,1,6,TXA,alive,,
+SYN-C2-0041,M,59,1.9,blunt and penetrating,142,35,4,155,2,6,3,11,TXA,dead,bleeding,4
+SYN-C2-0042,M,61,7.9,blunt and penetrating,185,33,4,115,2,1,3,6,placebo,alive,,
+SYN-C2-0043,M,35,5.1,blunt and penetrating,100,24,5,69,3,1,2,6,placebo,dead,bleeding,2
+SYN-C2-0044,M,43,1.8,blunt and penetrating,143,16,4,135,3,2,3,8,placebo,dead,head injury,13
+SYN-C2-0045,M,40,3.0,blunt and penetrating,120,15,2,106,3,1,5,9,placebo,alive,,
+SYN-C2-0046,M,63,5.4,blunt and penetrating,96,28,6,109,4,4,5,13,placebo,alive,,
+SYN-C2-0047,M,18,2.3,blunt and penetrating,89,26,2,91,4,1,5,10,placebo,alive,,
+SYN-C2-0048,M,19,7.2,blunt and penetrating,124,22,6,125,4,3,5,12,placebo,alive,,
+SYN-C2-0049,M,31,4.6,penetrating,145,18,2,123,4,4,5,13,placebo,alive,,
+SYN-C2-0050,M,42,5.6,blunt,119,27,3,155,2,3,5,10,TXA,alive,,
+SYN-C2-0051,M,38,5.5,blunt and penetrating,72,13,5,71,4,4,2,10,TXA,alive,,
+SYN-C2-0052,M,37,1.7,blunt and penetrating,84,38,4,122,4,5,2,11,placebo,alive,,
+SYN-C2-0053,M,57,7.5,blunt,104,19,4,127,1,6,5,12,TXA,dead,head injury,19
+SYN-C2-0054,M,62,6.8,blunt and penetrating,144,25,1,50,2,5,3,10,TXA,dead,head injury,4
+SYN-C2-0055,M,26,1.6,blunt,117,36,1,112,3,5,3,11,placebo,alive,,
+SYN-C2-0056,M,54,4.8,blunt,118,14,4,57,3,4,3,10,TXA,alive,,
+SYN-C2-0057,M,54,4.5,blunt and penetrating,140,14,3,140,3,4,3,10,TXA,alive,,
+SYN-C2-0058,M,45,2.8,penetrating,105,31,2,93,1,5,2,8,TXA,dead,head injury,11
+SYN-C2-0059,M,68,3.3,blunt,108,31,1,82,2,3,1,6,placebo,alive,,
+SYN-C2-0060,M,26,2.4,penetrating,105,19,3,98,1,3,1,5,TXA,dead,bleeding,11
+SYN-C2-0061,F,47,5.2,blunt and penetrating,66,28,2,148,4,5,1,10,placebo,alive,,
+SYN-C2-0062,M,54,3.7,penetrating,122,18,3,117,1,6,1,8,placebo,alive,,
+SYN-C2-0063,F,34,1.3,blunt and penetrating,120,26,6,93,2,3,2,7,TXA,alive,,
+SYN-C2-0064,M,65,2.2,blunt and penetrating,134,35,6,96,4,4,2,10,TXA,alive,,
+SYN-C2-0065,M,47,1.6,blunt,80,21,1,67,3,1,4,8,TXA,dead,head injury,11
+SYN-C2-0066,M,59,5.2,blunt,90,17,4,96,3,6,1,10,TXA,alive,,
+SYN-C2-0067,M,35,4.7,blunt,133,28,4,149,2,5,1,8,placebo,alive,,
+SYN-C2-0068,F,69,3.4,blunt,118,19,6,57,4,1,1,6,placebo,alive,,
+SYN-C2-0069,F,41,4.6,blunt and penetrating,144,40,5,117,3,3,3,9,TXA,alive,,
+SYN-C2-0070,M,49,5.2,blunt and penetrating,88,23,3,141,3,6,1,10,placebo,dead,bleeding,8
+SYN-C2-0071,M,26,2.1,blunt and penetrating,115,11,6,105,2,4,5,11,placebo,alive,,
+SYN-C2-0072,F,34,0.9,blunt,93,34,3,105,2,4,4,10,placebo,alive,,
+SYN-C2-0073,M,70,7.7,blunt and penetrating,118,13,1,148,3,1,2,6,TXA,alive,,
+SYN-C2-0074,M,29,1.9,penetrating,98,33,6,153,3,5,3,11,placebo,alive,,
+SYN-C2-0075,F,54,2.3,blunt and penetrating,123,32,6,90,4,4,1,9,placebo,dead,head injury,3
+SYN-C2-0076,F,60,5.8,blunt,137,22,2,150,3,2,2,7,TXA,alive,,
+SYN-C2-0077,F,25,7.9,blunt,127,16,6,153,2,3,3,8,TXA,alive,,
+SYN-C2-0078,M,61,1.4,blunt and penetrating,65,10,1,156,4,4,3,11,TXA,alive,,
+SYN-C2-0079,M,38,3.5,blunt,134,29,6,96,1,4,5,10,placebo,alive,,
+SYN-C2-0080,F,51,6.9,penetrating,121,10,2,121,2,2,3,7,TXA,alive,,
+SYN-C2-0081,M,52,1.1,blunt and penetrating,84,13,2,116,2,4,5,11,placebo,alive,,
+SYN-C2-0082,M,59,2.4,blunt,88,13,5,56,4,1,4,9,TXA,alive,,
+SYN-C2-0083,M,32,5.1,blunt,110,25,2,68,2,4,5,11,placebo,dead,head injury,16
+SYN-C2-0084,M,43,6.7,blunt and penetrating,124,40,3,94,3,1,5,9,TXA,alive,,
+SYN-C2-0085,M,32,1.3,blunt,99,19,2,84,1,1,2,4,TXA,alive,,
+SYN-C2-0086,F,63,3.6,penetrating,69,23,5,105,4,6,2,12,TXA,alive,,
+SYN-C2-0087,M,31,4.9,blunt and penetrating,117,27,5,80,2,5,5,12,placebo,alive,,
+SYN-C2-0088,M,54,4.6,blunt,114,25,5,76,2,5,4,11,TXA,alive,,
+SYN-C2-0089,M,18,4.5,penetrating,171,38,1,82,1,3,1,5,placebo,dead,other,21
+SYN-C2-0090,M,30,7.9,blunt,78,31,6,53,3,2,2,7,placebo,alive,,
+SYN-C2-0091,M,52,7.9,blunt and penetrating,173,24,2,99,3,3,2,8,TXA,alive,,
+SYN-C2-0092,F,49,2.1,blunt,154,25,1,131,2,2,5,9,placebo,alive,,
+SYN-C2-0093,F,31,2.4,penetrating,118,29,1,65,4,2,4,10,placebo,alive,,
+SYN-C2-0094,M,52,3.5,blunt and penetrating,151,15,6,136,3,3,4,10,placebo,alive,,
+SYN-C2-0095,F,39,1.3,penetrating,112,28,5,114,1,4,5,10,TXA,alive,,
+SYN-C2-0096,M,28,1.6,blunt,134,32,2,70,1,5,1,7,TXA,dead,bleeding,16
+SYN-C2-0097,M,67,4.7,penetrating,92,11,1,90,2,4,5,11,placebo,alive,,
+SYN-C2-0098,M,67,7.9,blunt,112,15,3,51,1,1,2,4,TXA,alive,,
+SYN-C2-0099,F,57,2.7,blunt and penetrating,85,37,3,140,3,1,5,9,TXA,alive,,
+SYN-C2-0100,M,60,2.0,penetrating,71,20,6,130,1,6,1,8,placebo,alive,,
+SYN-C2-0101,M,67,5.1,blunt,103,15,3,157,3,1,4,8,placebo,alive,,
+SYN-C2-0102,M,25,2.7,blunt,94,10,2,124,3,6,1,10,placebo,alive,,
+SYN-C2-0103,M,28,0.6,penetrating,124,23,2,65,3,4,5,12,placebo,alive,,
+SYN-C2-0104,M,29,1.2,blunt and penetrating,142,29,4,65,2,2,2,6,TXA,alive,,
+SYN-C2-0105,M,30,7.1,blunt,106,23,4,147,2,3,4,9,placebo,alive,,
+SYN-C2-0106,F,18,1.3,penetrating,111,34,3,69,4,4,5,13,TXA,dead,head injury,22
+SYN-C2-0107,M,70,5.3,blunt and penetrating,115,11,6,139,2,4,2,8,placebo,dead,other,2
+SYN-C2-0108,M,67,3.6,penetrating,68,20,1,75,4,3,3,10,placebo,alive,,
+SYN-C2-0109,M,26,6.3,blunt,117,29,1,69,2,3,4,9,placebo,alive,,
+SYN-C2-0110,M,27,4.3,penetrating,110,11,4,121,2,5,2,9,placebo,alive,,
+SYN-C2-0111,M,66,2.2,penetrating,109,40,2,75,3,4,3,10,placebo,alive,,
+SYN-C2-0112,M,62,2.1,blunt,82,20,1,145,4,1,3,8,TXA,alive,,
+SYN-C2-0113,M,31,2.3,blunt and penetrating,60,17,1,151,4,5,2,11,placebo,alive,,
+SYN-C2-0114,M,45,2.3,blunt and penetrating,104,15,1,141,3,3,2,8,TXA,alive,,
+SYN-C2-0115,F,62,2.4,penetrating,118,17,2,127,1,6,1,8,placebo,alive,,
+SYN-C2-0116,M,21,2.7,blunt and penetrating,144,16,3,70,4,4,4,12,placebo,dead,bleeding,1
+SYN-C2-0117,M,61,5.0,blunt,138,10,6,132,4,4,3,11,placebo,alive,,
+SYN-C2-0118,M,29,4.5,penetrating,146,30,2,86,2,4,1,7,TXA,alive,,
+SYN-C2-0119,M,22,1.0,penetrating,119,17,1,64,2,3,5,10,placebo,dead,head injury,15
+SYN-C2-0120,M,31,3.7,blunt and penetrating,139,29,5,108,1,5,2,8,placebo,dead,head injury,0
+SYN-C2-0121,M,42,7.5,penetrating,105,32,1,129,4,2,2,8,TXA,alive,,
+SYN-C2-0122,M,58,7.5,blunt,126,28,3,119,1,6,2,9,TXA,alive,,
+SYN-C2-0123,M,47,2.9,blunt and penetrating,133,11,6,106,2,5,2,9,TXA,alive,,
+SYN-C2-0124,F,37,1.7,blunt and penetrating,177,23,3,76,1,2,1,4,TXA,dead,bleeding,3
+SYN-C2-0125,M,36,2.7,penetrating,116,20,2,120,4,6,5,15,placebo,alive,,
+SYN-C2-0126,M,25,1.5,blunt,78,28,2,88,3,1,4,8,placebo,alive,,
+SYN-C2-0127,M,60,2.4,blunt,144,16,6,66,1,6,3,10,TXA,alive,,
+SYN-C2-0128,F,68,7.4,blunt,90,24,6,116,1,3,1,5,placebo,dead,bleeding,14
+SYN-C2-0129,M,52,7.1,blunt and penetrating,108,17,4,114,1,3,4,8,placebo,alive,,
+SYN-C2-0130,M,45,3.9,blunt,103,21,5,120,1,4,2,7,placebo,alive,,
+SYN-C2-0131,M,23,4.6,penetrating,87,10,2,118,4,1,2,7,TXA,alive,,
+SYN-C2-0132,M,21,5.8,blunt and penetrating,143,12,4,132,4,6,1,11,placebo,alive,,
+SYN-C2-0133,M,47,5.8,penetrating,125,20,2,112,2,6,5,13,placebo,alive,,
+SYN-C2-0134,F,69,5.7,blunt,95,36,1,110,1,5,4,10,TXA,alive,,
+SYN-C2-0135,M,65,6.0,blunt and penetrating,112,34,2,62,2,1,4,7,TXA,dead,head injury,16
+SYN-C2-0136,M,53,4.9,blunt,99,21,4,52,2,5,2,9,placebo,alive,,
+SYN-C2-0137,F,64,1.5,penetrating,125,28,1,79,3,3,3,9,TXA,alive,,
+SYN-C2-0138,F,41,5.7,penetrating,101,36,1,75,2,6,4,12,TXA,dead,head injury,10
+SYN-C2-0139,M,61,5.5,penetrating,91,10,6,76,3,5,3,11,TXA,alive,,
+SYN-C2-0140,M,25,1.7,penetrating,94,37,1,110,3,2,2,7,TXA,alive,,
+SYN-C2-0141,M,63,2.0,blunt and penetrating,99,22,1,76,3,2,2,7,placebo,alive,,
+SYN-C2-0142,M,54,5.3,blunt and penetrating,117,22,3,83,3,2,1,6,TXA,alive,,
+SYN-C2-0143,M,63,3.4,blunt,87,39,6,69,2,4,3,9,placebo,alive,,
+SYN-C2-0144,M,23,6.6,blunt,108,30,1,159,4,3,2,9,placebo,alive,,
+SYN-C2-0145,M,64,2.6,blunt and penetrating,121,23,1,93,4,3,2,9,placebo,alive,,
+SYN-C2-0146,M,67,5.5,blunt,168,26,1,77,4,2,4,10,placebo,dead,other,22
+SYN-C2-0147,M,64,5.1,blunt and penetrating,131,39,5,151,1,6,2,9,TXA,alive,,
+SYN-C2-0148,F,57,1.3,blunt,40,34,4,146,3,4,5,12,TXA,dead,head injury,3
+SYN-C2-0149,M,64,2.6,blunt,97,28,5,109,4,1,3,8,TXA,alive,,
+SYN-C2-0150,M,55,3.2,blunt and penetrating,100,40,5,72,3,6,2,11,TXA,alive,,
+SYN-C2-0151,F,24,2.8,penetrating,118,29,4,64,1,1,3,5,placebo,alive,,
+SYN-C2-0152,M,58,1.2,blunt and penetrating,149,10,2,135,3,1,5,9,placebo,alive,,
+SYN-C2-0153,M,22,2.3,blunt,129,31,4,76,3,2,1,6,TXA,dead,other,27
+SYN-C2-0154,M,63,4.5,blunt and penetrating,52,36,6,127,4,4,1,9,placebo,alive,,
+SYN-C2-0155,M,19,2.2,blunt,118,34,5,84,3,5,2,10,placebo,dead,head injury,24
+SYN-C2-0156,M,42,5.3,penetrating,113,17,1,160,1,5,3,9,TXA,alive,,
+SYN-C2-0157,F,36,3.6,blunt,120,37,3,65,1,1,3,5,placebo,alive,,
+SYN-C2-0158,M,61,3.9,blunt,144,16,3,124,3,3,2,8,TXA,alive,,
+SYN-C2-0159,M,23,2.1,blunt,83,33,4,136,4,4,2,10,placebo,alive,,
+SYN-C2-0160,M,23,6.4,penetrating,138,31,3,152,3,6,3,12,placebo,alive,,
+SYN-C2-0161,M,40,1.1,blunt,69,17,4,144,1,2,2,5,TXA,alive,,
+SYN-C2-0162,F,55,7.6,blunt,111,17,5,147,1,5,2,8,placebo,alive,,
+SYN-C2-0163,M,68,4.9,blunt and penetrating,120,16,3,101,4,3,3,10,placebo,alive,,
+SYN-C2-0164,M,57,7.6,blunt,167,25,4,90,2,6,5,13,placebo,dead,bleeding,24
+SYN-C2-0165,M,18,4.6,penetrating,92,25,5,134,2,5,1,8,placebo,alive,,
+SYN-C2-0166,M,29,3.1,blunt,68,14,4,110,4,1,2,7,placebo,dead,bleeding,13
+SYN-C2-0167,M,48,3.3,blunt,127,30,2,148,2,2,4,8,placebo,alive,,
+SYN-C2-0168,M,23,7.5,blunt and penetrating,93,10,1,61,4,2,5,11,placebo,alive,,
+SYN-C2-0169,M,24,4.4,blunt and penetrating,149,10,6,155,1,2,4,7,placebo,alive,,
+SYN-C2-0170,M,66,3.5,penetrating,92,24,2,73,1,1,1,3,TXA,alive,,
+SYN-C2-0171,M,47,1.7,blunt and penetrating,88,37,4,82,1,6,1,8,TXA,alive,,
+SYN-C2-0172,M,65,1.6,blunt and penetrating,141,14,2,147,2,5,3,10,TXA,dead,bleeding,15
+SYN-C2-0173,F,54,3.6,blunt,112,37,5,113,2,3,1,6,TXA,alive,,
+SYN-C2-0174,F,23,3.9,penetrating,135,38,5,72,1,6,3,10,TXA,alive,,
+SYN-C2-0175,M,20,6.5,blunt and penetrating,74,24,5,115,3,5,4,12,placebo,dead,bleeding,6
+SYN-C2-0176,F,49,1.4,penetrating,151,10,6,86,4,1,4,9,TXA,alive,,
+SYN-C2-0177,M,38,3.9,blunt and penetrating,95,11,3,114,3,5,1,9,TXA,alive,,
+SYN-C2-0178,M,27,1.5,penetrating,130,13,6,71,1,5,2,8,TXA,alive,,
+SYN-C2-0179,M,48,2.4,penetrating,85,28,2,93,4,5,1,10,placebo,dead,other,1
+SYN-C2-0180,M,28,4.2,blunt and penetrating,71,38,6,140,1,5,3,9,TXA,alive,,
+SYN-C2-0181,F,69,7.1,penetrating,104,38,2,60,3,4,1,8,TXA,alive,,
+SYN-C2-0182,M,67,1.5,blunt and penetrating,114,17,5,67,4,6,1,11,placebo,alive,,
+SYN-C2-0183,F,28,1.8,blunt and penetrating,149,22,5,132,2,6,5,13,placebo,dead,other,14
+SYN-C2-0184,M,53,5.8,blunt and penetrating,119,29,6,116,2,2,2,6,placebo,alive,,
+SYN-C2-0185,F,50,4.5,blunt,128,30,1,145,2,2,2,6,TXA,alive,,
+SYN-C2-0186,M,58,1.2,penetrating,126,11,4,68,2,5,4,11,placebo,alive,,
+SYN-C2-0187,M,28,5.6,blunt and penetrating,188,39,6,52,1,2,3,6,TXA,alive,,
+SYN-C2-0188,M,32,7.7,blunt,90,31,1,143,1,2,1,4,placebo,alive,,
+SYN-C2-0189,M,26,6.0,penetrating,141,24,2,59,3,4,3,10,placebo,alive,,
+SYN-C2-0190,M,59,8.0,blunt and penetrating,106,25,1,66,2,1,3,6,placebo,alive,,
+SYN-C2-0191,M,51,6.1,blunt and penetrating,117,21,6,87,4,1,5,10,TXA,alive,,
+SYN-C2-0192,F,53,3.0,penetrating,96,35,1,117,2,5,2,9,TXA,alive,,
+SYN-C2-0193,M,18,6.5,penetrating,139,17,3,153,4,4,1,9,TXA,alive,,
+SYN-C2-0194,M,36,4.8,blunt and penetrating,79,31,5,156,3,1,1,5,placebo,alive,,
+SYN-C2-0195,M,54,1.2,blunt and penetrating,77,34,4,129,3,5,1,9,TXA,alive,,
+SYN-C2-0196,M,44,3.2,blunt,105,30,5,124,1,5,1,7,TXA,alive,,
+SYN-C2-0197,M,52,7.6,blunt,81,34,1,76,4,4,3,11,placebo,alive,,
+SYN-C2-0198,F,31,5.4,blunt,128,24,1,112,1,2,5,8,placebo,alive,,
+SYN-C2-0199,M,61,3.3,blunt,133,14,3,156,4,2,3,9,TXA,alive,,
+SYN-C2-0200,M,49,5.8,blunt and penetrating,91,27,2,132,1,3,4,8,TXA,alive,,
