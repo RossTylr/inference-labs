@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 3,
-  "when": "2026-11-12T16:38",
+  "attempt": 4,
+  "when": "2026-11-12T16:51",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -828,13 +828,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "2 further line(s) marked BREACH; the review's verdict is BREACH",
+      "reason": "the review is older than notebooks/03_bayesian.ipynb; 2 further line(s) marked BREACH; the review's verdict is BREACH",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (59 passed in 6.45s)",
+      "reason": "13 gates each fail their planted defect (59 passed in 6.46s)",
       "detail": null
     },
     "G-13": {
