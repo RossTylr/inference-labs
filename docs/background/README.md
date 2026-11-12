@@ -62,7 +62,7 @@ Head injury is the thinnest: its anchors are two tranexamic acid trials and a ch
 
 ## Limits of this pass
 
-- **Abstracts, not papers.** Most entries were read as the publisher's abstract through Europe PMC, OpenAlex or Crossref. Three were read in full (E-86, E-98, E-110). Three were read through summaries (E-76, E-79, E-81). Five are cited without having been read (E-117 to E-120, and the 2013 early warning score paper).
+- **Abstracts, not papers.** Most entries were read as the publisher's abstract through Europe PMC, OpenAlex or Crossref. A second pass on 12 November 2026 checked the register against the full text of 19 further sources, including CRASH-2, COMBAT, RePHILL, the golden hour study and the original sepsis policy paper; every figure in the register was confirmed. Still read only from a summary: the 2025 prehospital eFAST study (E-17). Still not read: the 2013 early warning score paper and Green and Mehr 1997.
 - **No files were downloaded.** The workspace cannot reach the publishers. DOIs are recorded for local retrieval.
 - **Author names** for about a dozen entries are from general knowledge or marked "to complete" (O-8).
 - **US and civilian weight.** Outcome and trial evidence is mostly US military or civilian. UK-specific anchors are the admissions statistic (E-34), the registry survival paper (E-84), the triage studies (E-01 to E-11) and RePHILL (E-77).

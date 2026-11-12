@@ -17,7 +17,7 @@
 | E-78 | Which outcome is the utility | Tranexamic acid before hospital: deaths at 28 days 17.3% against 21.8%; survival with good function 53.7% against 53.5% | Secondary against primary outcome |
 | E-38, E-41 | Common against lethal | Extremities about 44% of injuries, torso about 7%; truncal bleeding two thirds of survivable haemorrhage deaths | Different cohorts |
 | E-86 | A deliberately accepted risk | Systolic pressure held at about 100 before surgical control; above 110 if the brain is injured | Doctrine |
-| E-48 | A utility written down | The sepsis challenge scored early alerts up and late or false ones down | Provisional |
+| E-48 | A utility written down | The sepsis challenge scored early alerts up and late or false ones down. The winning entry scored 0.360 overall and -0.123 on the hospital system it had not seen | A competition, not a deployment |
 | E-101 | Two operating points from one model | 90.3% and 98.1%, or 97.5% and 93.4% | Retinal screening |
 
 ---

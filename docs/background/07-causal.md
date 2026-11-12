@@ -25,7 +25,7 @@
 | E-72 | The trial of the same question (PROPPR) | 12.7% against 17.0%, P=.12 |
 | E-83 | Prehospital blood, observational | 5% against 19% dead at 24 hours; adjusted hazard ratio 0.26 (0.08-0.84); 55 treated |
 | E-75, E-76, E-77 | Prehospital plasma and blood, randomised | Benefit in one trial, none in two |
-| E-81 | A policy change | Killed in action 16% to 9.9% after the sixty-minute mandate |
+| E-81 | A policy change | Killed in action 16% to 9.9% after the sixty-minute mandate. In the same paper, among the critically injured, 6.8% of those who received a blood transfusion were killed in action against 51.0% of those who did not. Most transfusions are given after reaching a facility, and the killed in action by definition never reach one, so the contrast invites the survival-bias question |
 | E-82 | Attribution by simulation | 44.2% of averted deaths assigned to tourniquets, blood and transport |
 | E-32 | Tourniquets | 90% survival if applied before shock, 10% after |
 | E-60 | Confounding by treatment | Asthma appeared to protect against pneumonia death because asthmatic patients went straight to intensive care |
@@ -68,4 +68,4 @@
 ## Open items
 
 - O-2 for CRASH-2 data. O-9 for the sources read through summaries.
-- E-117 (the three data science tasks) is cited from general knowledge.
+- None for E-117, now read at source.

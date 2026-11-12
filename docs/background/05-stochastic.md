@@ -12,7 +12,7 @@
 | E-25 | The same, from trial data | 63% of bleeding deaths within 12 hours of onset | Half the patients obstetric |
 | E-22 | Tranexamic acid by time to treatment | Relative risk of bleeding death 0.68 within 1 hour, 0.79 at 1 to 3 hours, 1.44 after 3 | Exploratory analysis |
 | E-24 | The decay as a rate | Benefit falls about 10% for each 15 minutes of delay; none after about 3 hours | Half obstetric |
-| E-81 | Halving the evacuation time | Median transport 90 minutes to 43. Killed in action 16% to 9.9%. Died of wounds 4.1% to 4.3% | Before and after a policy; press summary of the paper |
+| E-81 | Halving the evacuation time | Median transport 90 minutes to 43. Killed in action 16% to 9.9%. Died of wounds 4.1% to 4.3% | Before and after a policy |
 | E-83 | Blood within minutes | Transfusion within 15 minutes of rescue, a median 36 minutes after injury: hazard ratio for death at 24 hours 0.17 (0.04-0.73) | 62 patients in the early group; observational |
 | E-95 | Delay in septic shock, 1989-2004 | 79.9% survival if treated in the first hour; about 7.6% lower for each further hour | Observational |
 | E-94 | Delay in sepsis, 2014-2016 | Odds of death up 4% for each hour to antibiotics | Observational; mandated-care setting |

@@ -22,7 +22,7 @@
 |---|---|---|---|
 | E-20 | CRASH-2 | 14.5% against 16.0%, RR 0.91 (0.85-0.97) | A small effect shown clearly by a very large trial |
 | E-72 | PROPPR | 12.7% against 17.0% at 24 hours, P=.12; a secondary outcome at P=.03 | A 4-point difference that 680 patients could not confirm; a significant secondary is not a rescue |
-| E-76 | COMBAT | 15% against 10%, odds ratio 1.54 (0.60-3.98) | 125 patients: the interval allows a large benefit and a large harm |
+| E-76 | COMBAT | 15% against 10%, odds ratio 1.54 (0.60-3.98) | 125 patients: the interval allows a large benefit and a large harm. Median transport 19 and 16 minutes |
 | E-75 | PAMPer | 23.2% against 33.0%, P=.03 | The same intervention as COMBAT, opposite direction |
 | E-77 | RePHILL | 64.3% against 64.8%; difference near zero, interval -9 to 9 points | A null result that still cannot exclude a 9-point benefit |
 | E-78 | PATCH-Trauma | Primary: 53.7% against 53.5%. Death by 28 days: 17.3% against 21.8%, RR 0.79 (0.63-0.99) | The answer depends on which outcome was named in advance |
@@ -54,9 +54,9 @@
 
 ## What must not be claimed
 
-- That the difference between COMBAT and PAMPer is explained by transport time. That explanation is widely given but was not in anything read here.
+- That transport time is the proven reason COMBAT and PAMPer differ. The COMBAT authors suggest it (median transport was 19 and 16 minutes, and they write that blood products might help where transport is longer), but it is their interpretation, not a tested result.
 - That over-triage means 1 minus specificity. The triage literature defines it as 1 minus positive predictive value (E-12).
 
 ## Open items
 
-- O-9: COMBAT and the 2022 RePHILL paper were read through summaries.
+- None. COMBAT and the 2022 RePHILL paper have now been read in full.
