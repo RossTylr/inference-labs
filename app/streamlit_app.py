@@ -55,7 +55,7 @@ st.table(shown["table"])
 st.markdown(shown["findings"])
 st.markdown(f"**{shown['truth']}**")
 st.markdown(shown["baseline"])
-st.caption("Every figure on this page other than CRASH-2's absolute reduction is a mechanism: computed on "
+st.caption("Every figure on this page other than the trial's absolute reduction is a mechanism: computed on "
            "synthetic casualties, it can only confirm the model that made them. Scan accuracy before hospital comes from the published counts (E-16); in hospital "
            "it is an assumption centred on pooled figures (E-14). Both studies are civilian. The triage reading is "
            "systolic pressure at or below the ABC score's threshold (E-31).")
