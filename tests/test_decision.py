@@ -82,7 +82,7 @@ def test_ordering_by_belief_and_clock_is_reported_with_its_spread_across_seeds()
     for setting in d.SETTINGS:
         table = d.aircraft_spread(setting)
         assert len(table) == d.SEEDS >= 20
-        assert (table["knowing who is bleeding"] <= table["belief and clock"]).all()
+        assert (table["knowing who is bleeding, and how badly"] <= table["belief and clock"]).all()
     assert d.aircraft_summary("pre_hospital")["against the rule"].startswith("fewer")
     assert d.aircraft_policy()["pairs"] == d.PAIRS
     assert d.spread_words([-0.2, 0.1]).startswith("a tie: no detectable difference")

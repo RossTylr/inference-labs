@@ -268,8 +268,10 @@ def aircraft(a: Casualty, b: Casualty, flight_min: float = FLIGHT_MIN) -> dict:
 @lru_cache(maxsize=None)
 def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MIN, seed: int = PAIR_SEED) -> dict:
     """Random pairs of the evaluation sample's battle casualties alive at the decision. Three ways to choose who flies
-    first, scored by the expected deaths before surgery of those truly bleeding into the abdomen, per 100 pairs
-    (mechanism). A scan in hospital comes after the flight, so in that setting the belief is the one after triage."""
+    first, scored by the expected deaths before surgery of those truly bleeding into the abdomen, each at their own
+    chance of a bleeding death in the generator, per 100 pairs (mechanism). The choice itself can use only the belief
+    and the trunk's average chance, since severity is not seen. A scan in hospital comes after the flight, so in that
+    setting the belief is the one after triage."""
     return _score_pairs(*rules.battle_sample(setting), setting, flight_min, seed)
 
 
@@ -281,6 +283,7 @@ def _score_pairs(observed: pd.DataFrame, truth: pd.DataFrame, setting: str, flig
     seen = observed if setting == "pre_hospital" else observed.assign(scan_free_fluid=pd.NA)
     belief = bayesian.beliefs(seen, bayesian.default_prior())
     bleeding = truth["free_fluid"].to_numpy(bool)
+    own = np.nan_to_num(truth["p_death_untreated"].to_numpy(float))    # each casualty's own chance, in the generator
     now = observed["t_phec_min"].to_numpy(float)
     urgent = baseline.priority_one(observed, "figure")
     rng = np.random.default_rng(seed)
@@ -289,7 +292,7 @@ def _score_pairs(observed: pd.DataFrame, truth: pd.DataFrame, setting: str, flig
     j = (i + rng.integers(1, n, PAIRS)) % n          # a second casualty, never the first again
 
     def die(k, wait):
-        return death_between(now[k], now[k] + wait)
+        return death_between(now[k], now[k] + wait, chance=own[k])
 
     def deaths(first, second):
         return bleeding[first] * die(first, flight_min) + bleeding[second] * die(second, 3 * flight_min)
@@ -307,7 +310,7 @@ def _score_pairs(observed: pd.DataFrame, truth: pd.DataFrame, setting: str, flig
         d = np.where(a_first, deaths(i, j), deaths(j, i))
         result[name] = float(100 * d.mean())
     best = np.minimum(deaths(i, j), deaths(j, i))
-    result["knowing who is bleeding"] = float(100 * best.mean())
+    result["knowing who is bleeding, and how badly"] = float(100 * best.mean())
     result["pairs"] = int(i.size)
     return result
 
@@ -579,7 +582,7 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
          f"{PAIRS:,} pairs from each: "
          f"{m_pre['belief and clock']:.2f}, "
          f"against {m_pre[rule]:.2f} by the MPTT-24's priority, {pre['against the rule']}; {m_pre['chance']:.2f} by "
-         f"chance; {m_pre['knowing who is bleeding']:.2f} if it were known who is bleeding; scan before hospital"),
+         f"chance; {m_pre["knowing who is bleeding, and how badly"]:.2f} if it were known who is bleeding and how badly; scan before hospital"),
         ("2 Calibration (mechanism)", f"{cost(flag)}; the probability it acts on has calibration "
          f"{frequentist.diagnosis_results('pre_hospital')['calibration']:+.3f}", cost(fig), cost(txt),
          "Not applicable"),
