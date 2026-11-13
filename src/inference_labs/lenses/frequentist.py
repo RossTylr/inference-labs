@@ -501,7 +501,7 @@ def panel(record: Mapping[str, Any]) -> dict:
         "heading": "Frequentist panel: a score, its sensitivity and specificity, and a trial read as an interval",
         "score": (f"Logistic score from walking, conscious level, respiratory rate and heart rate: probability "
                   f"{p:.3f} that this casualty needs a life-saving intervention (mechanism), "
-                  f"{decision.against_threshold(p, score.threshold, show=False)}, so the score "
+                  f"{decision.against_threshold(p, score.threshold, show=False, name="the score's own threshold")}, so the score "
                   f"{'flags' if p >= score.threshold else 'does not flag'} this casualty. The score was fitted on the whole military cohort, disease admissions and "
                   f"non-battle injuries included; on its battle casualties the mean probability is {mean_p:.2f} "
                   f"where {_pct(share)} need an intervention (mechanism), so for a battle casualty it runs low."),

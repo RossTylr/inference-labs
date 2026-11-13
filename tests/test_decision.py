@@ -84,8 +84,8 @@ def test_ordering_by_belief_and_clock_is_reported_with_its_spread_across_seeds()
         assert len(table) == d.SEEDS >= 20
         assert (table["knowing who is bleeding"] <= table["belief and clock"]).all()
     assert d.aircraft_summary("pre_hospital")["against the rule"].startswith("fewer")
-    assert d.aircraft_summary("in_hospital")["against the rule"].startswith("no detectable difference")
-    assert d.spread_words([-0.2, 0.1]).startswith("no detectable difference")
+    assert d.aircraft_summary("in_hospital")["against the rule"].startswith("a tie")
+    assert d.spread_words([-0.2, 0.1]).startswith("a tie: no detectable difference")
     assert d.spread_words([0.2, 0.4]).startswith("more")
 
 

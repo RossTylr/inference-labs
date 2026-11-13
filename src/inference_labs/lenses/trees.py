@@ -555,7 +555,8 @@ def panel(record: Mapping[str, Any]) -> dict:
                  f"Among the battle casualties in that leaf, {_pct(cal['leaf'][leaf_node])} need one (mechanism)."),
         "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.4f} that this casualty "
                    f"needs a life-saving intervention, "
-                   f"{decision.against_threshold(answer.forest_probability, m.forest_threshold, places=4, show=False)}"
+                   f"{decision.against_threshold(answer.forest_probability, m.forest_threshold, places=4, show=False,
+                                               name="the forest's own threshold")}"
                    f", so it "
                    f"{'flags' if answer.forest_probability >= m.forest_threshold else 'does not flag'} this casualty "
                    f"(mechanism). Both were fitted on the whole military cohort, disease admissions and non-battle "
