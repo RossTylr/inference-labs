@@ -435,6 +435,18 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
 
 # ------------------------------------------------------------------------------------------------ app page 1
 
+@lru_cache(maxsize=None)
+def battle_not_acted(costs_key: tuple = tuple(DEFAULT_COSTS.items())) -> tuple[float, float]:
+    """Among the military evaluation sample's battle casualties, the only casualties app page 1 shows: the share whose
+    lens 02 probability falls below the cost threshold, and the share of those who need an intervention (mechanism)."""
+    costs = dict(costs_key)
+    observed, truth = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
+    below = frequentist.probability(observed)[battle] < threshold(costs)
+    need = truth["needs_lsi"].to_numpy(bool)[battle]
+    return float(below.mean()), float(need[below].mean())
+
+
 def panel(record: Mapping[str, Any], line: Mapping[str, Any]) -> dict:
     """The decision panel for one synthetic casualty on app page 1, given lens 03's belief line for them. Every number
     is formatted here, so the page shows only what the library computed (gate G-8). The costs are the defaults, each
@@ -446,13 +458,22 @@ def panel(record: Mapping[str, Any], line: Mapping[str, Any]) -> dict:
     now = float(record["t_phec_min"])
     go, wait = (float(death_by(now + FLIGHT_MIN)), float(death_by(now + HOLD_MIN + FLIGHT_MIN)))
     which = ("after the scan" if before else "after triage, since the scan in hospital comes after the flight")
+    mean_p, share = frequentist.battle_calibration()
+    below, below_need = battle_not_acted()
+    cheaper = DEFAULT_COSTS["miss"] * below_need > DEFAULT_COSTS["false alarm"] * (1 - below_need)
     return {
         "heading": "Decision panel: a probability becomes a decision only once each mistake has a cost",
         "costs": (f"With a miss weighed {DEFAULT_COSTS['miss'] / DEFAULT_COSTS['false alarm']:g} times a false alarm "
                   f"(an assumption: no source states an exchange rate between a miss and a false alarm), the "
                   f"threshold is {decision.threshold:.2f}. Lens 02's probability for this casualty is "
                   f"{decision.probability:.3f}, so at these costs the decision is "
-                  f"{'to act' if decision.act else 'not to act'} (mechanism)."),
+                  f"{'to act' if decision.act else 'not to act'} (mechanism). The probability was fitted on the whole "
+                  f"military cohort, disease admissions included. On the battle casualties among that cohort's 100,000 "
+                  f"synthetic casualties, the kind this page shows, it averages {mean_p:.3f} where {_pct(share)} need an intervention, so for a battle casualty it "
+                  f"runs low and the decision errs towards not acting: {_pct(below)} of them are told not to act, and "
+                  f"{_pct(below_need)} of those need an intervention"
+                  + (", so at these costs acting on all of them would cost less (mechanism)." if cheaper else
+                     " (mechanism).")),
         "evacuation": (f"Belief that this casualty is bleeding into the abdomen, {which}: {_pct(belief)} (lens 03). "
                        f"Flown now, {FLIGHT_MIN:.0f} minutes to surgery, the expected chance of dying from bleeding "
                        f"before arrival is {_pct(belief * go)}; held {HOLD_MIN:.0f} minutes more, "
