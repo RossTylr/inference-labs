@@ -506,11 +506,28 @@ def seven_axes() -> pd.DataFrame:
 
 # ------------------------------------------------------------------------------------------------ app page 1
 
+@lru_cache(maxsize=None)
+def battle_calibration() -> dict:
+    """On the evaluation sample's battle casualties, the only casualties app page 1 shows: the share in need, the
+    mean probability from the forest and the single tree, and the share in need in each leaf. The models were fitted
+    on every stream, so on battle casualties they run low (mechanism)."""
+    observed, truth = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
+    need = truth["needs_lsi"].to_numpy(bool)[battle]
+    p = probabilities(observed[battle])
+    node = models().tree.apply(sign_matrix(observed[battle]))
+    by_leaf = pd.Series(need).groupby(node).mean().to_dict()
+    return {"share in need": float(need.mean()), "forest": float(p["forest"].mean()),
+            "single tree": float(p["single tree"].mean()), "leaf": {int(k): float(v) for k, v in by_leaf.items()}}
+
+
 def panel(record: Mapping[str, Any]) -> dict:
     """The trees panel for one synthetic casualty on app page 1. Every number is formatted here, so the page shows
     only what the library computed (gate G-8)."""
     answer = LENS.diagnose(record)
     m = models()
+    cal = battle_calibration()
+    leaf_node = path(record)["node"]
     setting = record.get("setting", "pre_hospital")
     bleed_p = LENS.treat(record)
     tx = treatment_results(setting)
@@ -519,11 +536,15 @@ def panel(record: Mapping[str, Any]) -> dict:
         "heading": "Decision trees panel: one tree you can read, and a forest you cannot",
         "path": ("Single tree, three questions: " + "; ".join(answer.tree_path) + f". In that leaf, "
                  f"{_pct(answer.tree_share)} of the training casualties need a life-saving intervention, so the tree "
-                 f"{'flags' if answer.tree_share >= m.tree_threshold else 'does not flag'} this casualty (mechanism)."),
+                 f"{'flags' if answer.tree_share >= m.tree_threshold else 'does not flag'} this casualty (mechanism). "
+                 f"Among the battle casualties in that leaf, {_pct(cal['leaf'][leaf_node])} need one (mechanism)."),
         "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.4f} that this casualty "
                    f"needs a life-saving intervention; it flags at {m.forest_threshold:.4f} or more, so it "
                    f"{'flags' if answer.forest_probability >= m.forest_threshold else 'does not flag'} this casualty "
-                   f"(mechanism). Both were fitted on the whole military cohort, disease admissions included."),
+                   f"(mechanism). Both were fitted on the whole military cohort, disease admissions and non-battle "
+                   f"injuries included; on its battle casualties the forest's mean probability is {cal['forest']:.2f} "
+                   f"and the single tree's {cal['single tree']:.2f} where {_pct(cal['share in need'])} need an "
+                   f"intervention (mechanism), so for a battle casualty both run low."),
         "treatment": (f"Treatment tree on penetrating mechanism, a positive scan, systolic pressure and heart rate: "
                       f"probability {bleed_p:.2f} that this casualty is "
                       f"bleeding significantly (mechanism), the stand-in for needing transfusion (an assumption). The ABC score "

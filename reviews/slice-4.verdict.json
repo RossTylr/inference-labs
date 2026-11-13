@@ -1,7 +1,7 @@
 {
   "slice": 4,
-  "attempt": 2,
-  "when": "2026-11-13T16:24",
+  "attempt": 3,
+  "when": "2026-11-13T16:25",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -1017,13 +1017,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; the review's verdict is BREACH",
+      "reason": "the review is older than src/inference_labs/lenses/trees.py; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; the review's verdict is BREACH",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 8.26s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 8.28s)",
       "detail": null
     },
     "G-13": {
