@@ -199,6 +199,30 @@ Every test and every trial reports error rates under repetition. Background: [`b
 **Gates run:** all. The sceptic's review is checked by G-11.
 **Blocked by:** nothing. O-2 stays open; no real trial data are read.
 
+
+### 6.4 Slice 4 — lens 04, Decision trees
+
+A tree is a rule the data wrote; one tree is readable and fragile, many are strong and opaque. Background: [`background/04-decision-trees.md`](background/04-decision-trees.md).
+
+| Id | Requirement | Gate |
+|---|---|---|
+| R-4.1 | `lenses/trees.py` implements the Lens interface. A single tree of depth three and a random forest predict need for a life-saving intervention from the same four of the MPTT-24's signs as lens 02's score (walking, conscious level, respiratory rate, heart rate), fitted on the same training sample and scored on the evaluation sample. `diagnose` returns the forest's probability with the single tree's leaf and the path to it | G-2, G-6 |
+| R-4.2 | Notebook `04_decision_trees.ipynb` follows the seven-part pattern and opens on the background file's hook: ten model families were set against a transfusion score on the same patients (E-90). Which fell short? The reader guesses before the answer is given | G-7, G-10 |
+| R-4.3 | By hand: twenty synthetic casualties on paper, and the single question that splits them best found by counting, then in plain Python, then by the library's tree of depth one, which must agree | G-7 |
+| R-4.4 | Central figure: the carving. Synthetic casualties as a scatter of two signs, cut into rectangles one split at a time, with the depth as a control. Marked central | G-7 |
+| R-4.5 | Diagnosis case: the single tree and the forest scored against the baseline under both readings (D-24) and against lens 02's logistic score, on the generator (mechanism): area under the curve, sensitivity and specificity at the baseline's specificity, Brier score and calibration. The single tree is printed in a form a reader can follow. D-23's statement goes with the rule's accuracy | G-2, G-7 |
+| R-4.6 | A fast-and-frugal tree on three cues with two exit orders, showing its sensitivity and specificity move with the exits (E-59) | G-2, G-7, G-10 |
+| R-4.7 | The U-shaped relation to respiratory rate (E-30): a tree finds the raised need at both ends and a single linear term does not. The generator's respiratory rate is two-sided by assumption, and the notebook says so | G-2, G-7, G-10 |
+| R-4.8 | The published comparison: in E-90 every model family except the single decision tree and the support vector machine reached an area under the curve above 0.75, and in E-91 the random forest's pooled area was the highest reported; set against the argument for readable models (E-118). Both are presented and neither is adjudicated. Three variables against six (E-30) and a rule validated on a large cohort (E-89) are set beside them | G-7, G-10 |
+| R-4.9 | Treatment case, from the background file: who gets blood first. A tree on the ABC score's bedside items against the ABC score and the doctrine rule from lens 01, on the generator's battle casualties in both settings, with significant bleeding as the stand-in for transfusion, an assumption stated where used | G-2, G-7 |
+| R-4.10 | Failure, from the background file: the same small sample resampled twenty times gives twenty trees, and the splits that survive are counted; and a variable recorded after the decision, constructed in the notebook and said to be constructed, lifts the tree's apparent accuracy | G-2, G-7 |
+| R-4.11 | The lens's scorecard reports the seven axes of D-21 for the single tree, the forest and the treatment tree, with the baseline under the figure reading and the text reading beside it, labelled as validated (D-24) | G-6, G-7 |
+| R-4.12 | App page 1 gains the trees panel for the selected casualty: the single tree's path and leaf, the forest's probability, and the treatment tree beside the ABC score. Every number comes from the library and carries a label | G-8, G-9 |
+
+**Done when:** `python -m harness.validate --slice 4` writes BUILT.
+**Gates run:** all. The sceptic's review is checked by G-11.
+**Blocked by:** nothing. CRASH-2 and DDXPlus data are not read; O-2 stays open.
+
 ---
 
 ## 7. Build plan
