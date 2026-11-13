@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 11,
-  "when": "2026-11-12T19:17",
+  "attempt": 12,
+  "when": "2026-11-13T00:18",
   "verdict": "BUILT",
   "tally": "13/13 pass",
   "open_items_unresolved": [],
@@ -804,7 +804,7 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "03_bayesian.ipynb ran in 3 s with 10 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "03_bayesian.ipynb ran in 2 s with 10 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -834,7 +834,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (59 passed in 7.06s)",
+      "reason": "13 gates each fail their planted defect (59 passed in 6.40s)",
       "detail": null
     },
     "G-13": {
