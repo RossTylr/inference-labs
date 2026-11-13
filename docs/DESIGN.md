@@ -45,6 +45,9 @@ inference-labs is a learning repository: its aim is to learn inference through u
 | D-23 | The military calibration cohort stays as built: battle and non-battle injury together. On it 26.5% need an intervention against 47.6% in the registry (E-09), so the generator's injured cohort is milder than the one the rule was validated on. Every notebook that quotes the rule's accuracy on the generator states this | Re-tuning again would cost a full rework for a gap that is honest once stated |
 | D-24 | The baseline in every scorecard is the MPTT-24 under the figure reading, as published. The text reading is shown beside it, labelled 'as validated', because E-09 was measured with GCS | The published tool is what a medic holds; the validated one is what the figures belong to |
 | D-25 | A review may run to three rounds per slice. A fresh-context subagent counts as a new session | Slice 1 needed three; two was too tight |
+| D-26 | Axis 7 is net benefit at one threshold for every lens: 0.10, the value implied by the default weighting of a miss at nine times a false alarm. A lens may also report its own threshold, labelled as such. Where a model flags every casualty at 0.10, the scorecard says so in words | Two thresholds were in use and one notebook described the wrong one |
+| D-27 | Each lens has its own app panel file under app/panels/. The app's entry file finds panels automatically and does not change when a lens is added. A slice's sources for the review gate include its own panel file only | One shared app file made every earlier review stale whenever a lens was added |
+| D-28 | O-3 is waived. Echelon and timeline edges from AJP-4.10 carry the edition they were read from and the note 'currency not confirmed' | The knowledge graph's own lesson is that every edge carries its version; an unconfirmed edition is a case of it |
 
 ---
 
