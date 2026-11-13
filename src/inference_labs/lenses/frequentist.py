@@ -494,7 +494,7 @@ def panel(record: Mapping[str, Any]) -> dict:
                   f"{score.threshold:.3f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
                   f"this casualty. The score was fitted on the whole military cohort, disease admissions and "
                   f"non-battle injuries included; on its battle casualties the mean probability is {mean_p:.2f} "
-                  f"where {_pct(share)} need an intervention, so for a battle casualty it runs low."),
+                  f"where {_pct(share)} need an intervention (mechanism), so for a battle casualty it runs low."),
         "errors": (f"At that threshold, on all 100,000 synthetic casualties of the military cohort, disease included "
                    f"(mechanism): sensitivity {_ci(pre['sensitivity'])}, "
                    f"specificity {_ci(pre['specificity'])}. The MPTT-24 as published, on the same casualties: "

@@ -378,8 +378,8 @@ def treatment_tree(setting: str):
 
 @lru_cache(maxsize=None)
 def treatment_results(setting: str) -> dict:
-    """On the evaluation sample's battle casualties: the ABC score at 2 or more, the treatment tree at the ABC
-    score's specificity, and the MPTT-24's Priority 1, each against significant bleeding (mechanism)."""
+    """On the evaluation sample's battle casualties: the ABC score at 2 or more, the treatment tree at the specificity
+    closest to the ABC score's, and the MPTT-24's Priority 1, each against significant bleeding (mechanism)."""
     observed, truth = rules.battle_sample(setting)
     bleed = truth["bleeding"].to_numpy(bool)
     abc = rules.abc_table(observed)["score"].to_numpy() >= rules.ABC_ACTIVATES_AT
@@ -520,13 +520,14 @@ def panel(record: Mapping[str, Any]) -> dict:
         "path": ("Single tree, three questions: " + "; ".join(answer.tree_path) + f". In that leaf, "
                  f"{_pct(answer.tree_share)} of the training casualties need a life-saving intervention, so the tree "
                  f"{'flags' if answer.tree_share >= m.tree_threshold else 'does not flag'} this casualty (mechanism)."),
-        "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.2f} that this casualty "
-                   f"needs a life-saving intervention; it flags at {m.forest_threshold:.2f} or more, so it "
+        "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.4f} that this casualty "
+                   f"needs a life-saving intervention; it flags at {m.forest_threshold:.4f} or more, so it "
                    f"{'flags' if answer.forest_probability >= m.forest_threshold else 'does not flag'} this casualty "
                    f"(mechanism). Both were fitted on the whole military cohort, disease admissions included."),
-        "treatment": (f"Treatment tree on the ABC score's items: probability {bleed_p:.2f} that this casualty is "
-                      f"bleeding significantly, the stand-in for needing transfusion (an assumption). The ABC score "
-                      f"for this casualty is {abc} of 4. On the battle casualties, at the ABC score's specificity, the "
+        "treatment": (f"Treatment tree on penetrating mechanism, a positive scan, systolic pressure and heart rate: "
+                      f"probability {bleed_p:.2f} that this casualty is "
+                      f"bleeding significantly (mechanism), the stand-in for needing transfusion (an assumption). The ABC score "
+                      f"for this casualty is {abc} of 4. On the battle casualties, at the specificity closest to the ABC score's, the "
                       f"tree finds {_pct(tx['tree']['sensitivity'][0])} of those bleeding against the score's "
                       f"{_pct(tx['abc']['sensitivity'][0])} (mechanism)."),
     }
