@@ -29,9 +29,9 @@ How the evidence enters
 - Physiology is drawn from each casualty's latent state, and every parameter of it is an assumption. The
   MPTT-24's sensitivity and specificity against need for a life-saving intervention (E-09) are targets, not
   inputs: the assumed parameters were tuned until the rule, applied to the generated signs, landed within
-  0.05 of E-09 in each cohort. E-09 comes from trauma registries, so the rule is held to it on the injured
-  only: the military cohort's battle and non-battle injury streams, and the civilian cohort, which is injured
-  civilians. calibration.py measures them.
+  0.05 of E-09 in each cohort. E-09's military figures come from a trauma registry (E-01), so the rule is held
+  to E-09 on the injured only: the military cohort's battle and non-battle injury streams, and the civilian
+  cohort, which is injured civilians. calibration.py measures them.
 - Scan accuracy is a table keyed by setting (E-14 in hospital, E-16 before hospital); triage accuracy is
   a table of targets keyed by cohort (D-13).
 
@@ -50,7 +50,7 @@ Physiology (every number in params.yaml, every one an assumption)
   casualty who responds only to pain or not at all.
 - Catastrophic haemorrhage: a share of the casualties bleeding significantly from an extremity or junction.
 
-The civilian cohort is injured civilians only: no battle injury and no disease. Its non-battle injuries have
+By default the civilian cohort is injured civilians only: no battle injury and no disease. Its non-battle injuries have
 their own mechanism mix and carry the injury types (haemorrhage, chest, head) in their own shares, where the
 military cohort's non-battle injuries carry none. Its heart rate sits lower, and bleeding, tension pneumothorax
 and sepsis move heart and respiratory rate less; the slowing of breathing in severe head injury is the same in

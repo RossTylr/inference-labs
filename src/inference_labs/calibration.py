@@ -7,8 +7,8 @@ calibration table in the slice 0 report.
 
 A parameter marked `emergent: true` is not used by the generator. The two triage rows are of that kind: they
 are measured by applying the coded MPTT-24 (baseline.py) to the generated signs, under the text reading, the
-one that matches the GCS below 14 on which E-09 was measured, and on the injured only: E-09 comes from trauma
-registries, so the disease stream is left out.
+one that matches the GCS below 14 on which E-09 was measured, and on the injured only, the disease stream left
+out: E-09's military figures come from a trauma registry (E-01).
 """
 from __future__ import annotations
 

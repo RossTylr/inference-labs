@@ -282,7 +282,7 @@ def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
     rows = [
         ("1 Discrimination (mechanism)",
          f"{disc(pre_dx)}: Priority 1 against need for a life-saving intervention, all 100,000 synthetic casualties, "
-         "disease (outside E-09) included",
+         "disease included",
          f"{disc(pre_tx)}: score 2 or more against significant bleeding, battle casualties, scan before hospital"),
         ("2 Calibration (mechanism)",
          f"{cal(pre_dx)}. A rule gives no probability, so the Brier score is the share misclassified",

@@ -154,7 +154,7 @@ parameters:
     source: [E-09]
     label: registry evidence
     population: UK Joint Theatre Trauma Registry
-    note: Not used by the generator. Measured by applying baseline.py's MPTT-24, under the text reading that matches the GCS below 14 on which E-09 was measured, to the injured of the generated military cohort, the battle and non-battle injury streams; the disease stream is outside what E-09 tested. E-09 was measured on first hospital observations, not pre-hospital ones (E-11).
+    note: Not used by the generator. Measured by applying baseline.py's MPTT-24, under the text reading that matches the GCS below 14 on which E-09 was measured, to the injured of the generated military cohort, the battle and non-battle injury streams, as E-09's military figures come from a trauma registry (E-01); the register holds no accuracy for the rule in disease admissions. E-09 was measured on first hospital observations, not pre-hospital ones (E-11).
 
   triage_accuracy_civilian:
     description: MPTT-24 Priority One against need for a life-saving intervention, civilian registry
@@ -286,7 +286,7 @@ parameters:
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: Injured civilians only, as in a civilian trauma registry; no battle injury and no disease.
+    note: Injured civilians only; no battle injury and no disease.
 
   cohort_mechanism_civilian:
     description: Mechanism of injury in the civilian cohort

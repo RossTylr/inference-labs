@@ -71,8 +71,9 @@ EVAL_N, EVAL_SEED = 100_000, 42      # the synthetic casualties the scorecard an
 SETTINGS = ("pre_hospital", "in_hospital")
 SETTING_NAMES = {"pre_hospital": "scan before hospital", "in_hospital": "scan in hospital"}
 COHORTS = ("military", "civilian")
-# E-09 was measured in trauma registries, so the rule is held to it on the injured only: for the military cohort
-# the battle and non-battle injury streams, the disease stream left out; the civilian cohort is injured civilians.
+# E-09's military figures come from a trauma registry (E-01), so the rule is held to E-09 on the injured only: for
+# the military cohort the battle and non-battle injury streams, the disease stream left out; the civilian cohort is
+# injured civilians.
 CALIBRATION_STREAMS = ("battle", "non_battle")
 
 
@@ -169,7 +170,7 @@ def generator_sample(setting: str = "pre_hospital", cohort: str = "military") ->
 
 
 def calibration_cohort(observed: pd.DataFrame) -> np.ndarray:
-    """True for the casualties the rule is held to E-09 on: the injured, as in the registries E-09 comes from."""
+    """True for the casualties the rule is held to E-09 on: the injured."""
     return observed["stream"].isin(CALIBRATION_STREAMS).to_numpy()
 
 
