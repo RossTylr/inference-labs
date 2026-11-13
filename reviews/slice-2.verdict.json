@@ -1,9 +1,9 @@
 {
   "slice": 2,
-  "attempt": 11,
-  "when": "2026-11-13T09:43",
+  "attempt": 12,
+  "when": "2026-11-13T09:44",
   "verdict": "REVISE",
-  "tally": "11/13 pass",
+  "tally": "12/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -952,9 +952,9 @@
       "detail": null
     },
     "G-8": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "{'patient_type': 'haemorrhage', 'setting': 'pre_hospital', 'prior': None, 'casualty': 1}: caption shows 75, which the library did not display; {'patient_type': 'haemorrhage', 'setting': 'in_hospital', 'prior': 0.2, 'casualty': 3}: caption shows 75, which the library did not display; {'patient_type': 'chest', 'setting': 'pre_hospital', 'prior': 0.35, 'casualty': 2}: caption shows 75, which the library did not display",
+      "reason": "3 control settings: every metric, table cell, band point and number shown matches the library; no numerical import under app/",
       "detail": null
     },
     "G-9": {
@@ -972,13 +972,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "the review is older than notebooks/01_rules.ipynb",
+      "reason": "the review is older than app/streamlit_app.py",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 8.62s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 8.58s)",
       "detail": null
     },
     "G-13": {

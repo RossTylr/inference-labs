@@ -86,6 +86,9 @@ SCAN_ACCURACY = {
         "basis": "an assumption centred on the pooled 74% and 98%; the source gives no single table of counts",
     },
 }
+E14_STUDIES = 75        # E-14: the in-hospital figures are pooled from 75 studies
+SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital figure is pooled from {E14_STUDIES} "
+                "studies (E-14).")
 
 # E-22: relative risk of death from bleeding with tranexamic acid, by time from injury to treatment, in CRASH-2,
 # a civilian trial. Using these figures for a military casualty is an assumption.
@@ -507,6 +510,7 @@ class Walkthrough:
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),
             "baseline": rules.panel(self.record, self.needs_lsi, self.significant_bleeding, percent(final.mean())),
+            "scan_sources": SCAN_SOURCES,
             "band": self.band(),
         }
 
