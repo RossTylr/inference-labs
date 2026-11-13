@@ -1,8 +1,12 @@
+import copy
+import inspect
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from inference_labs import generator
+from inference_labs import baseline, calibration, generator
 from inference_labs.generator import sample
 
 SCAN_COLUMNS = ["setting", "t_scan_min", "scan_free_fluid", "scan_pneumothorax"]
@@ -49,12 +53,21 @@ def test_setting_changes_only_the_scan():
     assert (post["t_scan_min"] == post["t_role2_min"]).all() and (pre["t_scan_min"] == pre["t_phec_min"]).all()
 
 
-def test_cohort_changes_triage_physiology_not_the_casualties():
-    mil, t_mil = sample(5000, 12, cohort="military", return_truth=True)
-    civ, t_civ = sample(5000, 12, cohort="civilian", return_truth=True)
+def test_cohorts_differ_through_their_mix_and_their_physiology():
+    """Each cohort has its own default mix; given the same mix, the casualties are the same and only signs differ."""
+    params = generator.load_params()["parameters"]
+    civ_default = sample(20_000, 12, cohort="civilian")
+    shares = civ_default["stream"].value_counts(normalize=True)
+    for stream, share in params["cohort_mix_civilian"]["value"].items():
+        assert abs(shares[stream] - share) < 0.015
+    assert abs(sample(20_000, 12)["stream"].eq("battle").mean() - shares["battle"]) > 0.1
+    mix = params["stream_shares"]["value"]
+    mil, t_mil = sample(5000, 12, mix=mix, cohort="military", return_truth=True)
+    civ, t_civ = sample(5000, 12, mix=mix, cohort="civilian", return_truth=True)
     pd.testing.assert_frame_equal(t_mil, t_civ)
-    assert (mil["stream"] == civ["stream"]).all()
-    assert not mil["walking"].equals(civ["walking"])
+    assert (mil["stream"] == civ["stream"]).all() and (mil["sbp"] == civ["sbp"]).all()
+    assert not mil["heart_rate"].equals(civ["heart_rate"])
+    assert civ["heart_rate"].mean() < mil["heart_rate"].mean()
 
 
 def test_bad_arguments_are_refused():
@@ -99,7 +112,66 @@ def test_treatment_acts_only_on_bleeding_casualties(small_sample):
     assert (truth.loc[~truth["bleeding"], "p_death_treated"] == 0).all()
 
 
-def test_physiology_avoids_the_thresholds_open_under_o1(small_sample):
-    obs, _ = small_sample
-    assert not (obs["heart_rate"] == 100).any()
-    assert not obs["respiratory_rate"].between(22, 24).any()
+def test_no_triage_priority_is_drawn_or_used(small_sample):
+    """R-0.14: the MPTT-24's accuracy is a target the generator never reads. Changing it changes nothing."""
+    doc = copy.deepcopy(generator.load_params())
+    for pid in ("triage_accuracy_military", "triage_accuracy_civilian"):
+        assert doc["parameters"][pid]["emergent"] is True
+        doc["parameters"][pid]["value"] = {"sensitivity": 0.99, "specificity": 0.01}
+    for cohort in ("military", "civilian"):
+        a = sample(5000, 3, cohort=cohort, return_truth=True)
+        b = sample(5000, 3, cohort=cohort, return_truth=True, params=doc)
+        pd.testing.assert_frame_equal(a[0], b[0])
+        pd.testing.assert_frame_equal(a[1], b[1])
+    obs, truth = small_sample
+    assert not [c for c in list(obs.columns) + list(truth.columns) if "priority" in c or "triage" in c]
+    source = inspect.getsource(generator)
+    assert "triage_accuracy" not in source
+    assert not re.search(r"^\s*(from|import)\b.*\bbaseline\b", source, re.M)
+
+
+def test_each_sign_is_drawn_from_the_latent_state(small_sample):
+    """R-0.14: each sign moves with the condition that drives it, and varies within it."""
+    obs, truth = small_sample
+    battle = obs["stream"] == "battle"
+    hr, rr = obs["heart_rate"], obs["respiratory_rate"]
+    assert hr[truth["bleeding"]].mean() > hr[battle & ~truth["needs_lsi"]].mean() + 4
+    assert hr[truth["tension_pneumothorax"]].mean() > hr[battle & ~truth["needs_lsi"]].mean() + 6
+    assert hr[truth["septic_shock"]].mean() > hr[truth["sepsis"] & ~truth["septic_shock"]].mean() > (
+        hr[(obs["stream"] == "disease") & ~truth["sepsis"]].mean())
+    assert rr[truth["tension_pneumothorax"]].mean() > rr[battle & ~truth["needs_lsi"]].mean() + 2
+    assert rr[truth["breathing_slowed"]].mean() < rr[truth["head_severe"] & ~truth["breathing_slowed"]].mean() - 5
+    assert (obs.loc[truth["head_severe"], "avpu"] != "A").mean() > 0.5 > (obs.loc[~truth["head_severe"], "avpu"] != "A").mean()
+    bled = truth["bleeding"]
+    low, high = obs["sbp"] < 80, obs["sbp"] >= 110
+    assert (obs.loc[bled & low, "avpu"] != "A").mean() > (obs.loc[bled & high, "avpu"] != "A").mean()
+    assert obs.loc[~truth["needs_lsi"], "walking"].mean() > obs.loc[truth["needs_lsi"], "walking"].mean()
+    assert not obs.loc[obs["avpu"].isin(["P", "U"]), "walking"].any()
+    external = bled & truth["site"].isin(["junctional", "extremity"])
+    assert obs.loc[external, "catastrophic_haemorrhage"].any() and not obs.loc[~external, "catastrophic_haemorrhage"].any()
+    assert (hr[bled] < 100).mean() > 0.2                       # a share of bleeding casualties are not tachycardic
+    mildest = bled & (truth["severity"] < truth.loc[bled, "severity"].quantile(0.2))
+    assert hr[mildest].mean() > hr[battle & ~truth["needs_lsi"]].mean()     # bleeding never lowers the rate
+    assert rr[mildest].mean() > rr[battle & ~truth["needs_lsi"]].mean()
+    for group in (bled, ~truth["needs_lsi"]):
+        assert hr[group].std() > 10 and rr[group].std() > 2
+
+
+def test_upstream_draws_are_unchanged_from_version_one(small_sample):
+    """Version 2 keeps version 1's order of draws, so the latent states, scans, times and deaths of each
+    casualty are the same as before; only the signs differ. Spot values from version 1, n = 20,000, seed 42."""
+    obs, truth = small_sample
+    assert int(truth["bleeding"].sum()) == 2181 and int(obs["died"].sum()) == 339
+    assert int(obs["scan_free_fluid"].sum()) == 397 and int(obs["sbp"].sum()) == 2_455_877
+
+
+@pytest.mark.parametrize("reading", baseline.READINGS)
+def test_the_signs_carry_information_beyond_the_rule(reading):
+    """R-0.15, on the four signs the MPTT-24 reads after the haemorrhage check: walking, conscious level,
+    respiratory rate and heart rate. n = 100,000, seed 42, every stream, military cohort."""
+    observed, truth = baseline.generator_sample()
+    result = calibration.sign_information(observed, truth, reading)
+    assert result["casualties"] == 100_000
+    assert result["regression"] >= max(result["priority"], result["priority_one"]) + calibration.SIGNS_GAIN
+    assert all(a > calibration.SIGNS_WITHIN for a in result["within"].values()), result["within"]
+    assert calibration.signs_inform(result)

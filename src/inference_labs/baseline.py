@@ -174,7 +174,8 @@ def calibration_check(cohort: str = "military") -> pd.DataFrame:
     for reading in READINGS:
         achieved = flag_metrics(priority_one(observed, reading), truth["needs_lsi"].to_numpy(bool))
         for key in ("sensitivity", "specificity"):
-            target, tol = float(param["value"][key]), float(param["tolerance"][key])
+            tol = param["tolerance"][key] if isinstance(param["tolerance"], dict) else param["tolerance"]
+            target, tol = float(param["value"][key]), float(tol)
             rows.append({"reading": reading, "measure": key, "E-09": target, "achieved": round(achieved[key], 4),
                          "tolerance": tol, "held to E-09": reading == CALIBRATION_READING,
                          "within tolerance": abs(achieved[key] - target) <= tol})

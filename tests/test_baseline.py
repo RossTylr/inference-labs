@@ -93,7 +93,7 @@ def test_the_text_reading_reproduces_e09_on_the_military_cohort():
     target = load_params()["parameters"]["triage_accuracy_military"]
     for _, row in held.iterrows():
         assert row["E-09"] == target["value"][row["measure"]]
-        assert row["tolerance"] == target["tolerance"][row["measure"]]
+        assert row["tolerance"] == target["tolerance"] == 0.05
 
 
 def test_scorecard_rows_are_well_formed(root):

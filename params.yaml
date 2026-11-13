@@ -11,12 +11,15 @@
 # label      doctrine | trial evidence | registry evidence | assumption (the edge labels in R-0.9)
 # provisional true wherever a source is CARRIED in the evidence register
 # population who the figure describes
+# emergent   true: not used by the generator. Measured on the generated cohort and held to its tolerance
+#            (G-4); the assumed parameters are tuned so that it lands there
 #
 # How each figure is measured on the generator is in src/inference_labs/calibration.py.
 # Frozen at the end of slice 1 (G-13). A change after that is a manifest version bump.
+# Version 2 (D-22): the physiology is drawn from the latent state and the MPTT-24's accuracy is a target.
 
-version: 1
-valid_from: 2026-11-12
+version: 2
+valid_from: 2026-11-13
 
 defaults:
   cohort: military          # R-0.6: the military registry row of E-09
@@ -138,111 +141,159 @@ parameters:
     label: assumption
     population: synthetic casualties
 
-  # ---------------------------------------------------------------- triage and physiology
+  # ---------------------------------------------------------------- triage: targets, not inputs
 
   triage_accuracy_military:
     description: MPTT-24 Priority One against need for a life-saving intervention, military registry
     cohort: military
     setting: in_hospital
+    emergent: true
     value: {sensitivity: 0.667, specificity: 0.699}
     unit: proportion
-    tolerance: {sensitivity: 0.015, specificity: 0.01}
+    tolerance: 0.05
     source: [E-09]
     label: registry evidence
     population: UK Joint Theatre Trauma Registry
-    note: Measured on first hospital observations, not pre-hospital ones (E-11). Physiology is drawn so the MPTT-24 reproduces this row whatever the outcome of O-1.
+    note: Not used by the generator. Measured by applying baseline.py's MPTT-24, under the text reading that matches the GCS below 14 on which E-09 was measured, to the generated military cohort. E-09 was measured on first hospital observations, not pre-hospital ones (E-11).
 
   triage_accuracy_civilian:
     description: MPTT-24 Priority One against need for a life-saving intervention, civilian registry
     cohort: civilian
     setting: in_hospital
+    emergent: true
     value: {sensitivity: 0.535, specificity: 0.748}
     unit: proportion
-    tolerance: {sensitivity: 0.015, specificity: 0.01}
+    tolerance: 0.05
     source: [E-09]
     label: registry evidence
     population: Trauma Audit and Research Network, England and Wales
-    note: Measured on first hospital observations (E-11).
+    note: Not used by the generator. Measured as for the military row, on the generated civilian cohort. E-09 was measured on first hospital observations (E-11).
 
-  mptt24_thresholds:
-    description: MPTT-24 physiological thresholds the generated physiology must not straddle
-    value: {respiratory_rate_below: 12, respiratory_rate_at_or_above: 24, heart_rate_at_or_above: 100}
-    unit: breaths or beats per minute
-    tolerance: 0
-    source: [E-04, E-08]
-    label: registry evidence
-    population: UK Joint Theatre Trauma Registry
-    note: The step order and the heart rate comparison await O-1. No generated value lies where the two readings would disagree, so the generator does not depend on how O-1 resolves.
+  # ---------------------------------------------------------------- physiology, drawn from the latent state
 
-  walking_given_not_priority_one:
-    description: Share of casualties not in Priority One who are walking
-    value: 0.6
-    unit: probability
-    tolerance: 0.01
+  heart_rate:
+    description: Heart rate, normal around a resting mean for the stream, raised by each condition present
+    value:
+      base: {disease: 96, battle: 99, non_battle: 99}
+      effect: {bleeding: 3, bleeding_by_severity_centile: 15, tension_pneumothorax: 11, sepsis: 7, septic_shock: 7}
+      residual_sd: 20
+    unit: beats per minute (normal; rounded to whole beats)
+    tolerance:
+      base: {disease: 0.3, battle: 0.5, non_battle: 0.35}
+      effect: {bleeding: 1.5, bleeding_by_severity_centile: 2.4, tension_pneumothorax: 1.7, sepsis: 1.1, septic_shock: 1.9}
+      residual_sd: 0.18
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: Part of the physiology chosen so the MPTT-24 reproduces E-09.
+    note: Base is the resting mean with none of the conditions. Each effect is added when its condition is present, septic shock on top of sepsis, and bleeding's second effect in proportion to the centile of its severity, from 0 to 1, so bleeding never lowers the rate. The spread leaves some bleeding casualties below 100.
 
-  catastrophic_haemorrhage_share:
-    description: Share of Priority One casualties bleeding from an extremity or junction who have catastrophic external haemorrhage
-    value: 0.5
-    unit: probability
-    tolerance: 0.025
+  respiratory_rate:
+    description: Respiratory rate, normal around a resting mean for the stream, raised by each condition present
+    value:
+      base: {disease: 19, battle: 22, non_battle: 21}
+      effect: {bleeding: 1, bleeding_by_severity_centile: 4, tension_pneumothorax: 4, sepsis: 2, septic_shock: 2}
+      residual_sd: 4
+    unit: breaths per minute (normal; rounded to whole breaths)
+    tolerance:
+      base: {disease: 0.08, battle: 0.1, non_battle: 0.1}
+      effect: {bleeding: 0.32, bleeding_by_severity_centile: 0.42, tension_pneumothorax: 0.3, sepsis: 0.3, septic_shock: 0.36}
+      residual_sd: 0.04
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: Part of the physiology chosen so the MPTT-24 reproduces E-09.
+    note: Same form as heart rate. Measured on casualties whose breathing is not slowed by a head injury. Rounding to whole breaths adds about 0.01 to the measured spread.
 
-  abnormal_sign_weights:
-    description: Which vital sign is abnormal in a Priority One casualty
-    value: {heart_rate: 0.5, respiratory_rate: 0.3, avpu: 0.2}
-    unit: share of Priority One casualties
-    tolerance: 0.01
+  respiratory_rate_severe_head_injury:
+    description: Share of severe head injuries in which breathing is slowed, and the factor applied to the rate
+    value: {share_slowed: 0.4, factor: 0.5}
+    unit: probability; multiplier
+    tolerance: {share_slowed: 0.03, factor: 0.015}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Makes the respiratory rate effect run both ways; E-30 found a U-shaped relation between respiratory rate and death from bleeding.
+
+  avpu_severe_head_injury:
+    description: Conscious level on the AVPU scale in a severe head injury
+    value: {A: 0.3, V: 0.3, P: 0.25, U: 0.15}
+    unit: share of severe head injuries
+    tolerance: 0.04
     normalise: true
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: Exactly one of the three signs is abnormal. Part of the physiology chosen so the MPTT-24 reproduces E-09.
 
-  heart_rate_ranges:
-    description: Range of heart rate, normal and abnormal, drawn uniformly in whole beats
-    value: {normal: [60, 99], abnormal: [101, 150]}
-    unit: beats per minute
-    tolerance: 0
-    source: assumption
-    label: assumption
-    population: synthetic casualties
-    note: Leaves 100 empty so either reading of the heart rate comparison gives the same priority (O-1).
-
-  respiratory_rate_ranges:
-    description: Range of respiratory rate, normal, abnormally low and abnormally high, drawn uniformly in whole breaths
-    value: {normal: [12, 21], low: [6, 10], high: [25, 40]}
-    unit: breaths per minute
-    tolerance: 0
-    source: assumption
-    label: assumption
-    population: synthetic casualties
-    note: Leaves 22 to 24 empty, so the MPTT and MPTT-24 thresholds give the same priority.
-
-  respiratory_rate_low_share:
-    description: Share of abnormal respiratory rates that are low
-    value: 0.2
+  avpu_not_alert_base:
+    description: Chance that a casualty without a severe head injury is not alert, whatever else is wrong
+    value: 0.06
     unit: probability
-    tolerance: 0.015
+    tolerance: 0.003
     source: assumption
     label: assumption
     population: synthetic casualties
+    note: Measured on casualties neither bleeding significantly nor with a severe head injury.
 
-  avpu_abnormal_shares:
-    description: Level of response when it is abnormal
+  avpu_bleeding:
+    description: In significant bleeding, a further chance of not being alert that rises as systolic pressure falls
+    value: {even_odds_at_sbp: 70, log_odds_per_10_mmhg: -1.2}
+    unit: mm Hg; log odds per 10 mm Hg
+    tolerance: {even_odds_at_sbp: 2.0, log_odds_per_10_mmhg: 0.17}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Logistic in systolic pressure, one half at the stated pressure. Acts alongside the base chance, not instead of it.
+
+  avpu_levels_not_alert:
+    description: Level of response in a casualty without a severe head injury who is not alert
     value: {V: 0.5, P: 0.3, U: 0.2}
     unit: share of casualties not alert
-    tolerance: 0.02
+    tolerance: 0.022
     normalise: true
     source: assumption
     label: assumption
     population: synthetic casualties
+
+  walking:
+    description: Share walking, by need for a life-saving intervention, among casualties who respond to voice or better
+    value: {no_intervention: 0.55, needs_intervention: 0.3}
+    unit: probability
+    tolerance: {no_intervention: 0.006, needs_intervention: 0.014}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: A casualty who responds only to pain, or not at all, is never walking.
+
+  catastrophic_haemorrhage_share:
+    description: Share of casualties bleeding significantly from an extremity or junction who have catastrophic external haemorrhage
+    value: 0.15
+    unit: probability
+    tolerance: 0.02
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+
+  cohort_mix_civilian:
+    description: Civilian cohort's default share by stream
+    cohort: civilian
+    value: {disease: 0.44, battle: 0.15, non_battle: 0.41}
+    unit: share of the cohort
+    tolerance: 0.005
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: The military disease share, half the military battle share, and the difference in non-battle injury.
+
+  cohort_physiology_civilian:
+    description: Civilian cohort against the military reference, the shift in heart rate and the scale on the effects of bleeding, tension pneumothorax, sepsis and septic shock on heart and respiratory rate
+    cohort: civilian
+    value: {heart_rate_shift: -6, response_scale: 0.2}
+    unit: beats per minute; multiplier
+    tolerance: {heart_rate_shift: 0.25, response_scale: 0.1}
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Chosen, with the sign parameters above, so the MPTT-24 applied to the civilian cohort lands within tolerance of triage_accuracy_civilian. The slowing of breathing in severe head injury is not scaled.
 
   sbp_not_bleeding:
     description: Systolic pressure in casualties not bleeding significantly

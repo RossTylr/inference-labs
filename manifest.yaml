@@ -2,14 +2,15 @@
 # The validator reads slices, gates, blocking items and open items from here.
 # Closing an open item: set its status to closed, or to waived with a reason (BUILD.md section 8).
 
-version: 1
+version: 2
 params: params.yaml
 
 # Written at the end of slice 1 (R-1.12): hashes of generator.py and params.yaml, checked by G-13.
+# Rewritten for generator version 2 (D-22), with the manifest version bumped.
 frozen:
-  version: 1
-  generator_sha256: 493a04dbe3a8de673fa2b3027ef11313f9ecaed4ae399fa76db0078a42a5036e
-  params_sha256: 2da6d7831f1c9d0917dfd0f4f043609801032027e96875a83d78179d9d14d90d
+  version: 2
+  generator_sha256: 8692638aaf730f760a975010b424ab334aed6c7ae51952ef9db0627f4328ef7b
+  params_sha256: 859d739f728a07ba64dfa8d433d4ea62bd17e612c18caee4df4719af5d596d06
 
 open_items:
   O-1: {status: closed, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
@@ -74,6 +75,7 @@ slices:
       - tests/planted/test_g06_labels.py
       - tests/planted/test_g12_planted.py
       - tests/planted/test_g13_frozen.py
+      - tests/planted/test_r015_signs.py
       - tests/fixtures/make_fixtures.py
       - tests/fixtures/crash2.csv
       - tests/fixtures/crash3.csv

@@ -18,18 +18,18 @@ def test_comparison_helpers():
     assert calibration._leaves({"n": [1, 2]}) == [(("n", "0"), 1), (("n", "1"), 2)]
 
 
-def test_every_reading_of_the_mptt24_agrees_on_the_generator(root, small_sample):
-    obs, _ = small_sample
-    thresholds = yaml.safe_load((root / "params.yaml").read_text())["parameters"]["mptt24_thresholds"]["value"]
-    agree, _ = calibration._readings_agree(obs, thresholds)
-    assert agree
+def test_triage_accuracy_is_measured_with_the_coded_rule_under_the_text_reading():
+    """The emergent triage rows are measured by baseline.py's MPTT-24 under the text reading (R-2.3)."""
+    from inference_labs import baseline
+
+    observed, truth = baseline.generator_sample()
+    expected = baseline.flag_metrics(baseline.priority_one(observed, "text"), truth["needs_lsi"].to_numpy(bool))
+    assert calibration._triage(observed, truth, None) == {k: expected[k] for k in ("sensitivity", "specificity")}
+    assert baseline.CALIBRATION_READING == "text"
 
 
-def test_readings_disagree_when_a_value_sits_on_a_threshold(small_sample):
-    obs, _ = small_sample
-    obs = obs.copy()
-    obs.loc[obs.index[0], ["walking", "catastrophic_haemorrhage", "heart_rate"]] = [False, False, 100]
-    obs.loc[obs.index[0], ["respiratory_rate", "avpu"]] = [16, "A"]
-    thresholds = {"respiratory_rate_below": 12, "respiratory_rate_at_or_above": 24, "heart_rate_at_or_above": 100}
-    agree, _ = calibration._readings_agree(obs, thresholds)
-    assert not agree
+def test_only_the_triage_rows_are_emergent(root):
+    params = yaml.safe_load((root / "params.yaml").read_text())["parameters"]
+    emergent = {pid for pid, p in params.items() if p.get("emergent")}
+    assert emergent == {"triage_accuracy_military", "triage_accuracy_civilian"}
+    assert all(params[pid]["tolerance"] == 0.05 and params[pid]["source"] == ["E-09"] for pid in emergent)

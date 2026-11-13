@@ -17,9 +17,11 @@ def test_every_parameter_is_a_node_joined_to_its_sources(root):
 
 
 def test_edges_carry_version_date_and_population(root):
-    graph = provenance.build_provenance(_params(root))
+    params = _params(root)
+    graph = provenance.build_provenance(params)
+    assert (params["version"], str(params["valid_from"])) == (2, "2026-11-13")
     for e in graph.edges(type="taken_from"):
-        assert e.version == "1" and e.valid_from == "2026-11-12" and e.population
+        assert e.version == "2" and e.valid_from == "2026-11-13" and e.population
 
 
 def test_register_has_one_row_per_parameter_and_marks_assumptions(root):

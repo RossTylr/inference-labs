@@ -1,47 +1,31 @@
-"""How each parameter in params.yaml is measured on the generator (gate G-4).
+"""How each parameter in params.yaml is measured on the generator (gate G-4), and whether the signs carry
+information beyond the rule (R-0.15).
 
 Every parameter has one measurement here. `calibration_table` samples the generator at n = 100,000 with
 seed 42, measures each parameter, and compares it with its value within its tolerance. The same table is the
 calibration table in the slice 0 report.
 
-The MPTT-24 is applied here only to measure the physiology, and under every reading still open under O-1
-(step order, and whether each threshold is inclusive). If the readings disagree on any casualty, the triage
-figures are reported as missing and the gate fails. The rule itself is coded in slice 2.
+A parameter marked `emergent: true` is not used by the generator. The two triage rows are of that kind: they
+are measured by applying the coded MPTT-24 (baseline.py) to the generated signs, under the text reading, the
+one that matches the GCS below 14 on which E-09 was measured.
 """
 from __future__ import annotations
 
-import itertools
 import math
 from functools import partial
 from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
+from scipy.special import expit, ndtr
 
 N = 100_000
 SEED = 42
 SITES = ("truncal", "junctional", "extremity")
+STREAMS = ("disease", "battle", "non_battle")
+AVPU_LEVELS = ("A", "V", "P", "U")
 E22_BANDS = {"up_to_1h": (0.0, 60.0), "from_1h_to_3h": (60.0, 180.0), "over_3h": (180.0, math.inf)}  # E-22
-
-
-# ------------------------------------------------------------------------------------------------ MPTT-24 readings
-
-def priority_one(obs: pd.DataFrame, thresholds: dict, hr_inclusive: bool = True, rr_inclusive: bool = True,
-                 catastrophic_first: bool = True) -> np.ndarray:
-    hr, rr = obs["heart_rate"].to_numpy(), obs["respiratory_rate"].to_numpy()
-    hr_abn = hr >= thresholds["heart_rate_at_or_above"] if hr_inclusive else hr > thresholds["heart_rate_at_or_above"]
-    rr_hi = (rr >= thresholds["respiratory_rate_at_or_above"] if rr_inclusive
-             else rr > thresholds["respiratory_rate_at_or_above"])
-    signs = hr_abn | rr_hi | (rr < thresholds["respiratory_rate_below"]) | (obs["avpu"].to_numpy() != "A")
-    walking, cat = obs["walking"].to_numpy(), obs["catastrophic_haemorrhage"].to_numpy()
-    if catastrophic_first:
-        return cat | (~walking & signs)
-    return ~walking & (cat | signs)
-
-
-def _readings_agree(obs: pd.DataFrame, thresholds: dict) -> tuple[bool, np.ndarray]:
-    readings = [priority_one(obs, thresholds, *flags) for flags in itertools.product([True, False], repeat=3)]
-    return all(np.array_equal(readings[0], r) for r in readings[1:]), readings[0]
 
 
 # ------------------------------------------------------------------------------------------------ measurements
@@ -56,47 +40,91 @@ def _mean(series: pd.Series) -> float:
 
 
 def _triage(o, t, v):
-    agree, p1 = _readings_agree(o, v["mptt24_thresholds"])
-    if not agree:
-        return {"sensitivity": math.nan, "specificity": math.nan}
-    lsi = t["needs_lsi"].to_numpy()
+    """The coded MPTT-24, under the text reading, against need for a life-saving intervention."""
+    from inference_labs import baseline
+
+    p1 = baseline.priority_one(o, baseline.CALIBRATION_READING)
+    lsi = t["needs_lsi"].to_numpy(bool)
     return {"sensitivity": float(p1[lsi].mean()), "specificity": float((~p1[~lsi]).mean())}
 
 
-def _thresholds(o, t, v):
-    agree, _ = _readings_agree(o, v["mptt24_thresholds"])
-    return dict(v["mptt24_thresholds"]) if agree else {k: math.nan for k in v["mptt24_thresholds"]}
-
-
-def _p1(o, v):
-    return priority_one(o, v["mptt24_thresholds"])
-
-
-def _abnormal_signs(o, v):
-    th = v["mptt24_thresholds"]
-    rr = o["respiratory_rate"]
+def _states(t: pd.DataFrame) -> dict:
+    """The latent conditions each rate responds to, as numbers: one or zero, and where bleeding the centile of
+    its severity, from 0 to 1."""
     return {
-        "heart_rate": o["heart_rate"] >= th["heart_rate_at_or_above"],
-        "respiratory_rate": (rr < th["respiratory_rate_below"]) | (rr >= th["respiratory_rate_at_or_above"]),
-        "avpu": o["avpu"] != "A",
+        "bleeding": t["bleeding"].to_numpy(float),
+        "bleeding_by_severity_centile": np.where(t["bleeding"], ndtr(np.nan_to_num(t["severity"].to_numpy(float))), 0.0),
+        "tension_pneumothorax": t["tension_pneumothorax"].to_numpy(float),
+        "sepsis": t["sepsis"].to_numpy(float),
+        "septic_shock": t["septic_shock"].to_numpy(float),
     }
 
 
-def _range(series: pd.Series) -> list:
-    return [int(series.min()), int(series.max())] if len(series) else [math.nan, math.nan]
+def _rate_model(o, t, column: str, mask=None) -> dict:
+    """Least squares of a rate on the stream and the latent conditions: base for each stream, the effect of each
+    condition, and the residual standard deviation."""
+    m = np.ones(len(o), bool) if mask is None else np.asarray(mask, bool)
+    stream = o["stream"].to_numpy(object)[m]
+    columns = {f"base:{s}": (stream == s).astype(float) for s in STREAMS}
+    columns.update({f"effect:{k}": x[m] for k, x in _states(t).items()})
+    X = np.column_stack(list(columns.values()))
+    y = o[column].to_numpy(float)[m]
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ coef
+    out: dict = {"base": {}, "effect": {}}
+    for name, c in zip(columns, coef):
+        kind, key = name.split(":")
+        out[kind][key] = float(c)
+    out["residual_sd"] = float(np.sqrt(resid @ resid / (len(y) - X.shape[1])))
+    return out
 
 
-def _heart_rate_ranges(o, th):
-    hr = o["heart_rate"]
-    cut = th["heart_rate_at_or_above"]
-    return {"normal": _range(hr[hr < cut]), "abnormal": _range(hr[hr > cut])}
+def _not_slowed(t):
+    return ~t["breathing_slowed"].to_numpy(bool)
 
 
-def _respiratory_rate_ranges(o, th):
-    rr = o["respiratory_rate"]
-    low, high = th["respiratory_rate_below"], th["respiratory_rate_at_or_above"]
-    return {"normal": _range(rr[(rr >= low) & (rr < high)]), "low": _range(rr[rr < low]),
-            "high": _range(rr[rr >= high])}
+def _breathing_slowed(o, t, v):
+    head = t["head_severe"].to_numpy(bool)
+    slowed = t["breathing_slowed"].to_numpy(bool)
+    rr = o["respiratory_rate"].to_numpy(float)
+    return {"share_slowed": float(slowed[head].mean()),
+            "factor": float(rr[head & slowed].mean() / rr[head & ~slowed].mean())}
+
+
+def _avpu_bleeding(o, t, v):
+    """Maximum likelihood fit of the pressure-driven chance of not being alert in significant bleeding, with the
+    base chance taken as stated."""
+    m = t["bleeding"].to_numpy(bool)
+    x = o.loc[m, "sbp"].to_numpy(float)
+    y = (o.loc[m, "avpu"] != "A").to_numpy(float)
+    base = float(v["avpu_not_alert_base"])
+
+    def nll(theta):
+        even, slope = theta
+        p = 1 - (1 - base) * (1 - expit(slope * (x - even) / 10))
+        p = np.clip(p, 1e-12, 1 - 1e-12)
+        return -float(np.sum(y * np.log(p) + (1 - y) * np.log(1 - p)))
+
+    fit = minimize(nll, x0=[80.0, -1.0], method="Nelder-Mead", options={"xatol": 1e-4, "fatol": 1e-6, "maxiter": 2000})
+    return {"even_odds_at_sbp": float(fit.x[0]), "log_odds_per_10_mmhg": float(fit.x[1])}
+
+
+def _walking(o, t, v):
+    can = o["avpu"].isin(["A", "V"]).to_numpy()
+    lsi = t["needs_lsi"].to_numpy(bool)
+    walking = o["walking"].to_numpy(bool)
+    return {"no_intervention": float(walking[can & ~lsi].mean()), "needs_intervention": float(walking[can & lsi].mean())}
+
+
+def _cohort_physiology(o, t, v):
+    """The civilian cohort's heart rate shift and response scale, read against the reference parameters."""
+    hr = _rate_model(o, t, "heart_rate")
+    rr = _rate_model(o, t, "respiratory_rate", _not_slowed(t))
+    ref_hr, ref_rr = v["heart_rate"], v["respiratory_rate"]
+    shift = float(np.mean([hr["base"][s] - float(ref_hr["base"][s]) for s in STREAMS]))
+    fitted = np.array([hr["effect"][k] for k in ref_hr["effect"]] + [rr["effect"][k] for k in ref_rr["effect"]])
+    reference = np.array([float(x) for x in ref_hr["effect"].values()] + [float(x) for x in ref_rr["effect"].values()])
+    return {"heart_rate_shift": shift, "response_scale": float(fitted @ reference / (reference @ reference))}
 
 
 def _scan(o, t):
@@ -191,17 +219,20 @@ MEASURES: dict[str, tuple[str, Callable]] = {
     "septic_shock_given_sepsis": ("default", lambda o, t, v: _mean(t.loc[t["sepsis"], "septic_shock"])),
     "triage_accuracy_military": ("by_cohort", _triage),
     "triage_accuracy_civilian": ("by_cohort", _triage),
-    "mptt24_thresholds": ("default", _thresholds),
-    "walking_given_not_priority_one": ("default", lambda o, t, v: _mean(o.loc[~_p1(o, v), "walking"])),
+    "heart_rate": ("default", lambda o, t, v: _rate_model(o, t, "heart_rate")),
+    "respiratory_rate": ("default", lambda o, t, v: _rate_model(o, t, "respiratory_rate", _not_slowed(t))),
+    "respiratory_rate_severe_head_injury": ("default", _breathing_slowed),
+    "avpu_severe_head_injury": ("default", lambda o, t, v: _shares(o.loc[t["head_severe"], "avpu"], AVPU_LEVELS)),
+    "avpu_not_alert_base": ("default", lambda o, t, v: _mean(
+        o.loc[~t["bleeding"] & ~t["head_severe"], "avpu"] != "A")),
+    "avpu_bleeding": ("default", _avpu_bleeding),
+    "avpu_levels_not_alert": ("default", lambda o, t, v: _shares(
+        o.loc[~t["head_severe"] & (o["avpu"] != "A"), "avpu"], ("V", "P", "U"))),
+    "walking": ("default", _walking),
     "catastrophic_haemorrhage_share": ("default", lambda o, t, v: _mean(o.loc[
-        _p1(o, v) & t["bleeding"] & t["site"].isin(["junctional", "extremity"]), "catastrophic_haemorrhage"])),
-    "abnormal_sign_weights": ("default", lambda o, t, v: {
-        k: _mean(flag[_p1(o, v)]) for k, flag in _abnormal_signs(o, v).items()}),
-    "heart_rate_ranges": ("default", lambda o, t, v: _heart_rate_ranges(o, v["mptt24_thresholds"])),
-    "respiratory_rate_ranges": ("default", lambda o, t, v: _respiratory_rate_ranges(o, v["mptt24_thresholds"])),
-    "respiratory_rate_low_share": ("default", lambda o, t, v: _mean(
-        (o["respiratory_rate"] < 12)[_abnormal_signs(o, v)["respiratory_rate"]])),
-    "avpu_abnormal_shares": ("default", lambda o, t, v: _shares(o.loc[o["avpu"] != "A", "avpu"], ("V", "P", "U"))),
+        t["bleeding"] & t["site"].isin(["junctional", "extremity"]), "catastrophic_haemorrhage"])),
+    "cohort_physiology_civilian": ("by_cohort", _cohort_physiology),
+    "cohort_mix_civilian": ("by_cohort", lambda o, t, v: _shares(o["stream"], v["cohort_mix_civilian"])),
     "sbp_not_bleeding": ("default", lambda o, t, v: {
         "mean": _mean(o.loc[~t["bleeding"], "sbp"]), "sd": float(o.loc[~t["bleeding"], "sbp"].std(ddof=1))}),
     "sbp_bleeding": ("default", _sbp_bleeding),
@@ -305,3 +336,62 @@ def calibration_table(params_doc: dict, sampler: Callable | None = None, measure
                          "achieved": round(a, 4) if isinstance(a, float) else a, "tolerance": tol,
                          "comparison": how, "pass": bool(ok)})
     return rows
+
+
+# ------------------------------------------------------------------------------------------------ R-0.15
+
+SIGNS_GAIN = 0.03           # R-0.15: the regression's area under the curve must exceed the rule's by this much
+SIGNS_WITHIN = 0.55         # R-0.15: and must exceed this within every priority
+SIGN_FOLDS = 5
+
+
+def _sign_matrix(observed: pd.DataFrame) -> np.ndarray:
+    """The four signs the MPTT-24 reads after the haemorrhage check: walking; conscious level, as one column for
+    each level below alert; respiratory rate and its square, since its relation to need runs both ways; and
+    heart rate."""
+    avpu = observed["avpu"].to_numpy(object)
+    rr = observed["respiratory_rate"].to_numpy(float)
+    return np.column_stack([observed["walking"].to_numpy(float), avpu == "V", avpu == "P", avpu == "U",
+                            rr, rr ** 2, observed["heart_rate"].to_numpy(float)]).astype(float)
+
+
+def sign_information(observed: pd.DataFrame, truth: pd.DataFrame, reading: str | None = None) -> dict:
+    """R-0.15: how much the signs say about need for a life-saving intervention beyond the MPTT-24's answer.
+
+    A logistic regression of need on the four signs is scored out of fold (five folds), so no casualty is
+    scored by a model fitted to it. Its area under the curve is set beside the priority's own, with the
+    priorities ranked 1 above 2 above 3, and beside the Priority 1 flag alone; then it is computed again within
+    each priority, where the rule can no longer tell the casualties apart."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import roc_auc_score
+    from sklearn.model_selection import cross_val_predict
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    from inference_labs import baseline
+
+    reading = reading or baseline.DEFAULT_READING
+    need = truth["needs_lsi"].to_numpy(bool)
+    model = make_pipeline(StandardScaler(), LogisticRegression(max_iter=1000))
+    score = cross_val_predict(model, _sign_matrix(observed), need, cv=SIGN_FOLDS, method="predict_proba")[:, 1]
+    priority = baseline.triage_table(observed, reading)["priority"].to_numpy(object)
+    rank = np.select([priority == baseline.P1, priority == baseline.P2, priority == baseline.P3], [3, 2, 1], 0)
+    within = {}
+    for p in (baseline.P1, baseline.P2, baseline.P3):
+        m = priority == p
+        within[p] = float(roc_auc_score(need[m], score[m])) if m.any() and 0 < need[m].mean() < 1 else math.nan
+    return {
+        "reading": reading,
+        "casualties": int(need.size),
+        "regression": float(roc_auc_score(need, score)),
+        "priority": float(roc_auc_score(need, rank)),
+        "priority_one": float(roc_auc_score(need, priority == baseline.P1)),
+        "within": within,
+    }
+
+
+def signs_inform(result: dict) -> bool:
+    """True when a `sign_information` result meets R-0.15."""
+    rule = max(result["priority"], result["priority_one"])
+    within = list(result["within"].values())
+    return result["regression"] >= rule + SIGNS_GAIN and all(not math.isnan(a) and a > SIGNS_WITHIN for a in within)

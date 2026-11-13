@@ -1,18 +1,23 @@
-"""The casualty generator (design section 5; R-0.3 to R-0.6).
+"""The casualty generator, version 2 (design section 5; D-22; R-0.3 to R-0.6, R-0.14).
 
 A directed acyclic graph, sampled forward with a fixed seed:
 
-    mix ──> stream ──> mechanism ──> injury site ──> bleeding ──┬──> physiology ──> MPTT-24 priority
+    mix ──> stream ──> mechanism ──> injury site ──> bleeding ──┬──> physiology
                                                                ├──> scan result  <── setting
                                                                └──> outcome      <── treatment, delay
     setting ──> scan accuracy, time to each echelon
+
+No triage priority is drawn or used here. The MPTT-24 is applied to the generated signs afterwards, by
+baseline.py, so its accuracy is an outcome of the physiology and not an input to it. Version 1 drew the
+priority first and fitted the signs to it, which left the signs carrying nothing beyond the priority it drew.
 
 Every number is read from params.yaml, where each carries its evidence id or is labelled an assumption.
 Synthetic data drawn here can only confirm the model that made them: every result on them is a mechanism,
 not evidence (D-8).
 
 How the evidence enters
-- Stream shares and mechanisms are the UK admissions figures (E-34 to E-36).
+- Stream shares and mechanisms are the UK admissions figures (E-34 to E-36). They are the military cohort's
+  default mix; the civilian cohort's default mix is an assumption.
 - Bleeding deaths follow an hourly hazard fitted exactly to the three points of E-85 (log-quadratic in time).
   E-85 is measured from hospital admission; here it runs from injury, which is an assumption. A constant
   hazard, fitted to the same median time to death, exists only for the failure demonstration in lens 05.
@@ -21,10 +26,31 @@ How the evidence enters
   3 hours (E-24); after 3 hours it raises it by the E-22 relative risk. The benefit at zero delay and the
   delay distribution are assumptions chosen so the generator reproduces the E-22 bands. The treatment acts
   on the probability of bleeding death, not on its timing.
-- Physiology is drawn so that the MPTT-24 reproduces the cohort's sensitivity and specificity (E-09).
-  No generated value sits where the readings still open under O-1 would disagree.
+- Physiology is drawn from each casualty's latent state, and every parameter of it is an assumption. The
+  MPTT-24's sensitivity and specificity against need for a life-saving intervention (E-09) are targets, not
+  inputs: the assumed parameters were tuned until the rule, applied to the generated signs, landed within
+  0.05 of E-09 in each cohort. calibration.py measures them.
 - Scan accuracy is a table keyed by setting (E-14 in hospital, E-16 before hospital); triage accuracy is
-  a table keyed by cohort (D-13).
+  a table of targets keyed by cohort (D-13).
+
+Physiology (every number in params.yaml, every one an assumption)
+- Heart rate: normal around a resting mean for the stream, raised by significant bleeding (more with the
+  centile of its severity, so bleeding never lowers it), by tension pneumothorax, by sepsis and further by
+  septic shock. The spread leaves some bleeding casualties below 100.
+- Respiratory rate: the same form, raised by the same conditions, and slowed in a share of severe head
+  injuries, so the effect runs both ways.
+- Systolic pressure: lower in significant bleeding and falling with its severity.
+- Conscious level: in a severe head injury, from a table of the four AVPU levels. Otherwise alert, unless one
+  of two causes acts: a small chance in any casualty, and in significant bleeding a chance that rises as
+  systolic pressure falls.
+- Walking: likely when no life-saving intervention is needed and unlikely when one is, and never in a
+  casualty who responds only to pain or not at all.
+- Catastrophic haemorrhage: a share of the casualties bleeding significantly from an extremity or junction.
+
+The civilian cohort differs from the military one through its own default mix and through cohort-level
+parameters: its heart rate sits lower, and bleeding, tension pneumothorax and sepsis move heart and respiratory
+rate less. The slowing of breathing in severe head injury is the same in both. All are assumptions. Given the
+same mix, the two cohorts are the same casualties with different signs.
 """
 from __future__ import annotations
 
@@ -37,15 +63,18 @@ import numpy as np
 import pandas as pd
 import yaml
 from scipy.optimize import brentq
-from scipy.special import expit
+from scipy.special import expit, ndtr, ndtri
 
 PARAMS_PATH = Path(__file__).resolve().parents[2] / "params.yaml"
 
 STREAMS = ("disease", "battle", "non_battle")
 SITES = ("truncal", "junctional", "extremity")
 EXTERNAL_SITES = ("junctional", "extremity")
-SIGNS = ("heart_rate", "respiratory_rate", "avpu")
-AVPU_ABNORMAL = ("V", "P", "U")
+AVPU_LEVELS = ("A", "V", "P", "U")
+AVPU_NOT_ALERT = ("V", "P", "U")
+CAN_WALK = ("A", "V")             # a casualty who responds only to pain, or not at all, is not walking
+COHORT_PREFIX = "cohort_physiology_"
+COHORT_MIX_PREFIX = "cohort_mix_"
 HAZARDS = ("time_varying", "constant")
 
 LATE_BAND_MIN = 180.0    # E-22: the band "over 3 hours"
@@ -53,11 +82,13 @@ HORIZON_H = 24.0         # numerical horizon of the hazard integral; under E-85 
 GRID_STEP_H = 1.0 / 60   # one-minute grid for the inverse-CDF draw of death times
 
 # Every random quantity is drawn for every casualty, in this order, whatever the arguments. Changing the
-# setting or cohort therefore changes only what depends on it, not the casualties themselves.
+# setting or cohort therefore changes only what depends on it, not the casualties themselves. Version 2 keeps
+# version 1's order and length, so every draw outside the physiology is unchanged; "reserved" is drawn and
+# not used, to keep the later draws in their places.
 UNIFORMS = (
     "stream", "mechanism", "patient_type", "site", "bleeding", "pneumothorax", "tension", "head", "sepsis",
-    "shock", "triage", "walking", "catastrophic", "sign", "heart_rate", "rr_side", "respiratory_rate", "avpu",
-    "txa", "scan_free_fluid", "scan_pneumothorax", "death", "death_time",
+    "shock", "avpu_level", "walking", "catastrophic", "reserved", "heart_rate", "breathing_slowed",
+    "respiratory_rate", "avpu", "txa", "scan_free_fluid", "scan_pneumothorax", "death", "death_time",
 )
 NORMALS = ("severity", "sbp", "t_phec", "t_role2")
 
@@ -95,7 +126,8 @@ class Derived:
     site_mix: dict
     site_death_prob: dict
     site_alpha: dict
-    triage: dict
+    cohorts: dict
+    cohort_mix: dict
     scan: dict
 
 
@@ -133,15 +165,21 @@ def _derive(doc: dict) -> Derived:
         for s, p in site_death_prob.items()
     }
 
-    triage, scan = {}, {}
+    # cohort -> (heart rate shift, scale on the effects of the conditions in the heart and respiratory rate
+    # models), and cohort -> its own default stream mix. The default cohort is the reference: the sign parameters
+    # apply to it as written, and its mix is the stream shares.
+    cohorts = {(doc.get("defaults") or {}).get("cohort", "military"): (0.0, 1.0)}
+    cohort_mix, scan = {}, {}
     for pid, p in doc["parameters"].items():
-        if pid.startswith("triage_accuracy_"):
-            triage[p["cohort"]] = (float(p["value"]["sensitivity"]), float(p["value"]["specificity"]))
+        if pid.startswith(COHORT_PREFIX):
+            cohorts[p["cohort"]] = (float(p["value"]["heart_rate_shift"]), float(p["value"]["response_scale"]))
+        if pid.startswith(COHORT_MIX_PREFIX):
+            cohort_mix[p["cohort"]] = {k: float(x) for k, x in p["value"].items()}
         if pid.startswith("scan_accuracy_"):
             scan[p["setting"]] = {f: (float(a["sensitivity"]), float(a["specificity"])) for f, a in p["value"].items()}
 
     return Derived(coef, grid, cdf, death_fraction, median, math.log(2) / median, site_mix, site_death_prob,
-                   site_alpha, triage, scan)
+                   site_alpha, cohorts, cohort_mix, scan)
 
 
 @lru_cache(maxsize=4)
@@ -177,19 +215,27 @@ def _categorical(u: np.ndarray, labels, probs) -> np.ndarray:
     return np.asarray(labels, dtype=object)[idx]
 
 
-def _uniform_int(u: np.ndarray, lo: int, hi: int) -> np.ndarray:
-    return (lo + np.floor(u * (hi - lo + 1))).astype(int)
+def _normal(u: np.ndarray) -> np.ndarray:
+    """A standard normal draw made from a uniform one, so that each sign keeps its place in the order of draws."""
+    return ndtri(np.clip(u, 1e-12, 1 - 1e-12))
+
+
+def _count(rate: np.ndarray) -> np.ndarray:
+    """A rate counted in whole beats or breaths a minute, and never below zero."""
+    return np.maximum(np.rint(rate), 0).astype(int)
 
 
 def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = None, return_truth: bool = False,
            *, cohort: str | None = None, hazard: str = "time_varying", params: dict | None = None):
     """Sample `n` casualties forward through the graph.
 
-    mix      stream shares {disease, battle, non_battle}; scaled to sum to one. Default: E-34 to E-36.
+    mix      stream shares {disease, battle, non_battle}; scaled to sum to one. Default: the cohort's own mix,
+             which for the military cohort is E-34 to E-36 and for the civilian cohort an assumption.
     setting  where the scan is done: "pre_hospital" (default) or "in_hospital". Selects the scan accuracy
              row and the time of the scan.
-    cohort   whose triage accuracy the physiology reproduces: "military" (default, E-09 registry row) or
-             "civilian".
+    cohort   "military" (default, the reference) or "civilian". The civilian cohort has its own default mix,
+             and its heart rate sits lower and moves less with bleeding, tension pneumothorax and sepsis
+             (assumptions). Given the same mix, the two cohorts are the same casualties with different signs.
     hazard   "time_varying" (default, fitted to E-85) or "constant" (lens 05 failure demonstration only).
 
     Returns the observed table; with return_truth=True, a pair (observed, truth) where truth holds the latent
@@ -203,11 +249,11 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
     cohort = cohort or defaults.get("cohort", "military")
     if setting not in d.scan:
         raise ValueError(f"setting must be one of {sorted(d.scan)}")
-    if cohort not in d.triage:
-        raise ValueError(f"cohort must be one of {sorted(d.triage)}")
+    if cohort not in d.cohorts:
+        raise ValueError(f"cohort must be one of {sorted(d.cohorts)}")
     if hazard not in HAZARDS:
         raise ValueError(f"hazard must be one of {HAZARDS}")
-    mix = _normalised(dict(mix if mix is not None else v["stream_shares"]))
+    mix = _normalised(dict(mix if mix is not None else d.cohort_mix.get(cohort, v["stream_shares"])))
     if set(mix) - set(STREAMS):
         raise ValueError(f"mix keys must be among {STREAMS}")
 
@@ -241,32 +287,42 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
     septic_shock = sepsis & (U["shock"] < v["septic_shock_given_sepsis"])
     needs_lsi = bleeding | tension | head_severe | septic_shock
 
-    # physiology -> MPTT-24 priority, drawn so the rule reproduces the cohort's accuracy (E-09)
-    sens, spec = d.triage[cohort]
-    priority_one = np.where(needs_lsi, U["triage"] < sens, U["triage"] < 1 - spec)
-    walking = ~priority_one & (U["walking"] < v["walking_given_not_priority_one"])
-    catastrophic = priority_one & bleeding & np.isin(site, EXTERNAL_SITES) & (
-        U["catastrophic"] < v["catastrophic_haemorrhage_share"])
-    sign = np.where(priority_one, _categorical(U["sign"], SIGNS, [v["abnormal_sign_weights"][s] for s in SIGNS]), "none")
-
-    hr_r = v["heart_rate_ranges"]
-    heart_rate = np.where(sign == "heart_rate", _uniform_int(U["heart_rate"], *hr_r["abnormal"]),
-                          _uniform_int(U["heart_rate"], *hr_r["normal"]))
-    rr_r = v["respiratory_rate_ranges"]
-    rr_abnormal = sign == "respiratory_rate"
-    rr_low = U["rr_side"] < v["respiratory_rate_low_share"]
-    respiratory_rate = np.where(
-        rr_abnormal & rr_low, _uniform_int(U["respiratory_rate"], *rr_r["low"]),
-        np.where(rr_abnormal, _uniform_int(U["respiratory_rate"], *rr_r["high"]),
-                 _uniform_int(U["respiratory_rate"], *rr_r["normal"])))
-    avpu = np.where(sign == "avpu",
-                    _categorical(U["avpu"], AVPU_ABNORMAL, [v["avpu_abnormal_shares"][k] for k in AVPU_ABNORMAL]), "A")
-
+    # latent state -> physiology (D-22, R-0.14). Each sign is drawn from the casualty's latent state. No triage
+    # priority is drawn or used: the MPTT-24 is applied to these signs afterwards, outside the generator.
     severity = Z["severity"]
     sb, snb = v["sbp_bleeding"], v["sbp_not_bleeding"]
     sbp = np.where(bleeding, sb["mean"] + sb["severity_slope"] * severity + sb["residual_sd"] * Z["sbp"],
                    snb["mean"] + snb["sd"] * Z["sbp"])
     sbp = np.rint(sbp).astype(int)
+
+    shift, scale = d.cohorts[cohort]
+    states = {"bleeding": bleeding, "bleeding_by_severity_centile": np.where(bleeding, ndtr(severity), 0.0),
+              "tension_pneumothorax": tension, "sepsis": sepsis, "septic_shock": septic_shock}
+
+    def rate(p: dict, z: np.ndarray, base_shift: float = 0.0) -> np.ndarray:
+        """Mean for the stream, plus the effect of each condition present, plus a normal residual."""
+        base = np.select([stream == s for s in STREAMS], [float(p["base"][s]) for s in STREAMS])
+        effect = sum(float(p["effect"][k]) * np.asarray(x, dtype=float) for k, x in states.items())
+        return base + base_shift + scale * effect + float(p["residual_sd"]) * z
+
+    heart_rate = _count(rate(v["heart_rate"], _normal(U["heart_rate"]), shift))
+    head_rr = v["respiratory_rate_severe_head_injury"]
+    breathing_slowed = head_severe & (U["breathing_slowed"] < head_rr["share_slowed"])
+    rr = rate(v["respiratory_rate"], _normal(U["respiratory_rate"]))
+    respiratory_rate = _count(np.where(breathing_slowed, float(head_rr["factor"]) * rr, rr))
+
+    base_rate, ab = float(v["avpu_not_alert_base"]), v["avpu_bleeding"]
+    from_pressure = expit(ab["log_odds_per_10_mmhg"] * (sbp - ab["even_odds_at_sbp"]) / 10)
+    not_alert = np.where(bleeding, 1 - (1 - base_rate) * (1 - from_pressure), base_rate)
+    level = _categorical(U["avpu_level"], AVPU_NOT_ALERT, [v["avpu_levels_not_alert"][k] for k in AVPU_NOT_ALERT])
+    head_avpu = v["avpu_severe_head_injury"]
+    avpu = np.where(head_severe, _categorical(U["avpu"], AVPU_LEVELS, [head_avpu[k] for k in AVPU_LEVELS]),
+                    np.where(U["avpu"] < not_alert, level, "A"))
+
+    walk = v["walking"]
+    walking = (U["walking"] < np.where(needs_lsi, walk["needs_intervention"], walk["no_intervention"])) & np.isin(
+        avpu, CAN_WALK)
+    catastrophic = bleeding & np.isin(site, EXTERNAL_SITES) & (U["catastrophic"] < v["catastrophic_haemorrhage_share"])
 
     # setting -> time to each echelon, and when the scan is done
     tp, tr = v["time_to_phec_min"], v["phec_to_role2_min"]
@@ -336,6 +392,7 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
         "pneumothorax": pneumothorax,
         "tension_pneumothorax": tension,
         "head_severe": head_severe,
+        "breathing_slowed": breathing_slowed,
         "sepsis": sepsis,
         "septic_shock": septic_shock,
         "needs_lsi": needs_lsi,
