@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 24,
-  "when": "2026-11-13T15:42",
+  "attempt": 25,
+  "when": "2026-11-13T16:53",
   "verdict": "BUILT",
   "tally": "13/13 pass",
   "open_items_unresolved": [],
@@ -15,7 +15,7 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "177 tests, 0 skipped with a reason, none failing",
+      "reason": "189 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -987,13 +987,13 @@
     "G-6": {
       "passed": true,
       "evaluable": true,
-      "reason": "42 scorecard rows correctly labelled across 4 lenses",
+      "reason": "66 scorecard rows correctly labelled across 5 lenses",
       "detail": null
     },
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "03_bayesian.ipynb ran in 3 s with 10 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "03_bayesian.ipynb ran in 6 s with 10 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -1023,7 +1023,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 8.31s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 7.64s)",
       "detail": null
     },
     "G-13": {
