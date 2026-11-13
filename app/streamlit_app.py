@@ -1,5 +1,5 @@
-"""inference-labs, page one: the casualty walk-through, with the Bayesian panel (R-1.9) and beside it the rules
-panel, the baseline (R-2.12).
+"""inference-labs, page one: the casualty walk-through, with the Bayesian panel (R-1.9), beside it the rules
+panel, the baseline (R-2.12), and below them the frequentist panel (R-3.12).
 
     streamlit run app/streamlit_app.py
 
@@ -69,6 +69,12 @@ with right:
     st.markdown(f"**{rules_panel['bleeding']}**")
     st.markdown(rules_panel["txa"])
     st.caption(rules_panel["published"])
+
+frequentist_panel = shown["frequentist"]
+st.subheader(frequentist_panel["heading"])
+st.markdown(frequentist_panel["score"])
+st.markdown(frequentist_panel["errors"])
+st.markdown(frequentist_panel["trial"])
 
 st.caption("Every figure on this page is a mechanism, computed on synthetic casualties, which can only confirm the "
            "model that made them, except the published figures, each given with its evidence id: the trial's "
