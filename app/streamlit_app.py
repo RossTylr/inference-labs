@@ -77,8 +77,7 @@ st.markdown(frequentist_panel["errors"])
 st.markdown(frequentist_panel["trial"])
 
 st.caption("Every figure on this page is a mechanism, computed on synthetic casualties, which can only confirm the "
-           "model that made them, except the published figures, each given with its evidence id: the trial's "
-           "absolute reduction and the rules' published accuracy. Scan accuracy before hospital comes from the "
+           "model that made them, except the published figures, each given with its evidence id. Scan accuracy before hospital comes from the "
            "published counts (E-16); in hospital it is an assumption centred on pooled figures (E-14). "
            f"{shown['scan_sources']} The Bayesian triage reading is systolic pressure at or below the ABC score's "
            "threshold (E-31). The MPTT-24 is coded from the published flowchart (E-08).")

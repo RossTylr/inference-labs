@@ -3,7 +3,7 @@
 A test makes two kinds of error, and where the line sits between them is a choice. A trial reports what would
 happen under repetition: an estimate and an interval, not a verdict on the treatment.
 
-    diagnosis   a logistic score: the probability that a casualty needs a life-saving intervention, from the four
+    diagnosis   a logistic score: the probability that a casualty needs a life-saving intervention, from four of the
                 signs the MPTT-24 reads (walking, conscious level, respiratory rate, heart rate), fitted on one
                 generator sample and scored on another. Its operating threshold is where its specificity on the
                 training sample equals the MPTT-24's under the figure reading, so the two can be compared at the
@@ -143,7 +143,7 @@ def trials() -> tuple[TrialResult, ...]:
     return (
         TrialResult("PROPPR", "death within 24 hours", "1:1:1", "1:1:2", "E-72", 12.7, 17.0,
                     difference=(-4.2, -9.6, 1.1), p_value="P=.12",
-                    note="680 patients; quoted, because the register gives no counts"),
+                    note="680 patients; quoted, because the register gives no death counts"),
         TrialResult("CRASH-2", "death from any cause", "tranexamic acid", "placebo", "E-19, E-20",
                     100 * a1 / n1, 100 * a0 / n0, difference=risk_difference(a1, n1, a0, n0),
                     relative_risk=relative_risk(a1, n1, a0, n0), p_value="p = 0.0035", recomputed=True,
@@ -283,7 +283,7 @@ def roc(cohort: str = "military") -> dict:
 
 
 def hundred(start: int = 0) -> pd.DataFrame:
-    """A hundred synthetic casualties from the military evaluation sample, with need and both flags."""
+    """A hundred synthetic casualties from the military evaluation sample, with need and the MPTT-24's flag."""
     observed, truth = baseline.generator_sample()
     o, t = observed.iloc[start:start + 100], truth.iloc[start:start + 100]
     return pd.DataFrame({"id": o["id"].to_numpy(), "needs": t["needs_lsi"].to_numpy(bool),
@@ -353,7 +353,7 @@ DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificit
 
 
 def diagnosis_metric(name: str, setting: str) -> str:
-    return (f"{name}, logistic score at its threshold against need for a life-saving intervention, "
+    return (f"{name}, logistic score against need for a life-saving intervention, "
             f"{SETTING_NAMES[setting]}")
 
 
@@ -409,7 +409,7 @@ def difference_words(d: tuple, what: str = "deaths") -> str:
 
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
-    computed on the generator (mechanism); 3, 4 and 5 are stated; axis 7 waits for lens 10."""
+    computed on the generator or the fixture (mechanism); 3, 4 and 5 are stated; axis 7 waits for lens 10."""
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     fig, txt = (baseline.diagnosis_results("pre_hospital", r) for r in ("figure", "text"))
     civ = roc("civilian")["points"]
@@ -427,7 +427,7 @@ def seven_axes() -> pd.DataFrame:
     rows = [
         ("1 Discrimination (mechanism)",
          f"sensitivity {_ci(pre['sensitivity'])}, specificity {_ci(pre['specificity'])}; area under the curve "
-         f"{pre['auc']:.3f}; 100,000 synthetic casualties",
+         f"{pre['auc']:.3f}; all 100,000 synthetic casualties of the military cohort, disease included",
          rule_disc(fig), rule_disc(txt),
          f"Not a classifier. On the CRASH-2 fixture, {k1} of {n1} died with tranexamic acid and {k0} of {n0} with "
          f"placebo: {difference_words(d)}; synthetic rows, not trial data"),
@@ -435,19 +435,19 @@ def seven_axes() -> pd.DataFrame:
          f"Brier {pre['brier']:.3f}; mean probability minus share in need {pre['calibration']:+.3f}",
          rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
          rule_cal(txt), "Not applicable"),
-        ("3 Uncertainty expressed", "An interval on every rate: where the estimate would fall in repeated samples",
+        ("3 Uncertainty expressed", "An interval on every rate",
          "None: a priority", "None: a priority", "An interval on the difference"),
         ("4 What it needed",
          f"Labelled cases: {TRAIN_N:,} synthetic casualties to fit seven weights (mechanism)",
          "Rules only at the point of use (E-08)", "Rules only at the point of use (E-08)",
          "A randomised trial: deaths counted in each arm"),
         ("5 Readability",
-         "A weighted sum of four signs: a medic needs the weights or a device; the decision is one comparison",
+         "A weighted sum of terms in four signs: a medic needs the weights or a device; the decision is one comparison",
          "Six yes-or-no steps, one observation each", "Six yes-or-no steps, one observation each",
          "Two percentages, their difference and its interval"),
         ("6 Robustness, setting and cohort changed (mechanism)",
          f"Scan in hospital: sensitivity {_pct(inside['sensitivity'][0])}, specificity "
-         f"{_pct(inside['specificity'][0])}, unchanged because the setting changes only the scan. Civilian cohort: "
+         f"{_pct(inside['specificity'][0])}, unchanged because in the generator the setting changes only the scan. Civilian cohort: "
          f"sensitivity {_pct(civ['logistic score']['sensitivity'][0])}, specificity "
          f"{_pct(civ['logistic score']['specificity'][0])}",
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, figure (as published)']['sensitivity'][0])}, "
@@ -480,7 +480,8 @@ def panel(record: Mapping[str, Any]) -> dict:
                   f"{p:.2f} that this casualty needs a life-saving intervention (mechanism). The threshold is "
                   f"{score.threshold:.2f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
                   f"this casualty."),
-        "errors": (f"At that threshold, on 100,000 synthetic casualties: sensitivity {_ci(pre['sensitivity'])}, "
+        "errors": (f"At that threshold, on all 100,000 synthetic casualties of the military cohort, disease included "
+                   f"(mechanism): sensitivity {_ci(pre['sensitivity'])}, "
                    f"specificity {_ci(pre['specificity'])}. The MPTT-24 as published, on the same casualties: "
                    f"sensitivity {_pct(rule['sensitivity'])}, specificity {_pct(rule['specificity'])} "
                    f"(mechanism)."),
