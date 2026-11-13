@@ -52,7 +52,7 @@ from scipy.stats import norm
 from inference_labs import baseline, generator
 from inference_labs.belief import RV
 from inference_labs.interface import ScorecardRow, is_real_data_path
-from inference_labs.lenses import frequentist, rules, trees
+from inference_labs.lenses import decision, frequentist, rules, trees
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_CRASH3 = REPO_ROOT / "tests" / "fixtures" / "crash3.csv"
@@ -515,6 +515,7 @@ class Walkthrough:
             "baseline": rules.panel(self.record, self.needs_lsi, self.significant_bleeding, percent(final.mean())),
             "frequentist": frequentist.panel(self.record),
             "trees": trees.panel(self.record),
+            "decision": decision.panel(self.record, float(final.mean())),
             "scan_sources": SCAN_SOURCES,
             "band": self.band(),
         }

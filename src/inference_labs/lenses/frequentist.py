@@ -410,7 +410,12 @@ def difference_words(d: tuple, what: str = "deaths") -> str:
 
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
-    computed on the generator or the fixture (mechanism); 3, 4 and 5 are stated; axis 7 waits for lens 10."""
+    computed on the generator or the fixture (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold
+    lens 10's default costs set (mechanism)."""
+    from inference_labs.lenses import decision
+
+    observed, truth = baseline.generator_sample()
+    need = truth["needs_lsi"].to_numpy(bool)
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     fig, txt = (baseline.diagnosis_results("pre_hospital", r) for r in ("figure", "text"))
     civ = roc("civilian")["points"]
@@ -456,8 +461,10 @@ def seven_axes() -> pd.DataFrame:
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, text (as validated)']['sensitivity'][0])}, "
          f"specificity {_pct(civ['MPTT-24, text (as validated)']['specificity'][0])}",
          "Not applicable: the setting does not enter"),
-        ("7 Decision value", "Pending until lens 10", "Pending until lens 10", "Pending until lens 10",
-         "Pending until lens 10"),
+        ("7 Decision value", decision.decision_value(probability(observed), need),
+         decision.decision_value(baseline.priority_one(observed, "figure"), need),
+         decision.decision_value(baseline.priority_one(observed, "text"), need),
+         "Not applicable: a trial read as an interval is not a decision on one casualty"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: logistic score", "baseline: MPTT-24, figure (as published)",
                                        "baseline: MPTT-24, text (as validated)", "treatment: trial reading"]

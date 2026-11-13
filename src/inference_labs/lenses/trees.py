@@ -451,8 +451,15 @@ def _pct(x: float) -> str:
 
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
-    computed on the generator (mechanism); 3, 4 and 5 are stated; axis 7 waits for lens 10."""
+    computed on the generator (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's
+    default costs set (mechanism)."""
+    from inference_labs.lenses import decision
+
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
+    observed, truth = baseline.generator_sample()
+    need = truth["needs_lsi"].to_numpy(bool)
+    p_all = probabilities(observed)
+    battle_obs, battle_truth = rules.battle_sample("pre_hospital")
     fig, txt = (baseline.diagnosis_results("pre_hospital", r) for r in ("figure", "text"))
     tx_pre, tx_in = treatment_results("pre_hospital"), treatment_results("in_hospital")
     n_leaves = len(leaves())
@@ -495,8 +502,12 @@ def seven_axes() -> pd.DataFrame:
          f"only the scan", f"Scan in hospital: {disc(inside['forest'])}, unchanged for the same reason",
          "Unchanged", "Unchanged",
          f"Scan in hospital: {disc(tx_in['tree'])}. The scan item is more often right in hospital"),
-        ("7 Decision value", "Pending until lens 10", "Pending until lens 10", "Pending until lens 10",
-         "Pending until lens 10", "Pending until lens 10"),
+        ("7 Decision value", decision.decision_value(p_all["single tree"], need),
+         decision.decision_value(p_all["forest"], need),
+         decision.decision_value(baseline.priority_one(observed, "figure"), need),
+         decision.decision_value(baseline.priority_one(observed, "text"), need),
+         decision.decision_value(treatment_tree("pre_hospital").predict_proba(tx_matrix(battle_obs))[:, 1],
+                                 battle_truth["bleeding"]) + ", against significant bleeding, scan before hospital"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: single tree", "diagnosis: forest",
                                        "baseline: MPTT-24, figure (as published)",
@@ -536,7 +547,8 @@ def panel(record: Mapping[str, Any]) -> dict:
         "heading": "Decision trees panel: one tree you can read, and a forest you cannot",
         "path": ("Single tree, three questions: " + "; ".join(answer.tree_path) + f". In that leaf, "
                  f"{_pct(answer.tree_share)} of the training casualties need a life-saving intervention, so the tree "
-                 f"{'flags' if answer.tree_share >= m.tree_threshold else 'does not flag'} this casualty (mechanism). "
+                 f"{'flags' if answer.tree_share >= m.tree_threshold else 'does not flag'} this casualty: it flags a "
+                 f"leaf where {_pct(m.tree_threshold)} or more need one (mechanism). "
                  f"Among the battle casualties in that leaf, {_pct(cal['leaf'][leaf_node])} need one (mechanism)."),
         "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.4f} that this casualty "
                    f"needs a life-saving intervention; it flags at {m.forest_threshold:.4f} or more, so it "
@@ -545,10 +557,12 @@ def panel(record: Mapping[str, Any]) -> dict:
                    f"injuries included; on its battle casualties the forest's mean probability is {cal['forest']:.2f} "
                    f"and the single tree's {cal['single tree']:.2f} where {_pct(cal['share in need'])} need an "
                    f"intervention (mechanism), so for a battle casualty both run low."),
-        "treatment": (f"Treatment tree on penetrating mechanism, a positive scan, systolic pressure and heart rate: "
+        "treatment": (f"Treatment tree on penetrating mechanism (small arms counted as penetrating, an assumption), a "
+                      f"positive scan, systolic pressure and heart rate: "
                       f"probability {bleed_p:.2f} that this casualty is "
                       f"bleeding significantly (mechanism), the stand-in for needing transfusion (an assumption). The ABC score "
-                      f"for this casualty is {abc} of 4. On the battle casualties, at the specificity closest to the ABC score's, the "
+                      f"for this casualty is {abc} of its 4 items (E-31). On the synthetic battle casualties, at the specificity "
+                      f"closest to the ABC score's, the "
                       f"tree finds {_pct(tx['tree']['sensitivity'][0])} of those bleeding against the score's "
                       f"{_pct(tx['abc']['sensitivity'][0])} (mechanism)."),
     }

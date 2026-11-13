@@ -266,8 +266,12 @@ def _pct(x: float) -> str:
 
 def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
     """The scorecard on the seven axes of D-21. Axes 1, 2 and 6 are computed on the generator (mechanism); axes 3,
-    4 and 5 are stated; axis 7 waits for lens 10."""
+    4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's default costs set (mechanism)."""
+    from inference_labs.lenses import decision
+
     pre_dx, in_dx = (baseline.diagnosis_results(s, reading) for s in SETTINGS)
+    observed, truth = baseline.generator_sample()
+    battle_obs, battle_truth = battle_sample("pre_hospital")
     pre_tx, in_tx = (treatment_results(s, reading)["abc"] for s in SETTINGS)
 
     def disc(r):
@@ -301,7 +305,9 @@ def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
          "physiology in either setting, so this axis cannot show what moving from hospital observations to the "
          "point of injury would do (E-11)",
          f"With the scan in hospital: {disc(in_tx)}; {cal(in_tx)}. The scan item is more often right in hospital"),
-        ("7 Decision value", "Pending until lens 10", "Pending until lens 10"),
+        ("7 Decision value", decision.decision_value(baseline.priority_one(observed, reading), truth["needs_lsi"]),
+         decision.decision_value(abc_table(battle_obs)["score"].to_numpy() >= ABC_ACTIVATES_AT, battle_truth["bleeding"]) +
+         ", against significant bleeding, battle casualties, scan before hospital"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: MPTT-24", "treatment: ABC score"]).set_index("axis")
 

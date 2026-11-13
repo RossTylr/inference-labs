@@ -81,7 +81,7 @@ def test_scorecard_has_both_cases_and_the_seven_axes(root):
     axes = r.seven_axes()
     assert [a.split()[0] for a in axes.index] == [str(i) for i in range(1, 8)]
     assert all(axes.loc[a].str.len().gt(0).all() for a in axes.index)
-    assert axes.iloc[6].tolist() == ["Pending until lens 10"] * 2
+    assert all(v.startswith("Net benefit") for v in axes.iloc[6].tolist())          # computed by lens 10 (R-5.10)
 
 
 def test_the_panel_states_both_readings_and_labels_its_published_figures():

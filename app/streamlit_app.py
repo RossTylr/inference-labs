@@ -1,5 +1,5 @@
 """inference-labs, page one: the casualty walk-through, with the Bayesian panel (R-1.9), beside it the rules
-panel, the baseline (R-2.12), and below them the frequentist panel (R-3.12) and the decision trees panel (R-4.12).
+panel, the baseline (R-2.12), and below them the frequentist panel (R-3.12), the decision trees panel (R-4.12) and the decision panel (R-5.12).
 
     streamlit run app/streamlit_app.py
 
@@ -81,6 +81,11 @@ st.subheader(trees_panel["heading"])
 st.markdown(trees_panel["path"])
 st.markdown(trees_panel["forest"])
 st.markdown(trees_panel["treatment"])
+
+decision_panel = shown["decision"]
+st.subheader(decision_panel["heading"])
+st.markdown(decision_panel["costs"])
+st.markdown(decision_panel["evacuation"])
 
 st.caption("Every figure on this page is a mechanism, computed on synthetic casualties, which can only confirm the "
            "model that made them, except the published figures, each given with its evidence id. Scan accuracy before hospital comes from the "
