@@ -7,7 +7,8 @@ calibration table in the slice 0 report.
 
 A parameter marked `emergent: true` is not used by the generator. The two triage rows are of that kind: they
 are measured by applying the coded MPTT-24 (baseline.py) to the generated signs, under the text reading, the
-one that matches the GCS below 14 on which E-09 was measured.
+one that matches the GCS below 14 on which E-09 was measured, and on the injured only: E-09 comes from trauma
+registries, so the disease stream is left out.
 """
 from __future__ import annotations
 
@@ -24,6 +25,7 @@ N = 100_000
 SEED = 42
 SITES = ("truncal", "junctional", "extremity")
 STREAMS = ("disease", "battle", "non_battle")
+INJURY_STREAMS = ("battle", "non_battle")
 AVPU_LEVELS = ("A", "V", "P", "U")
 E22_BANDS = {"up_to_1h": (0.0, 60.0), "from_1h_to_3h": (60.0, 180.0), "over_3h": (180.0, math.inf)}  # E-22
 
@@ -40,11 +42,13 @@ def _mean(series: pd.Series) -> float:
 
 
 def _triage(o, t, v):
-    """The coded MPTT-24, under the text reading, against need for a life-saving intervention."""
+    """The coded MPTT-24, under the text reading, against need for a life-saving intervention, on the cohort's
+    calibration streams: the injured, as in the trauma registries where E-09 was measured."""
     from inference_labs import baseline
 
-    p1 = baseline.priority_one(o, baseline.CALIBRATION_READING)
-    lsi = t["needs_lsi"].to_numpy(bool)
+    m = baseline.calibration_cohort(o)
+    p1 = baseline.priority_one(o, baseline.CALIBRATION_READING)[m]
+    lsi = t["needs_lsi"].to_numpy(bool)[m]
     return {"sensitivity": float(p1[lsi].mean()), "specificity": float((~p1[~lsi]).mean())}
 
 
@@ -61,21 +65,23 @@ def _states(t: pd.DataFrame) -> dict:
 
 
 def _rate_model(o, t, column: str, mask=None) -> dict:
-    """Least squares of a rate on the stream and the latent conditions: base for each stream, the effect of each
-    condition, and the residual standard deviation."""
+    """Least squares of a rate on injury and the latent conditions: the resting mean, the injury increment, the
+    effect of each condition, and the residual standard deviation. A term that does not vary in the casualties
+    measured (for example sepsis where there is no disease stream, or injury where every casualty is injured) is
+    left out and reported as missing; the resting mean then absorbs the injury increment."""
     m = np.ones(len(o), bool) if mask is None else np.asarray(mask, bool)
-    stream = o["stream"].to_numpy(object)[m]
-    columns = {f"base:{s}": (stream == s).astype(float) for s in STREAMS}
+    injured = o["stream"].isin(INJURY_STREAMS).to_numpy(float)[m]
+    columns = {"resting": np.ones(int(m.sum())), "injury": injured}
     columns.update({f"effect:{k}": x[m] for k, x in _states(t).items()})
-    X = np.column_stack(list(columns.values()))
+    kept = {k: x for k, x in columns.items() if k == "resting" or np.ptp(x) > 0}
+    X = np.column_stack(list(kept.values()))
     y = o[column].to_numpy(float)[m]
     coef, *_ = np.linalg.lstsq(X, y, rcond=None)
     resid = y - X @ coef
-    out: dict = {"base": {}, "effect": {}}
-    for name, c in zip(columns, coef):
-        kind, key = name.split(":")
-        out[kind][key] = float(c)
-    out["residual_sd"] = float(np.sqrt(resid @ resid / (len(y) - X.shape[1])))
+    fitted = dict(zip(kept, (float(c) for c in coef)))
+    out: dict = {"resting": fitted["resting"], "injury": fitted.get("injury", math.nan),
+                 "effect": {k: fitted.get(f"effect:{k}", math.nan) for k in _states(t)},
+                 "residual_sd": float(np.sqrt(resid @ resid / (len(y) - X.shape[1])))}
     return out
 
 
@@ -117,14 +123,18 @@ def _walking(o, t, v):
 
 
 def _cohort_physiology(o, t, v):
-    """The civilian cohort's heart rate shift and response scale, read against the reference parameters."""
+    """The civilian cohort's heart rate shift and response scale, read against the reference parameters. Every
+    civilian is injured and none has sepsis, so the shift is read from the injured mean, and the scale from the
+    effects of the conditions that occur (bleeding and tension pneumothorax)."""
     hr = _rate_model(o, t, "heart_rate")
     rr = _rate_model(o, t, "respiratory_rate", _not_slowed(t))
     ref_hr, ref_rr = v["heart_rate"], v["respiratory_rate"]
-    shift = float(np.mean([hr["base"][s] - float(ref_hr["base"][s]) for s in STREAMS]))
-    fitted = np.array([hr["effect"][k] for k in ref_hr["effect"]] + [rr["effect"][k] for k in ref_rr["effect"]])
-    reference = np.array([float(x) for x in ref_hr["effect"].values()] + [float(x) for x in ref_rr["effect"].values()])
-    return {"heart_rate_shift": shift, "response_scale": float(fitted @ reference / (reference @ reference))}
+    injured_mean = hr["resting"] + (0.0 if math.isnan(hr["injury"]) else hr["injury"])
+    shift = injured_mean - float(ref_hr["resting"]) - float(ref_hr["injury"])
+    pairs = [(hr["effect"][k], float(x)) for k, x in ref_hr["effect"].items() if not math.isnan(hr["effect"][k])]
+    pairs += [(rr["effect"][k], float(x)) for k, x in ref_rr["effect"].items() if not math.isnan(rr["effect"][k])]
+    fitted, reference = np.array([a for a, _ in pairs]), np.array([b for _, b in pairs])
+    return {"heart_rate_shift": float(shift), "response_scale": float(fitted @ reference / (reference @ reference))}
 
 
 def _scan(o, t):
@@ -233,6 +243,10 @@ MEASURES: dict[str, tuple[str, Callable]] = {
         t["bleeding"] & t["site"].isin(["junctional", "extremity"]), "catastrophic_haemorrhage"])),
     "cohort_physiology_civilian": ("by_cohort", _cohort_physiology),
     "cohort_mix_civilian": ("by_cohort", lambda o, t, v: _shares(o["stream"], v["cohort_mix_civilian"])),
+    "cohort_mechanism_civilian": ("by_cohort", lambda o, t, v: _shares(
+        o.loc[o["stream"] == "non_battle", "mechanism"], v["cohort_mechanism_civilian"])),
+    "cohort_patient_type_civilian": ("by_cohort", lambda o, t, v: _shares(
+        t.loc[o["stream"] == "non_battle", "patient_type"], v["cohort_patient_type_civilian"])),
     "sbp_not_bleeding": ("default", lambda o, t, v: {
         "mean": _mean(o.loc[~t["bleeding"], "sbp"]), "sd": float(o.loc[~t["bleeding"], "sbp"].std(ddof=1))}),
     "sbp_bleeding": ("default", _sbp_bleeding),

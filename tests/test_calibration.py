@@ -19,11 +19,15 @@ def test_comparison_helpers():
 
 
 def test_triage_accuracy_is_measured_with_the_coded_rule_under_the_text_reading():
-    """The emergent triage rows are measured by baseline.py's MPTT-24 under the text reading (R-2.3)."""
+    """The emergent triage rows are measured by baseline.py's MPTT-24 under the text reading (R-2.3), on the
+    injured only."""
     from inference_labs import baseline
 
     observed, truth = baseline.generator_sample()
-    expected = baseline.flag_metrics(baseline.priority_one(observed, "text"), truth["needs_lsi"].to_numpy(bool))
+    injured = observed["stream"].isin(["battle", "non_battle"]).to_numpy()
+    assert (baseline.calibration_cohort(observed) == injured).all()        # E-09 is from trauma registries
+    expected = baseline.flag_metrics(baseline.priority_one(observed, "text")[injured],
+                                     truth["needs_lsi"].to_numpy(bool)[injured])
     assert calibration._triage(observed, truth, None) == {k: expected[k] for k in ("sensitivity", "specificity")}
     assert baseline.CALIBRATION_READING == "text"
 

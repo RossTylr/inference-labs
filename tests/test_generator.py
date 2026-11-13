@@ -53,21 +53,36 @@ def test_setting_changes_only_the_scan():
     assert (post["t_scan_min"] == post["t_role2_min"]).all() and (pre["t_scan_min"] == pre["t_phec_min"]).all()
 
 
-def test_cohorts_differ_through_their_mix_and_their_physiology():
-    """Each cohort has its own default mix; given the same mix, the casualties are the same and only signs differ."""
+def test_the_civilian_cohort_is_injured_civilians_with_their_own_mix_and_physiology():
+    """The civilian cohort is the non-battle injury stream only, with its own mechanisms and patient types; given
+    the same casualties, its signs differ through the cohort-level parameters."""
     params = generator.load_params()["parameters"]
-    civ_default = sample(20_000, 12, cohort="civilian")
-    shares = civ_default["stream"].value_counts(normalize=True)
-    for stream, share in params["cohort_mix_civilian"]["value"].items():
-        assert abs(shares[stream] - share) < 0.015
-    assert abs(sample(20_000, 12)["stream"].eq("battle").mean() - shares["battle"]) > 0.1
-    mix = params["stream_shares"]["value"]
+    civ, t_civ = sample(20_000, 12, cohort="civilian", return_truth=True)
+    assert set(civ["stream"]) == {"non_battle"}
+    types = t_civ["patient_type"].value_counts(normalize=True)
+    for kind, share in params["cohort_patient_type_civilian"]["value"].items():
+        assert abs(types[kind] - share) < 0.015
+    mil_obs, mil_truth = sample(20_000, 12, return_truth=True)
+    assert t_civ["needs_lsi"].any() and not mil_truth.loc[mil_obs["stream"] == "non_battle", "needs_lsi"].any()
+    mix = {"battle": 1.0}                                  # battle casualties are drawn the same way in both cohorts
     mil, t_mil = sample(5000, 12, mix=mix, cohort="military", return_truth=True)
-    civ, t_civ = sample(5000, 12, mix=mix, cohort="civilian", return_truth=True)
-    pd.testing.assert_frame_equal(t_mil, t_civ)
-    assert (mil["stream"] == civ["stream"]).all() and (mil["sbp"] == civ["sbp"]).all()
-    assert not mil["heart_rate"].equals(civ["heart_rate"])
-    assert civ["heart_rate"].mean() < mil["heart_rate"].mean()
+    civ_b, t_civ_b = sample(5000, 12, mix=mix, cohort="civilian", return_truth=True)
+    pd.testing.assert_frame_equal(t_mil, t_civ_b)
+    assert (mil["sbp"] == civ_b["sbp"]).all() and (mil["walking"] == civ_b["walking"]).all()
+    assert civ_b["heart_rate"].mean() < mil["heart_rate"].mean()
+
+
+def test_injury_raises_the_resting_rates(small_sample):
+    """The resting mean is for a casualty with no injury and none of the conditions; injury adds its increment."""
+    obs, truth = small_sample
+    params = generator.load_params()["parameters"]
+    calm = (obs["stream"] == "disease") & ~truth["sepsis"]
+    hurt = (obs["stream"] == "non_battle")
+    for sign in ("heart_rate", "respiratory_rate"):
+        p = params[sign]["value"]
+        assert abs(obs.loc[calm, sign].mean() - p["resting"]) < 0.6
+        assert abs(obs.loc[hurt, sign].mean() - obs.loc[calm, sign].mean() - p["injury"]) < 0.8
+    assert params["heart_rate"]["value"]["resting"] < 90
 
 
 def test_bad_arguments_are_refused():

@@ -71,6 +71,9 @@ EVAL_N, EVAL_SEED = 100_000, 42      # the synthetic casualties the scorecard an
 SETTINGS = ("pre_hospital", "in_hospital")
 SETTING_NAMES = {"pre_hospital": "scan before hospital", "in_hospital": "scan in hospital"}
 COHORTS = ("military", "civilian")
+# E-09 was measured in trauma registries, so the rule is held to it on the injured only: for the military cohort
+# the battle and non-battle injury streams, the disease stream left out; the civilian cohort is injured civilians.
+CALIBRATION_STREAMS = ("battle", "non_battle")
 
 
 def _check_reading(reading: str) -> None:
@@ -165,10 +168,23 @@ def generator_sample(setting: str = "pre_hospital", cohort: str = "military") ->
     return generator.sample(EVAL_N, EVAL_SEED, setting=setting, cohort=cohort, return_truth=True)
 
 
-def calibration_check(cohort: str = "military") -> pd.DataFrame:
-    """The coded rule against E-09 on the generator (R-2.3), under both readings. Only the text reading is held
-    to E-09; the figure reading is shown beside it."""
+def calibration_cohort(observed: pd.DataFrame) -> np.ndarray:
+    """True for the casualties the rule is held to E-09 on: the injured, as in the registries E-09 comes from."""
+    return observed["stream"].isin(CALIBRATION_STREAMS).to_numpy()
+
+
+def calibration_need(cohort: str = "military") -> float:
+    """Share needing a life-saving intervention among the casualties the rule is held to E-09 on (mechanism)."""
     observed, truth = generator_sample("pre_hospital", cohort)
+    return float(truth["needs_lsi"].to_numpy(bool)[calibration_cohort(observed)].mean())
+
+
+def calibration_check(cohort: str = "military") -> pd.DataFrame:
+    """The coded rule against E-09 on the generator (R-2.3), under both readings, on the injured only. Only the
+    text reading is held to E-09; the figure reading is shown beside it."""
+    observed, truth = generator_sample("pre_hospital", cohort)
+    m = calibration_cohort(observed)
+    observed, truth = observed[m], truth[m]
     param = generator.load_params()["parameters"][f"triage_accuracy_{cohort}"]
     rows = []
     for reading in READINGS:

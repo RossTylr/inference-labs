@@ -17,7 +17,7 @@ not evidence (D-8).
 
 How the evidence enters
 - Stream shares and mechanisms are the UK admissions figures (E-34 to E-36). They are the military cohort's
-  default mix; the civilian cohort's default mix is an assumption.
+  default mix. The civilian cohort's mix, mechanisms and patient types are assumptions.
 - Bleeding deaths follow an hourly hazard fitted exactly to the three points of E-85 (log-quadratic in time).
   E-85 is measured from hospital admission; here it runs from injury, which is an assumption. A constant
   hazard, fitted to the same median time to death, exists only for the failure demonstration in lens 05.
@@ -29,14 +29,17 @@ How the evidence enters
 - Physiology is drawn from each casualty's latent state, and every parameter of it is an assumption. The
   MPTT-24's sensitivity and specificity against need for a life-saving intervention (E-09) are targets, not
   inputs: the assumed parameters were tuned until the rule, applied to the generated signs, landed within
-  0.05 of E-09 in each cohort. calibration.py measures them.
+  0.05 of E-09 in each cohort. E-09 comes from trauma registries, so the rule is held to it on the injured
+  only: the military cohort's battle and non-battle injury streams, and the civilian cohort, which is injured
+  civilians. calibration.py measures them.
 - Scan accuracy is a table keyed by setting (E-14 in hospital, E-16 before hospital); triage accuracy is
   a table of targets keyed by cohort (D-13).
 
 Physiology (every number in params.yaml, every one an assumption)
-- Heart rate: normal around a resting mean for the stream, raised by significant bleeding (more with the
-  centile of its severity, so bleeding never lowers it), by tension pneumothorax, by sepsis and further by
-  septic shock. The spread leaves some bleeding casualties below 100.
+- Heart rate: normal around a resting mean, raised in every injured casualty by an injury increment (pain and
+  injury, whether or not an intervention is needed), by significant bleeding (more with the centile of its
+  severity, so bleeding never lowers it), by tension pneumothorax, by sepsis and further by septic shock. The
+  spread leaves some bleeding casualties below 100.
 - Respiratory rate: the same form, raised by the same conditions, and slowed in a share of severe head
   injuries, so the effect runs both ways.
 - Systolic pressure: lower in significant bleeding and falling with its severity.
@@ -47,10 +50,11 @@ Physiology (every number in params.yaml, every one an assumption)
   casualty who responds only to pain or not at all.
 - Catastrophic haemorrhage: a share of the casualties bleeding significantly from an extremity or junction.
 
-The civilian cohort differs from the military one through its own default mix and through cohort-level
-parameters: its heart rate sits lower, and bleeding, tension pneumothorax and sepsis move heart and respiratory
-rate less. The slowing of breathing in severe head injury is the same in both. All are assumptions. Given the
-same mix, the two cohorts are the same casualties with different signs.
+The civilian cohort is injured civilians only: no battle injury and no disease. Its non-battle injuries have
+their own mechanism mix and carry the injury types (haemorrhage, chest, head) in their own shares, where the
+military cohort's non-battle injuries carry none. Its heart rate sits lower, and bleeding, tension pneumothorax
+and sepsis move heart and respiratory rate less; the slowing of breathing in severe head injury is the same in
+both. All are assumptions. The military cohort's casualties are unchanged by the civilian parameters.
 """
 from __future__ import annotations
 
@@ -75,6 +79,7 @@ AVPU_NOT_ALERT = ("V", "P", "U")
 CAN_WALK = ("A", "V")             # a casualty who responds only to pain, or not at all, is not walking
 COHORT_PREFIX = "cohort_physiology_"
 COHORT_MIX_PREFIX = "cohort_mix_"
+INJURY_STREAMS = ("battle", "non_battle")   # the injured: the injury increment applies
 HAZARDS = ("time_varying", "constant")
 
 LATE_BAND_MIN = 180.0    # E-22: the band "over 3 hours"
@@ -128,6 +133,8 @@ class Derived:
     site_alpha: dict
     cohorts: dict
     cohort_mix: dict
+    cohort_mechanism: dict
+    cohort_patient_type: dict
     scan: dict
 
 
@@ -166,20 +173,25 @@ def _derive(doc: dict) -> Derived:
     }
 
     # cohort -> (heart rate shift, scale on the effects of the conditions in the heart and respiratory rate
-    # models), and cohort -> its own default stream mix. The default cohort is the reference: the sign parameters
-    # apply to it as written, and its mix is the stream shares.
+    # models); and a cohort's own default stream mix, non-battle mechanism mix and non-battle patient-type mix.
+    # The default cohort is the reference: the sign parameters apply to it as written, its mix is the stream
+    # shares, and its non-battle casualties carry none of the injury types.
     cohorts = {(doc.get("defaults") or {}).get("cohort", "military"): (0.0, 1.0)}
-    cohort_mix, scan = {}, {}
+    cohort_mix, cohort_mechanism, cohort_patient_type, scan = {}, {}, {}, {}
     for pid, p in doc["parameters"].items():
         if pid.startswith(COHORT_PREFIX):
             cohorts[p["cohort"]] = (float(p["value"]["heart_rate_shift"]), float(p["value"]["response_scale"]))
         if pid.startswith(COHORT_MIX_PREFIX):
             cohort_mix[p["cohort"]] = {k: float(x) for k, x in p["value"].items()}
+        if pid.startswith("cohort_mechanism_"):
+            cohort_mechanism[p["cohort"]] = {k: float(x) for k, x in p["value"].items()}
+        if pid.startswith("cohort_patient_type_"):
+            cohort_patient_type[p["cohort"]] = {k: float(x) for k, x in p["value"].items()}
         if pid.startswith("scan_accuracy_"):
             scan[p["setting"]] = {f: (float(a["sensitivity"]), float(a["specificity"])) for f, a in p["value"].items()}
 
     return Derived(coef, grid, cdf, death_fraction, median, math.log(2) / median, site_mix, site_death_prob,
-                   site_alpha, cohorts, cohort_mix, scan)
+                   site_alpha, cohorts, cohort_mix, cohort_mechanism, cohort_patient_type, scan)
 
 
 @lru_cache(maxsize=4)
@@ -233,9 +245,9 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
              which for the military cohort is E-34 to E-36 and for the civilian cohort an assumption.
     setting  where the scan is done: "pre_hospital" (default) or "in_hospital". Selects the scan accuracy
              row and the time of the scan.
-    cohort   "military" (default, the reference) or "civilian". The civilian cohort has its own default mix,
-             and its heart rate sits lower and moves less with bleeding, tension pneumothorax and sepsis
-             (assumptions). Given the same mix, the two cohorts are the same casualties with different signs.
+    cohort   "military" (default, the reference) or "civilian". The civilian cohort is injured civilians: its
+             default mix is the non-battle stream only, with its own mechanisms and patient types, and its heart
+             rate sits lower and moves less with bleeding, tension pneumothorax and sepsis (assumptions).
     hazard   "time_varying" (default, fitted to E-85) or "constant" (lens 05 failure demonstration only).
 
     Returns the observed table; with return_truth=True, a pair (observed, truth) where truth holds the latent
@@ -265,13 +277,18 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
     stream = _categorical(U["stream"], STREAMS, [mix.get(s, 0.0) for s in STREAMS])
     battle = stream == "battle"
     mechanism = np.full(n, "none", dtype=object)
-    for name, key in (("battle", "battle_mechanism"), ("non_battle", "non_battle_mechanism")):
+    for name, shares in (("battle", v["battle_mechanism"]),
+                         ("non_battle", d.cohort_mechanism.get(cohort, v["non_battle_mechanism"]))):
         m = stream == name
-        mechanism[m] = _categorical(U["mechanism"][m], list(v[key]), list(v[key].values()))
+        mechanism[m] = _categorical(U["mechanism"][m], list(shares), list(shares.values()))
 
     patient_type = np.full(n, "dnbi", dtype=object)
     patient_type[battle] = _categorical(U["patient_type"][battle], list(v["battle_patient_type"]),
                                         list(v["battle_patient_type"].values()))
+    if cohort in d.cohort_patient_type:     # a cohort whose non-battle injuries carry the injury types
+        shares = d.cohort_patient_type[cohort]
+        m = stream == "non_battle"
+        patient_type[m] = _categorical(U["patient_type"][m], list(shares), list(shares.values()))
     haem = patient_type == "haemorrhage"
     site = np.full(n, "none", dtype=object)
     for mech, shares in v["site_given_mechanism"].items():
@@ -296,14 +313,16 @@ def sample(n: int, seed: int, mix: dict | None = None, setting: str | None = Non
     sbp = np.rint(sbp).astype(int)
 
     shift, scale = d.cohorts[cohort]
+    injured = np.isin(stream, INJURY_STREAMS).astype(float)
     states = {"bleeding": bleeding, "bleeding_by_severity_centile": np.where(bleeding, ndtr(severity), 0.0),
               "tension_pneumothorax": tension, "sepsis": sepsis, "septic_shock": septic_shock}
 
     def rate(p: dict, z: np.ndarray, base_shift: float = 0.0) -> np.ndarray:
-        """Mean for the stream, plus the effect of each condition present, plus a normal residual."""
-        base = np.select([stream == s for s in STREAMS], [float(p["base"][s]) for s in STREAMS])
+        """Resting mean, plus the injury increment in the injured, plus the effect of each condition present,
+        plus a normal residual."""
         effect = sum(float(p["effect"][k]) * np.asarray(x, dtype=float) for k, x in states.items())
-        return base + base_shift + scale * effect + float(p["residual_sd"]) * z
+        return (float(p["resting"]) + float(p["injury"]) * injured + base_shift + scale * effect
+                + float(p["residual_sd"]) * z)
 
     heart_rate = _count(rate(v["heart_rate"], _normal(U["heart_rate"]), shift))
     head_rr = v["respiratory_rate_severe_head_injury"]

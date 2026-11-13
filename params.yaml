@@ -154,7 +154,7 @@ parameters:
     source: [E-09]
     label: registry evidence
     population: UK Joint Theatre Trauma Registry
-    note: Not used by the generator. Measured by applying baseline.py's MPTT-24, under the text reading that matches the GCS below 14 on which E-09 was measured, to the generated military cohort. E-09 was measured on first hospital observations, not pre-hospital ones (E-11).
+    note: Not used by the generator. Measured by applying baseline.py's MPTT-24, under the text reading that matches the GCS below 14 on which E-09 was measured, to the injured of the generated military cohort, the battle and non-battle injury streams; the disease stream is outside what E-09 tested. E-09 was measured on first hospital observations, not pre-hospital ones (E-11).
 
   triage_accuracy_civilian:
     description: MPTT-24 Priority One against need for a life-saving intervention, civilian registry
@@ -167,35 +167,39 @@ parameters:
     source: [E-09]
     label: registry evidence
     population: Trauma Audit and Research Network, England and Wales
-    note: Not used by the generator. Measured as for the military row, on the generated civilian cohort. E-09 was measured on first hospital observations (E-11).
+    note: Not used by the generator. Measured as for the military row, on the generated civilian cohort, which is injured civilians only. E-09 was measured on first hospital observations (E-11).
 
   # ---------------------------------------------------------------- physiology, drawn from the latent state
 
   heart_rate:
-    description: Heart rate, normal around a resting mean for the stream, raised by each condition present
+    description: Heart rate, normal around a resting mean, raised by injury and by each condition present
     value:
-      base: {disease: 96, battle: 99, non_battle: 99}
+      resting: 80
+      injury: 12
       effect: {bleeding: 3, bleeding_by_severity_centile: 15, tension_pneumothorax: 11, sepsis: 7, septic_shock: 7}
       residual_sd: 20
     unit: beats per minute (normal; rounded to whole beats)
     tolerance:
-      base: {disease: 0.3, battle: 0.5, non_battle: 0.35}
+      resting: 0.35
+      injury: 0.4
       effect: {bleeding: 1.5, bleeding_by_severity_centile: 2.4, tension_pneumothorax: 1.7, sepsis: 1.1, septic_shock: 1.9}
       residual_sd: 0.18
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: Base is the resting mean with none of the conditions. Each effect is added when its condition is present, septic shock on top of sepsis, and bleeding's second effect in proportion to the centile of its severity, from 0 to 1, so bleeding never lowers the rate. The spread leaves some bleeding casualties below 100.
+    note: Resting is the mean in a casualty with no injury and none of the conditions. Injury is added in every injured casualty, battle or non-battle, for pain and injury whether or not an intervention is needed. Each effect is added when its condition is present, septic shock on top of sepsis, and bleeding's second effect in proportion to the centile of its severity, from 0 to 1, so bleeding never lowers the rate. The spread leaves some bleeding casualties below 100.
 
   respiratory_rate:
-    description: Respiratory rate, normal around a resting mean for the stream, raised by each condition present
+    description: Respiratory rate, normal around a resting mean, raised by injury and by each condition present
     value:
-      base: {disease: 19, battle: 22, non_battle: 21}
+      resting: 16
+      injury: 5
       effect: {bleeding: 1, bleeding_by_severity_centile: 4, tension_pneumothorax: 4, sepsis: 2, septic_shock: 2}
       residual_sd: 4
     unit: breaths per minute (normal; rounded to whole breaths)
     tolerance:
-      base: {disease: 0.08, battle: 0.1, non_battle: 0.1}
+      resting: 0.08
+      injury: 0.1
       effect: {bleeding: 0.32, bleeding_by_severity_centile: 0.42, tension_pneumothorax: 0.3, sepsis: 0.3, septic_shock: 0.36}
       residual_sd: 0.04
     source: assumption
@@ -275,21 +279,45 @@ parameters:
   cohort_mix_civilian:
     description: Civilian cohort's default share by stream
     cohort: civilian
-    value: {disease: 0.44, battle: 0.15, non_battle: 0.41}
+    value: {disease: 0, battle: 0, non_battle: 1}
     unit: share of the cohort
     tolerance: 0.005
     normalise: true
     source: assumption
     label: assumption
     population: synthetic casualties
-    note: The military disease share, half the military battle share, and the difference in non-battle injury.
+    note: Injured civilians only, as in a civilian trauma registry; no battle injury and no disease.
+
+  cohort_mechanism_civilian:
+    description: Mechanism of injury in the civilian cohort
+    cohort: civilian
+    value: {other: 0.94, small_arms: 0.03, explosion: 0.03}
+    unit: share of the civilian cohort
+    tolerance: 0.002
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: Mostly injury by other means than weapons. Used in place of the military non-battle mechanisms.
+
+  cohort_patient_type_civilian:
+    description: Patient type in the civilian cohort
+    cohort: civilian
+    value: {haemorrhage: 0.15, chest: 0.15, head: 0.2, dnbi: 0.5}
+    unit: share of the civilian cohort
+    tolerance: 0.006
+    normalise: true
+    source: assumption
+    label: assumption
+    population: synthetic casualties
+    note: dnbi here is an injured civilian with none of the three injury types. Not chosen to match any share needing intervention.
 
   cohort_physiology_civilian:
     description: Civilian cohort against the military reference, the shift in heart rate and the scale on the effects of bleeding, tension pneumothorax, sepsis and septic shock on heart and respiratory rate
     cohort: civilian
-    value: {heart_rate_shift: -6, response_scale: 0.2}
+    value: {heart_rate_shift: -6, response_scale: 0.35}
     unit: beats per minute; multiplier
-    tolerance: {heart_rate_shift: 0.25, response_scale: 0.1}
+    tolerance: {heart_rate_shift: 0.25, response_scale: 0.075}
     source: assumption
     label: assumption
     population: synthetic casualties

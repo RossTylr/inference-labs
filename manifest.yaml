@@ -9,8 +9,8 @@ params: params.yaml
 # Rewritten for generator version 2 (D-22), with the manifest version bumped.
 frozen:
   version: 2
-  generator_sha256: 8692638aaf730f760a975010b424ab334aed6c7ae51952ef9db0627f4328ef7b
-  params_sha256: 859d739f728a07ba64dfa8d433d4ea62bd17e612c18caee4df4719af5d596d06
+  generator_sha256: 9958996dd21b0e881e4df46ddf59d3075fe79d4a87fcab71a4a17e68af47e92d
+  params_sha256: 55a7679f1cf69e04b8b060e4a00681904e40c99cafa3b669bc3036f3ba32bcb1
 
 open_items:
   O-1: {status: closed, reason: "Confirm the MPTT-24 step order and heart rate comparison from Figure 2 of vassallo2017d"}
