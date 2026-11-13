@@ -582,7 +582,8 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
          f"{PAIRS:,} pairs from each: "
          f"{m_pre['belief and clock']:.2f}, "
          f"against {m_pre[rule]:.2f} by the MPTT-24's priority, {pre['against the rule']}; {m_pre['chance']:.2f} by "
-         f"chance; {m_pre["knowing who is bleeding, and how badly"]:.2f} if it were known who is bleeding and how badly; scan before hospital"),
+         f"chance; {m_pre['knowing who is bleeding, and how badly']:.2f} if it were known who is bleeding and how "
+         f"badly; scan before hospital"),
         ("2 Calibration (mechanism)", f"{cost(flag)}; the probability it acts on has calibration "
          f"{frequentist.diagnosis_results('pre_hospital')['calibration']:+.3f}", cost(fig), cost(txt),
          "Not applicable"),
