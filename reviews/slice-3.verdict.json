@@ -1,7 +1,7 @@
 {
   "slice": 3,
-  "attempt": 12,
-  "when": "2026-11-13T20:28",
+  "attempt": 13,
+  "when": "2026-11-13T20:53",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -1017,13 +1017,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "the review is older than notebooks/02_frequentist.ipynb",
+      "reason": "the review is older than src/inference_labs/lenses/frequentist.py",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (63 passed in 7.66s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.87s)",
       "detail": null
     },
     "G-13": {
