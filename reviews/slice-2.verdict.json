@@ -1,9 +1,9 @@
 {
   "slice": 2,
-  "attempt": 10,
-  "when": "2026-11-13T00:19",
-  "verdict": "BUILT",
-  "tally": "13/13 pass",
+  "attempt": 11,
+  "when": "2026-11-13T09:43",
+  "verdict": "REVISE",
+  "tally": "11/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -15,21 +15,21 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "159 tests, 0 skipped with a reason, none failing",
+      "reason": "165 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
       "passed": true,
       "evaluable": true,
-      "reason": "two runs at n = 100,000, seed 42: sha256 131d3ceac08f",
+      "reason": "two runs at n = 100,000, seed 42: sha256 1c8477abaf42",
       "detail": {
-        "sha256": "131d3ceac08fa3c7282ebb162c6a9695f438f8a639aa4335b4e6b96235145100"
+        "sha256": "1c8477abaf427e77c09dfe35252865f836ed1a4ba952d04d92e77f5aa8ac76d0"
       }
     },
     "G-4": {
       "passed": true,
       "evaluable": true,
-      "reason": "34 parameters, 84 figures within tolerance",
+      "reason": "37 parameters, 100 figures within tolerance",
       "detail": [
         {
           "parameter": "stream_shares",
@@ -278,8 +278,8 @@
           "parameter": "triage_accuracy_military",
           "key": "sensitivity",
           "target": 0.667,
-          "achieved": 0.6655,
-          "tolerance": 0.015,
+          "achieved": 0.6744,
+          "tolerance": 0.05,
           "comparison": "within",
           "pass": true
         },
@@ -287,8 +287,8 @@
           "parameter": "triage_accuracy_military",
           "key": "specificity",
           "target": 0.699,
-          "achieved": 0.6972,
-          "tolerance": 0.01,
+          "achieved": 0.7058,
+          "tolerance": 0.05,
           "comparison": "within",
           "pass": true
         },
@@ -296,8 +296,8 @@
           "parameter": "triage_accuracy_civilian",
           "key": "sensitivity",
           "target": 0.535,
-          "achieved": 0.5343,
-          "tolerance": 0.015,
+          "achieved": 0.5356,
+          "tolerance": 0.05,
           "comparison": "within",
           "pass": true
         },
@@ -305,206 +305,350 @@
           "parameter": "triage_accuracy_civilian",
           "key": "specificity",
           "target": 0.748,
-          "achieved": 0.7468,
-          "tolerance": 0.01,
+          "achieved": 0.7461,
+          "tolerance": 0.05,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "mptt24_thresholds",
-          "key": "respiratory_rate_below",
-          "target": 12,
-          "achieved": 12,
-          "tolerance": 0.0,
+          "parameter": "heart_rate",
+          "key": "base.disease",
+          "target": 96,
+          "achieved": 96.0342,
+          "tolerance": 0.3,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "mptt24_thresholds",
-          "key": "respiratory_rate_at_or_above",
-          "target": 24,
-          "achieved": 24,
-          "tolerance": 0.0,
+          "parameter": "heart_rate",
+          "key": "base.battle",
+          "target": 99,
+          "achieved": 98.9065,
+          "tolerance": 0.5,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "mptt24_thresholds",
-          "key": "heart_rate_at_or_above",
-          "target": 100,
-          "achieved": 100,
-          "tolerance": 0.0,
+          "parameter": "heart_rate",
+          "key": "base.non_battle",
+          "target": 99,
+          "achieved": 98.8721,
+          "tolerance": 0.35,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "walking_given_not_priority_one",
+          "parameter": "heart_rate",
+          "key": "effect.bleeding",
+          "target": 3,
+          "achieved": 2.8763,
+          "tolerance": 1.5,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "effect.bleeding_by_severity_centile",
+          "target": 15,
+          "achieved": 15.5105,
+          "tolerance": 2.4,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "effect.tension_pneumothorax",
+          "target": 11,
+          "achieved": 10.3876,
+          "tolerance": 1.7,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "effect.sepsis",
+          "target": 7,
+          "achieved": 7.2932,
+          "tolerance": 1.1,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "effect.septic_shock",
+          "target": 7,
+          "achieved": 5.884,
+          "tolerance": 1.9,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "residual_sd",
+          "target": 20,
+          "achieved": 19.9766,
+          "tolerance": 0.18,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "base.disease",
+          "target": 19,
+          "achieved": 18.9763,
+          "tolerance": 0.08,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "base.battle",
+          "target": 22,
+          "achieved": 22.0688,
+          "tolerance": 0.1,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "base.non_battle",
+          "target": 21,
+          "achieved": 21.0178,
+          "tolerance": 0.1,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "effect.bleeding",
+          "target": 1,
+          "achieved": 0.8732,
+          "tolerance": 0.32,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "effect.bleeding_by_severity_centile",
+          "target": 4,
+          "achieved": 4.0588,
+          "tolerance": 0.42,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "effect.tension_pneumothorax",
+          "target": 4,
+          "achieved": 3.8186,
+          "tolerance": 0.3,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "effect.sepsis",
+          "target": 2,
+          "achieved": 1.9731,
+          "tolerance": 0.3,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "effect.septic_shock",
+          "target": 2,
+          "achieved": 1.9931,
+          "tolerance": 0.36,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate",
+          "key": "residual_sd",
+          "target": 4,
+          "achieved": 4.0245,
+          "tolerance": 0.04,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate_severe_head_injury",
+          "key": "share_slowed",
+          "target": 0.4,
+          "achieved": 0.3932,
+          "tolerance": 0.03,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "respiratory_rate_severe_head_injury",
+          "key": "factor",
+          "target": 0.5,
+          "achieved": 0.4898,
+          "tolerance": 0.015,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_severe_head_injury",
+          "key": "A",
+          "target": 0.3,
+          "achieved": 0.3081,
+          "tolerance": 0.04,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_severe_head_injury",
+          "key": "V",
+          "target": 0.3,
+          "achieved": 0.2919,
+          "tolerance": 0.04,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_severe_head_injury",
+          "key": "P",
+          "target": 0.25,
+          "achieved": 0.2487,
+          "tolerance": 0.04,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_severe_head_injury",
+          "key": "U",
+          "target": 0.15,
+          "achieved": 0.1513,
+          "tolerance": 0.04,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_not_alert_base",
           "key": "",
-          "target": 0.6,
-          "achieved": 0.5966,
-          "tolerance": 0.01,
+          "target": 0.06,
+          "achieved": 0.0596,
+          "tolerance": 0.003,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_bleeding",
+          "key": "even_odds_at_sbp",
+          "target": 70,
+          "achieved": 70.0619,
+          "tolerance": 2.0,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_bleeding",
+          "key": "log_odds_per_10_mmhg",
+          "target": -1.2,
+          "achieved": -1.2089,
+          "tolerance": 0.17,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_levels_not_alert",
+          "key": "V",
+          "target": 0.5,
+          "achieved": 0.5038,
+          "tolerance": 0.022,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_levels_not_alert",
+          "key": "P",
+          "target": 0.3,
+          "achieved": 0.2893,
+          "tolerance": 0.022,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "avpu_levels_not_alert",
+          "key": "U",
+          "target": 0.2,
+          "achieved": 0.2069,
+          "tolerance": 0.022,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "walking",
+          "key": "no_intervention",
+          "target": 0.55,
+          "achieved": 0.5484,
+          "tolerance": 0.006,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "walking",
+          "key": "needs_intervention",
+          "target": 0.3,
+          "achieved": 0.303,
+          "tolerance": 0.014,
           "comparison": "within",
           "pass": true
         },
         {
           "parameter": "catastrophic_haemorrhage_share",
           "key": "",
-          "target": 0.5,
-          "achieved": 0.4882,
-          "tolerance": 0.025,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "abnormal_sign_weights",
-          "key": "heart_rate",
-          "target": 0.5,
-          "achieved": 0.4959,
-          "tolerance": 0.01,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "abnormal_sign_weights",
-          "key": "respiratory_rate",
-          "target": 0.3,
-          "achieved": 0.3041,
-          "tolerance": 0.01,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "abnormal_sign_weights",
-          "key": "avpu",
-          "target": 0.2,
-          "achieved": 0.2,
-          "tolerance": 0.01,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate_ranges",
-          "key": "normal.0",
-          "target": 60,
-          "achieved": 60,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate_ranges",
-          "key": "normal.1",
-          "target": 99,
-          "achieved": 99,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate_ranges",
-          "key": "abnormal.0",
-          "target": 101,
-          "achieved": 101,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate_ranges",
-          "key": "abnormal.1",
-          "target": 150,
-          "achieved": 150,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "normal.0",
-          "target": 12,
-          "achieved": 12,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "normal.1",
-          "target": 21,
-          "achieved": 21,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "low.0",
-          "target": 6,
-          "achieved": 6,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "low.1",
-          "target": 10,
-          "achieved": 10,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "high.0",
-          "target": 25,
-          "achieved": 25,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_ranges",
-          "key": "high.1",
-          "target": 40,
-          "achieved": 40,
-          "tolerance": 0.0,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate_low_share",
-          "key": "",
-          "target": 0.2,
-          "achieved": 0.1978,
-          "tolerance": 0.015,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "avpu_abnormal_shares",
-          "key": "V",
-          "target": 0.5,
-          "achieved": 0.5056,
+          "target": 0.15,
+          "achieved": 0.1458,
           "tolerance": 0.02,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "avpu_abnormal_shares",
-          "key": "P",
-          "target": 0.3,
-          "achieved": 0.2949,
-          "tolerance": 0.02,
+          "parameter": "cohort_mix_civilian",
+          "key": "disease",
+          "target": 0.44,
+          "achieved": 0.4385,
+          "tolerance": 0.005,
           "comparison": "within",
           "pass": true
         },
         {
-          "parameter": "avpu_abnormal_shares",
-          "key": "U",
+          "parameter": "cohort_mix_civilian",
+          "key": "battle",
+          "target": 0.15,
+          "achieved": 0.1498,
+          "tolerance": 0.005,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_mix_civilian",
+          "key": "non_battle",
+          "target": 0.41,
+          "achieved": 0.4117,
+          "tolerance": 0.005,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_physiology_civilian",
+          "key": "heart_rate_shift",
+          "target": -6,
+          "achieved": -6.0021,
+          "tolerance": 0.25,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_physiology_civilian",
+          "key": "response_scale",
           "target": 0.2,
-          "achieved": 0.1995,
-          "tolerance": 0.02,
+          "achieved": 0.2118,
+          "tolerance": 0.1,
           "comparison": "within",
           "pass": true
         },
@@ -792,7 +936,7 @@
     "G-5": {
       "passed": true,
       "evaluable": true,
-      "reason": "34 parameters sourced and labelled; every E-id resolves; register current",
+      "reason": "37 parameters sourced and labelled; every E-id resolves; register current",
       "detail": null
     },
     "G-6": {
@@ -804,13 +948,13 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "01_rules.ipynb ran in 2 s with 8 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "01_rules.ipynb ran in 3 s with 8 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
-      "passed": true,
+      "passed": false,
       "evaluable": true,
-      "reason": "3 control settings: every metric, table cell, band point and number shown matches the library; no numerical import under app/",
+      "reason": "{'patient_type': 'haemorrhage', 'setting': 'pre_hospital', 'prior': None, 'casualty': 1}: caption shows 75, which the library did not display; {'patient_type': 'haemorrhage', 'setting': 'in_hospital', 'prior': 0.2, 'casualty': 3}: caption shows 75, which the library did not display; {'patient_type': 'chest', 'setting': 'pre_hospital', 'prior': 0.35, 'casualty': 2}: caption shows 75, which the library did not display",
       "detail": null
     },
     "G-9": {
@@ -826,21 +970,21 @@
       "detail": null
     },
     "G-11": {
-      "passed": true,
+      "passed": false,
       "evaluable": true,
-      "reason": "reviews/slice-2.md is current and records HOLDS against 6 checks",
+      "reason": "the review is older than notebooks/01_rules.ipynb",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (59 passed in 6.41s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 8.62s)",
       "detail": null
     },
     "G-13": {
       "passed": true,
       "evaluable": true,
-      "reason": "generator and parameters match the hashes frozen at version 1",
+      "reason": "generator and parameters match the hashes frozen at version 2",
       "detail": null
     }
   }

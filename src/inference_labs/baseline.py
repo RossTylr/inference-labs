@@ -191,8 +191,8 @@ DIAGNOSIS_METRICS = (
 
 
 def diagnosis_metric(name: str, setting: str) -> str:
-    return (f"{name}, Priority 1 against need for a life-saving intervention, generator physiology fitted to "
-            f"hospital observations, {SETTING_NAMES[setting]}")
+    return (f"{name}, Priority 1 against need for a life-saving intervention, generator physiology tuned to "
+            f"accuracy measured on hospital observations, {SETTING_NAMES[setting]}")
 
 
 @lru_cache(maxsize=None)

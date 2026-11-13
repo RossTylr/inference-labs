@@ -73,6 +73,6 @@ with right:
 st.caption("Every figure on this page is a mechanism, computed on synthetic casualties, which can only confirm the "
            "model that made them, except the published figures, each given with its evidence id: the trial's "
            "absolute reduction and the rules' published accuracy. Scan accuracy before hospital comes from the "
-           "published counts (E-16); in hospital it is an assumption centred on pooled figures (E-14). Both studies "
-           "are civilian. The Bayesian triage reading is systolic pressure at or below the ABC score's threshold "
+           "published counts (E-16); in hospital it is an assumption centred on pooled figures (E-14). The "
+           "pre-hospital study is civilian (E-16); the in-hospital figure is pooled from 75 studies (E-14). The Bayesian triage reading is systolic pressure at or below the ABC score's threshold "
            "(E-31). The MPTT-24 is coded from the published flowchart (E-08).")

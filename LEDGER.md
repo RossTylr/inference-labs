@@ -33,3 +33,5 @@ One row per validation attempt, written by `python -m harness.validate`. Do not 
 | 2026-11-13T00:18 | 1 | 12 | **BUILT** | 13/13 pass | — | — |
 | 2026-11-13T00:19 | 2 | 10 | **BUILT** | 13/13 pass | — | — |
 | 2026-11-13T09:40 | 0 | 7 | **BUILT** | 7/7 pass | — | — |
+| 2026-11-13T09:42 | 1 | 13 | **REVISE** | 11/13 pass | G-8, G-11 | — |
+| 2026-11-13T09:43 | 2 | 11 | **REVISE** | 11/13 pass | G-8, G-11 | — |
