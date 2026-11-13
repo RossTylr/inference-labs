@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 14,
-  "when": "2026-11-13T09:44",
+  "attempt": 15,
+  "when": "2026-11-13T12:30",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -15,21 +15,21 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "165 tests, 0 skipped with a reason, none failing",
+      "reason": "166 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
       "passed": true,
       "evaluable": true,
-      "reason": "two runs at n = 100,000, seed 42: sha256 1c8477abaf42",
+      "reason": "two runs at n = 100,000, seed 42: sha256 263f5f580377",
       "detail": {
-        "sha256": "1c8477abaf427e77c09dfe35252865f836ed1a4ba952d04d92e77f5aa8ac76d0"
+        "sha256": "263f5f5803774e82e8e8e2d3f6a51bf0de4731f5d61a87a249faaa0741415b16"
       }
     },
     "G-4": {
       "passed": true,
       "evaluable": true,
-      "reason": "37 parameters, 100 figures within tolerance",
+      "reason": "39 parameters, 105 figures within tolerance",
       "detail": [
         {
           "parameter": "stream_shares",
@@ -278,7 +278,7 @@
           "parameter": "triage_accuracy_military",
           "key": "sensitivity",
           "target": 0.667,
-          "achieved": 0.6744,
+          "achieved": 0.6414,
           "tolerance": 0.05,
           "comparison": "within",
           "pass": true
@@ -287,7 +287,7 @@
           "parameter": "triage_accuracy_military",
           "key": "specificity",
           "target": 0.699,
-          "achieved": 0.7058,
+          "achieved": 0.7306,
           "tolerance": 0.05,
           "comparison": "within",
           "pass": true
@@ -296,7 +296,7 @@
           "parameter": "triage_accuracy_civilian",
           "key": "sensitivity",
           "target": 0.535,
-          "achieved": 0.5356,
+          "achieved": 0.5652,
           "tolerance": 0.05,
           "comparison": "within",
           "pass": true
@@ -305,35 +305,26 @@
           "parameter": "triage_accuracy_civilian",
           "key": "specificity",
           "target": 0.748,
-          "achieved": 0.7461,
+          "achieved": 0.7633,
           "tolerance": 0.05,
           "comparison": "within",
           "pass": true
         },
         {
           "parameter": "heart_rate",
-          "key": "base.disease",
-          "target": 96,
-          "achieved": 96.0342,
-          "tolerance": 0.3,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate",
-          "key": "base.battle",
-          "target": 99,
-          "achieved": 98.9065,
-          "tolerance": 0.5,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "heart_rate",
-          "key": "base.non_battle",
-          "target": 99,
-          "achieved": 98.8721,
+          "key": "resting",
+          "target": 80,
+          "achieved": 80.0342,
           "tolerance": 0.35,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "heart_rate",
+          "key": "injury",
+          "target": 12,
+          "achieved": 11.8514,
+          "tolerance": 0.4,
           "comparison": "within",
           "pass": true
         },
@@ -341,7 +332,7 @@
           "parameter": "heart_rate",
           "key": "effect.bleeding",
           "target": 3,
-          "achieved": 2.8763,
+          "achieved": 2.8972,
           "tolerance": 1.5,
           "comparison": "within",
           "pass": true
@@ -359,7 +350,7 @@
           "parameter": "heart_rate",
           "key": "effect.tension_pneumothorax",
           "target": 11,
-          "achieved": 10.3876,
+          "achieved": 10.4086,
           "tolerance": 1.7,
           "comparison": "within",
           "pass": true
@@ -386,34 +377,25 @@
           "parameter": "heart_rate",
           "key": "residual_sd",
           "target": 20,
-          "achieved": 19.9766,
+          "achieved": 19.9765,
           "tolerance": 0.18,
           "comparison": "within",
           "pass": true
         },
         {
           "parameter": "respiratory_rate",
-          "key": "base.disease",
-          "target": 19,
-          "achieved": 18.9763,
+          "key": "resting",
+          "target": 16,
+          "achieved": 15.9763,
           "tolerance": 0.08,
           "comparison": "within",
           "pass": true
         },
         {
           "parameter": "respiratory_rate",
-          "key": "base.battle",
-          "target": 22,
-          "achieved": 22.0688,
-          "tolerance": 0.1,
-          "comparison": "within",
-          "pass": true
-        },
-        {
-          "parameter": "respiratory_rate",
-          "key": "base.non_battle",
-          "target": 21,
-          "achieved": 21.0178,
+          "key": "injury",
+          "target": 5,
+          "achieved": 5.0609,
           "tolerance": 0.1,
           "comparison": "within",
           "pass": true
@@ -422,7 +404,7 @@
           "parameter": "respiratory_rate",
           "key": "effect.bleeding",
           "target": 1,
-          "achieved": 0.8732,
+          "achieved": 0.9049,
           "tolerance": 0.32,
           "comparison": "within",
           "pass": true
@@ -440,7 +422,7 @@
           "parameter": "respiratory_rate",
           "key": "effect.tension_pneumothorax",
           "target": 4,
-          "achieved": 3.8186,
+          "achieved": 3.8503,
           "tolerance": 0.3,
           "comparison": "within",
           "pass": true
@@ -467,7 +449,7 @@
           "parameter": "respiratory_rate",
           "key": "residual_sd",
           "target": 4,
-          "achieved": 4.0245,
+          "achieved": 4.0246,
           "tolerance": 0.04,
           "comparison": "within",
           "pass": true
@@ -485,7 +467,7 @@
           "parameter": "respiratory_rate_severe_head_injury",
           "key": "factor",
           "target": 0.5,
-          "achieved": 0.4898,
+          "achieved": 0.49,
           "tolerance": 0.015,
           "comparison": "within",
           "pass": true
@@ -610,8 +592,8 @@
         {
           "parameter": "cohort_mix_civilian",
           "key": "disease",
-          "target": 0.44,
-          "achieved": 0.4385,
+          "target": 0.0,
+          "achieved": 0.0,
           "tolerance": 0.005,
           "comparison": "within",
           "pass": true
@@ -619,8 +601,8 @@
         {
           "parameter": "cohort_mix_civilian",
           "key": "battle",
-          "target": 0.15,
-          "achieved": 0.1498,
+          "target": 0.0,
+          "achieved": 0.0,
           "tolerance": 0.005,
           "comparison": "within",
           "pass": true
@@ -628,9 +610,72 @@
         {
           "parameter": "cohort_mix_civilian",
           "key": "non_battle",
-          "target": 0.41,
-          "achieved": 0.4117,
+          "target": 1.0,
+          "achieved": 1.0,
           "tolerance": 0.005,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_mechanism_civilian",
+          "key": "other",
+          "target": 0.94,
+          "achieved": 0.9394,
+          "tolerance": 0.002,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_mechanism_civilian",
+          "key": "small_arms",
+          "target": 0.03,
+          "achieved": 0.0304,
+          "tolerance": 0.002,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_mechanism_civilian",
+          "key": "explosion",
+          "target": 0.03,
+          "achieved": 0.0302,
+          "tolerance": 0.002,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_patient_type_civilian",
+          "key": "haemorrhage",
+          "target": 0.15,
+          "achieved": 0.1494,
+          "tolerance": 0.006,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_patient_type_civilian",
+          "key": "chest",
+          "target": 0.15,
+          "achieved": 0.1502,
+          "tolerance": 0.006,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_patient_type_civilian",
+          "key": "head",
+          "target": 0.2,
+          "achieved": 0.1995,
+          "tolerance": 0.006,
+          "comparison": "within",
+          "pass": true
+        },
+        {
+          "parameter": "cohort_patient_type_civilian",
+          "key": "dnbi",
+          "target": 0.5,
+          "achieved": 0.5009,
+          "tolerance": 0.006,
           "comparison": "within",
           "pass": true
         },
@@ -638,7 +683,7 @@
           "parameter": "cohort_physiology_civilian",
           "key": "heart_rate_shift",
           "target": -6,
-          "achieved": -6.0021,
+          "achieved": -6.0519,
           "tolerance": 0.25,
           "comparison": "within",
           "pass": true
@@ -646,9 +691,9 @@
         {
           "parameter": "cohort_physiology_civilian",
           "key": "response_scale",
-          "target": 0.2,
-          "achieved": 0.2118,
-          "tolerance": 0.1,
+          "target": 0.35,
+          "achieved": 0.3891,
+          "tolerance": 0.075,
           "comparison": "within",
           "pass": true
         },
@@ -936,7 +981,7 @@
     "G-5": {
       "passed": true,
       "evaluable": true,
-      "reason": "37 parameters sourced and labelled; every E-id resolves; register current",
+      "reason": "39 parameters sourced and labelled; every E-id resolves; register current",
       "detail": null
     },
     "G-6": {
@@ -948,7 +993,7 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "03_bayesian.ipynb ran in 3 s with 10 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "03_bayesian.ipynb ran in 2 s with 10 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -972,13 +1017,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "the review is older than app/streamlit_app.py",
+      "reason": "the review is older than notebooks/03_bayesian.ipynb",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 8.55s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 8.18s)",
       "detail": null
     },
     "G-13": {
