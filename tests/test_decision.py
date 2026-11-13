@@ -60,10 +60,11 @@ def test_the_best_threshold_rises_as_capacity_tightens():
 
 
 def test_holding_a_casualty_raises_expected_bleeding_deaths():
-    """R-5.8: the generator's hazard is front-loaded, so each minute held costs more early than late."""
+    """R-5.8: each minute held adds to the expected bleeding deaths; the chance is the truncal site's."""
     curve = d.hold_curve(0.5, 30.0)
     assert curve.is_monotonic_increasing
     assert float(d.death_by(0)) == 0 and 0 < float(d.death_by(60)) < float(d.death_by(240)) < 1
+    assert float(d.death_by(240)) > float(d.death_by(240, "extremity"))
 
 
 def test_ordering_by_belief_and_clock_does_no_worse_than_the_rule_or_chance():
@@ -101,6 +102,11 @@ def test_scorecard_rows_are_well_formed(root):
 
 def test_the_panel_calls_every_cost_an_assumption():
     observed, _ = baseline.generator_sample()
-    shown = d.panel(observed[observed["stream"] == "battle"].iloc[0].to_dict(), 0.3)
+    from inference_labs.lenses import bayesian
+
+    record = observed[observed["stream"] == "battle"].iloc[0].to_dict()
+    shown = d.panel(record, bayesian.belief_line(record))
     assert "an assumption" in shown["costs"] and "assumptions" in shown["evacuation"]
     assert "(mechanism)" in shown["costs"] and "(mechanism)" in shown["evacuation"]
+    inside = d.panel({**record, "setting": "in_hospital"}, bayesian.belief_line({**record, "setting": "in_hospital"}))
+    assert "after triage" in inside["evacuation"] and "after the scan" in shown["evacuation"]

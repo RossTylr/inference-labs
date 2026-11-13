@@ -515,7 +515,7 @@ class Walkthrough:
             "baseline": rules.panel(self.record, self.needs_lsi, self.significant_bleeding, percent(final.mean())),
             "frequentist": frequentist.panel(self.record),
             "trees": trees.panel(self.record),
-            "decision": decision.panel(self.record, float(final.mean())),
+            "decision": decision.panel(self.record, self.line),
             "scan_sources": SCAN_SOURCES,
             "band": self.band(),
         }

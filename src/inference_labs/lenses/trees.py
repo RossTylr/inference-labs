@@ -507,7 +507,7 @@ def seven_axes() -> pd.DataFrame:
          decision.decision_value(baseline.priority_one(observed, "figure"), need),
          decision.decision_value(baseline.priority_one(observed, "text"), need),
          decision.decision_value(treatment_tree("pre_hospital").predict_proba(tx_matrix(battle_obs))[:, 1],
-                                 battle_truth["bleeding"]) + ", against significant bleeding, scan before hospital"),
+                                 battle_truth["bleeding"]) + ", against significant bleeding, battle casualties, scan before hospital"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: single tree", "diagnosis: forest",
                                        "baseline: MPTT-24, figure (as published)",
