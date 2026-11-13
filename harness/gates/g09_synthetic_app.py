@@ -1,8 +1,8 @@
 """G-9 Synthetic app: nothing under app/ reads outside the package and its bundled synthetic data (D-7).
 
-Every file under app/ is parsed. It fails on a module that reaches the file system, the network or the
-environment; on a call that reads a file or an upload; on a library call that takes a data path; and on a
-string that looks like a file path or names a real dataset. The page gets its casualties from the generator
+Every file under app/ is parsed, the panel files under app/panels/ included (D-27). It fails on a module that
+reaches the file system, the network or the environment; on a call that reads a file or an upload; on a library
+call that takes a data path; and on a string that looks like a file path or names a real dataset. The page gets its casualties from the generator
 inside inference_labs, and from nowhere else.
 """
 from __future__ import annotations

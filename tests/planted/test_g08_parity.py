@@ -40,3 +40,28 @@ def test_a_number_the_app_computes_for_itself_fails(tmp_path):
 def test_a_stray_number_in_the_text_fails(tmp_path):
     result = _check(tmp_path, GOOD + 'st.markdown("Ten casualties in a row: 10")\n')
     assert not result.passed and "10" in result.reason
+
+
+PANEL = '''ORDER = 1
+SOURCE = {source}
+
+
+def render(st, walk):
+    st.markdown("panel")
+'''
+
+
+def test_a_panel_whose_numbers_do_not_come_from_the_library_fails(tmp_path):
+    panels = tmp_path / "app" / "panels"
+    panels.mkdir(parents=True)
+    (panels / "own.py").write_text(PANEL.format(source="lambda walk: {'value': 0.5}"))
+    assert any("not from inference_labs" in p for p in g08_parity.panel_problems(tmp_path))
+    (panels / "own.py").write_text(PANEL.format(source="__import__('inference_labs.lenses.bayesian', fromlist=['x']).page_panel"))
+    assert not g08_parity.panel_problems(tmp_path)
+
+
+def test_a_panel_without_its_source_fails(tmp_path):
+    panels = tmp_path / "app" / "panels"
+    panels.mkdir(parents=True)
+    (panels / "bare.py").write_text("ORDER = 1\n\ndef render(st, walk):\n    pass\n")
+    assert any("has no SOURCE" in p for p in g08_parity.panel_problems(tmp_path))

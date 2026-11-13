@@ -386,3 +386,11 @@ def panel(record: Mapping[str, Any], needs_lsi: bool, significant_bleeding: bool
         "txa": txa,
         "published": published,
     }
+
+
+def page_panel(walk: Any) -> dict:
+    """The rules panel on app page 1 for one walk-through casualty, given lens 03's Walkthrough (D-27): every
+    number already formatted, so the page shows only what the library computed (gate G-8)."""
+    from inference_labs.lenses.bayesian import percent
+
+    return panel(walk.record, walk.needs_lsi, walk.significant_bleeding, percent(walk.line["evacuation"].mean()))

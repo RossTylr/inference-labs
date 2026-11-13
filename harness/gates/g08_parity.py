@@ -2,15 +2,19 @@
 numerical library other than through inference_labs.
 
 How it is checked
-- Statically, every file under app/ is parsed and its imports are compared with a list of numerical libraries.
+- Statically, every file under app/ is parsed, the panel files under app/panels/ included, and its imports are
+  compared with a list of numerical libraries.
+- Each panel file names, as SOURCE, the library function that computes what it shows (D-27). SOURCE must belong
+  to inference_labs.
 - The page is run headless (Streamlit's AppTest) for a set of control settings. The controls are keyed by the
-  argument names of the library function that computes the page, and for each setting the gate compares what
-  the page shows with that function's `display()`: every metric, every table cell and every point of the
-  belief band. Any other number in the page's text must be one the library displayed.
+  argument names of the function that makes the walk-through casualty, and for each setting the gate compares
+  what the page shows with what every panel's SOURCE returns for that casualty: every metric, every table cell
+  and every point of the belief band. Any other number in the page's text must be one the library displayed.
 """
 from __future__ import annotations
 
 import ast
+import importlib.util
 import re
 from pathlib import Path
 from typing import Callable
@@ -45,10 +49,49 @@ def forbidden_imports(path: Path) -> list[str]:
     return found
 
 
-def library_display(inputs: dict) -> dict:
+def panel_modules(root: Path) -> list:
+    """The panel files under app/panels/, each imported from its path, in page order."""
+    modules = []
+    for path in sorted((root / "app" / "panels").glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        spec = importlib.util.spec_from_file_location(f"_g08_panel_{path.stem}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        modules.append(module)
+    return sorted(modules, key=lambda m: getattr(m, "ORDER", 0))
+
+
+def panel_problems(root: Path) -> list[str]:
+    problems = []
+    for module in panel_modules(root):
+        name = module.__name__.removeprefix("_g08_panel_")
+        missing = [a for a in ("ORDER", "SOURCE", "render") if not hasattr(module, a)]
+        if missing:
+            problems.append(f"panel {name} has no {', '.join(missing)}")
+        elif not str(getattr(module.SOURCE, "__module__", "")).startswith("inference_labs."):
+            problems.append(f"panel {name} takes its numbers from {module.SOURCE!r}, not from inference_labs")
+    return problems
+
+
+def library_display(inputs: dict, root: Path | None = None) -> dict:
+    """What the library computes for the page: every panel's SOURCE applied to the walk-through casualty. Metrics,
+    the step table and the belief band are compared element by element; everything else supplies the numbers the
+    page's text may show."""
     from inference_labs.lenses import bayesian
 
-    return bayesian.walkthrough(**inputs).display()
+    walk = bayesian.walkthrough(**inputs)
+    root = Path(__file__).resolve().parents[2] if root is None else root
+    expected: dict = {"metrics": {}, "scan_sources": bayesian.SCAN_SOURCES}
+    for module in panel_modules(root):
+        shown = module.SOURCE(walk)
+        expected["metrics"].update(shown.get("metrics", {}))
+        for key, value in shown.items():
+            if key in ("table", "band"):
+                expected[key] = value
+            elif key != "metrics":
+                expected[f"{module.__name__}:{key}"] = value
+    return expected
 
 
 def _tokens(value) -> set[str]:
@@ -113,7 +156,9 @@ def check(root: Path, slice_id: int, app: Path | None = None, cases=None,
     problems = [f"{f.name} imports {', '.join(bad)}" for f in set(files) | {app} if (bad := forbidden_imports(f))]
 
     cases = CASES if cases is None else cases
-    expected = library_display if expected is None else expected
+    if expected is None:
+        problems += panel_problems(root)
+        expected = lambda inputs: library_display(inputs, root)
     for inputs in cases:
         resolved = dict(inputs)
         problems += [f"{resolved}: {p}" for p in page_problems(app, resolved, expected(resolved))]

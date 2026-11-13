@@ -482,3 +482,9 @@ def panel(record: Mapping[str, Any], line: Mapping[str, Any]) -> dict:
                        f"E-85 (4,064 haemorrhaging patients in five prospective studies, timed from hospital "
                        f"admission) and run here from injury, an assumption (mechanism)."),
     }
+
+
+def page_panel(walk: Any) -> dict:
+    """The decision panel on app page 1 for one walk-through casualty, given lens 03's Walkthrough (D-27): every
+    number already formatted, so the page shows only what the library computed (gate G-8)."""
+    return panel(walk.record, walk.line)

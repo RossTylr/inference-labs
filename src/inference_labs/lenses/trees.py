@@ -566,3 +566,9 @@ def panel(record: Mapping[str, Any]) -> dict:
                       f"tree finds {_pct(tx['tree']['sensitivity'][0])} of those bleeding against the score's "
                       f"{_pct(tx['abc']['sensitivity'][0])} (mechanism)."),
     }
+
+
+def page_panel(walk: Any) -> dict:
+    """The decision trees panel on app page 1 for one walk-through casualty, given lens 03's Walkthrough (D-27): every
+    number already formatted, so the page shows only what the library computed (gate G-8)."""
+    return panel(walk.record)

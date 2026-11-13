@@ -88,7 +88,7 @@ def test_the_panel_states_both_readings_and_labels_its_published_figures():
     from inference_labs.lenses import bayesian
 
     for patient_type, casualty in (("haemorrhage", 1), ("chest", 2), ("head", 3)):
-        shown = bayesian.walkthrough(patient_type, "pre_hospital", None, casualty).display()["baseline"]
+        shown = r.page_panel(bayesian.walkthrough(patient_type, "pre_hospital", None, casualty))
         assert "reading the published figure" in shown["priority"] and "Reading the paper's text" in shown["priority"]
         assert "(E-09, E-11)" in shown["published"] and "not at the point of injury" in shown["published"]
         assert "an assumption" in shown["transfusion"] and "(E-86)" in shown["txa"]

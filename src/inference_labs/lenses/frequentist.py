@@ -514,3 +514,9 @@ def panel(record: Mapping[str, Any]) -> dict:
                   f"({rr[1]:.2f} to {rr[2]:.2f}), recomputed from the counts (E-19, E-21). CRASH-2 is civilian, so using it for a military casualty is an "
                   f"assumption."),
     }
+
+
+def page_panel(walk: Any) -> dict:
+    """The frequentist panel on app page 1 for one walk-through casualty, given lens 03's Walkthrough (D-27): every
+    number already formatted, so the page shows only what the library computed (gate G-8)."""
+    return panel(walk.record)

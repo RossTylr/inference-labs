@@ -91,6 +91,8 @@ slices:
       - tests/test_bayesian.py
       - notebooks/03_bayesian.ipynb
       - app/streamlit_app.py
+      - app/panels/__init__.py
+      - app/panels/bayesian.py
       - harness/gates/__init__.py
       - harness/gates/g06_labels.py
       - harness/gates/g07_notebook.py
@@ -117,7 +119,7 @@ slices:
       - tests/test_baseline.py
       - tests/test_rules.py
       - notebooks/01_rules.ipynb
-      - app/streamlit_app.py
+      - app/panels/rules.py
   3:
     title: Lens 02, Frequentist
     approved: 2026-11-13
@@ -129,7 +131,7 @@ slices:
       - src/inference_labs/lenses/frequentist.py
       - tests/test_frequentist.py
       - notebooks/02_frequentist.ipynb
-      - app/streamlit_app.py
+      - app/panels/frequentist.py
   4:
     title: Lens 04, Decision trees
     approved: 2026-11-13
@@ -141,7 +143,7 @@ slices:
       - src/inference_labs/lenses/trees.py
       - tests/test_trees.py
       - notebooks/04_decision_trees.ipynb
-      - app/streamlit_app.py
+      - app/panels/trees.py
   5:
     title: Lens 10, Decision theory
     approved: 2026-11-13
@@ -153,7 +155,7 @@ slices:
       - src/inference_labs/lenses/decision.py
       - tests/test_decision.py
       - notebooks/10_decision_theory.ipynb
-      - app/streamlit_app.py
+      - app/panels/decision.py
   6:
     title: Lens 05, Stochastic
     approved: null

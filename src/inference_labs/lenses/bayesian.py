@@ -52,7 +52,6 @@ from scipy.stats import norm
 from inference_labs import baseline, generator
 from inference_labs.belief import RV
 from inference_labs.interface import ScorecardRow, is_real_data_path
-from inference_labs.lenses import decision, frequentist, rules, trees
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_CRASH3 = REPO_ROOT / "tests" / "fixtures" / "crash3.csv"
@@ -512,13 +511,15 @@ class Walkthrough:
             ),
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),
-            "baseline": rules.panel(self.record, self.needs_lsi, self.significant_bleeding, percent(final.mean())),
-            "frequentist": frequentist.panel(self.record),
-            "trees": trees.panel(self.record),
-            "decision": decision.panel(self.record, self.line),
             "scan_sources": SCAN_SOURCES,
             "band": self.band(),
         }
+
+
+def page_panel(walk: Walkthrough) -> dict:
+    """The Bayesian panel on app page 1 for one walk-through casualty (D-27): every number already formatted, so
+    the page shows only what the library computed (gate G-8)."""
+    return walk.display()
 
 
 def walkthrough(patient_type: str = "haemorrhage", setting: str = "pre_hospital", prior: float | None = None,
