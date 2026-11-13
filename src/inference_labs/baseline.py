@@ -167,7 +167,7 @@ def generator_sample(setting: str = "pre_hospital", cohort: str = "military") ->
 
 def calibration_check(cohort: str = "military") -> pd.DataFrame:
     """The coded rule against E-09 on the generator (R-2.3), under both readings. Only the text reading is held
-    to E-09's tolerances; the figure reading is shown beside it."""
+    to E-09; the figure reading is shown beside it."""
     observed, truth = generator_sample("pre_hospital", cohort)
     param = generator.load_params()["parameters"][f"triage_accuracy_{cohort}"]
     rows = []

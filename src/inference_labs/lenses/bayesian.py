@@ -17,7 +17,7 @@ risk give the posterior for the relative risk and the probability of benefit (R-
 Where the numbers come from
 - Scan accuracy before hospital: sensitivity Beta(21, 63) and specificity Beta(257, 9), the two-by-two counts
   in E-16 (21 true positives, 63 false negatives, 257 true negatives, 9 false positives).
-- Scan accuracy in hospital: Beta(74, 26) and Beta(294, 6). E-14 is pooled and gives no single table of counts,
+- Scan accuracy in hospital: Beta(74, 26) and Beta(294, 6). E-14 is pooled,
   so these shapes are an assumption centred on its 74% and 98%.
 - The 90 mm Hg threshold is the systolic item of the ABC transfusion score (E-31). How often that reading is
   present with and without abdominal bleeding is counted on the generator, so it is a mechanism, not evidence.
@@ -26,7 +26,7 @@ Where the numbers come from
   using its figures for a military casualty is an assumption. The log-normal shape fitted to each interval is an
   assumption.
 - Trial summaries for the treatment case: CRASH-3 head injury-related death (E-27) and its mild to moderate
-  subgroup (E-28); CRASH-2 all-cause death (E-20); death within 3 hours in RePHILL (E-77), a secondary outcome.
+  subgroup (E-28); CRASH-2 all-cause death (E-20); death within 3 hours in RePHILL (E-77).
   The sceptical, enthusiastic and minimally informative priors are assumptions.
 
 Every result computed on the generator or the fixtures carries the mechanism label (D-8). A result on a real
@@ -83,21 +83,21 @@ SCAN_ACCURACY = {
     },
     "in_hospital": {
         "sensitivity": (74, 26), "specificity": (294, 6), "source": "E-14",
-        "basis": "an assumption centred on the pooled 74% and 98%; the source gives no single table of counts",
+        "basis": "an assumption centred on the pooled 74% and 98%",
     },
 }
-E14_STUDIES = 75        # E-14: the in-hospital figures are pooled from 75 studies
-SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital figure is pooled from {E14_STUDIES} "
-                "studies (E-14).")
+E14_STUDIES = 75        # E-14: a pooled analysis of 75 studies
+SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital figure is from a pooled analysis of "
+                f"{E14_STUDIES} studies (E-14).")
 
-# E-22: relative risk of death from bleeding with tranexamic acid, by time from injury to treatment, in CRASH-2,
+# E-22: relative risk of death from bleeding with tranexamic acid, by time to treatment, in CRASH-2,
 # a civilian trial. Using these figures for a military casualty is an assumption.
 TXA_RR_BANDS = (
     ("up to 1 hour", 60.0, (0.68, 0.57, 0.82)),
     ("1 to 3 hours", 180.0, (0.79, 0.64, 0.97)),
     ("over 3 hours", math.inf, (1.44, 1.12, 1.84)),
 )
-# E-22: deaths from bleeding when treated within an hour of injury, placebo against tranexamic acid, per cent.
+# E-22: deaths from bleeding when treated within an hour, placebo (E-19) against tranexamic acid, per cent.
 TXA_FIRST_HOUR_DEATHS = (7.7, 5.3)
 TXA_FIRST_HOUR_POINTS = round(TXA_FIRST_HOUR_DEATHS[0] - TXA_FIRST_HOUR_DEATHS[1], 1)   # absolute reduction
 
@@ -331,7 +331,7 @@ SCEPTICAL_SD = math.log(1 / 0.8) / float(norm.ppf(0.95))   # 5% prior probabilit
 CRASH3_HEAD_INJURY_DEATH = LogNormalSummary.from_interval(0.94, 0.86, 1.02)     # E-27
 CRASH3_MILD_TO_MODERATE = LogNormalSummary.from_interval(0.78, 0.64, 0.95)      # E-28
 CRASH2_ALL_CAUSE_DEATH = LogNormalSummary.from_interval(0.91, 0.85, 0.97)       # E-20
-REPHILL_DEATH_3H = LogNormalSummary.from_interval(0.75, 0.50, 1.13)             # E-77, a secondary outcome
+REPHILL_DEATH_3H = LogNormalSummary.from_interval(0.75, 0.50, 1.13)             # E-77
 PRIORS = {
     "minimally informative": LogNormalSummary(0.0, 10.0),                         # assumption
     "sceptical": LogNormalSummary(0.0, SCEPTICAL_SD),                            # assumption
@@ -485,12 +485,13 @@ class Walkthrough:
             },
             "treatment": (
                 "Belief times relative reduction is the belief that this casualty is bleeding, multiplied by the "
-                "relative reduction in death from bleeding that CRASH-2 found for the delay (E-22). This step applies "
+                "relative reduction in death from bleeding for the delay, one minus the relative risk CRASH-2 found "
+                "(E-22). This step applies "
                 "a population average to one casualty's belief, so it is a modelling step and carries the mechanism "
                 "label. It is a diagnosis result put to use, not a treatment result, and it is not a change in this "
                 "casualty's risk of death. For scale, in CRASH-2 deaths from bleeding among those treated within an "
-                f"hour of injury were {before:.1f}% with placebo and {after:.1f}% with tranexamic acid, an absolute "
-                f"reduction of {TXA_FIRST_HOUR_POINTS:.1f} points (E-22). CRASH-2 is civilian, so using its figures "
+                f"hour were {before:.1f}% with placebo and {after:.1f}% with tranexamic acid, an absolute "
+                f"reduction of {TXA_FIRST_HOUR_POINTS:.1f} points (E-19, E-22). CRASH-2 is civilian, so using its figures "
                 "for a military casualty is an assumption."
             ),
             "table": [
@@ -506,6 +507,8 @@ class Walkthrough:
                 f"Time to pre-hospital care {self.record['t_phec_min']:.0f} minutes, so the tranexamic acid band is "
                 f"{self.band_name}; belief times relative reduction is {self.reduction.mean():.2f} "
                 f"({lo:.2f} to {hi:.2f}), a mechanism figure."
+                + (" Below zero means harm: in this band CRASH-2 found more deaths from bleeding with tranexamic "
+                   "acid, not fewer (E-22)." if self.reduction.mean() < 0 else "")
             ),
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),
