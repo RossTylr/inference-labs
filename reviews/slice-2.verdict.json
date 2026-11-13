@@ -1,9 +1,9 @@
 {
   "slice": 2,
-  "attempt": 24,
-  "when": "2026-11-13T20:52",
-  "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "attempt": 25,
+  "when": "2026-11-13T22:33",
+  "verdict": "BUILT",
+  "tally": "13/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -1015,15 +1015,15 @@
       "detail": null
     },
     "G-11": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "the review is older than notebooks/01_rules.ipynb",
+      "reason": "reviews/slice-2.md is current and records HOLDS against 6 checks",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (63 passed in 7.66s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.59s)",
       "detail": null
     },
     "G-13": {
