@@ -488,10 +488,10 @@ def panel(record: Mapping[str, Any]) -> dict:
     from inference_labs.lenses import rules
     registry = rules.PUBLISHED["MPTT-24, military"].prevalence
     return {
-        "heading": "Frequentist panel: a score, its two error rates, and a trial read as an interval",
+        "heading": "Frequentist panel: a score, its sensitivity and specificity, and a trial read as an interval",
         "score": (f"Logistic score from walking, conscious level, respiratory rate and heart rate: probability "
-                  f"{p:.2f} that this casualty needs a life-saving intervention (mechanism). The threshold is "
-                  f"{score.threshold:.2f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
+                  f"{p:.3f} that this casualty needs a life-saving intervention (mechanism). The threshold is "
+                  f"{score.threshold:.3f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
                   f"this casualty. The score was fitted on the whole military cohort, disease admissions and "
                   f"non-battle injuries included; on its battle casualties the mean probability is {mean_p:.2f} "
                   f"where {_pct(share)} need an intervention, so for a battle casualty it runs low."),
