@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 29,
-  "when": "2026-11-13T20:17",
+  "attempt": 30,
+  "when": "2026-11-13T20:27",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -15,7 +15,7 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "203 tests, 0 skipped with a reason, none failing",
+      "reason": "207 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -1017,13 +1017,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "the review is older than harness/gates/g09_synthetic_app.py",
+      "reason": "the review is older than notebooks/03_bayesian.ipynb",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (63 passed in 7.74s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.66s)",
       "detail": null
     },
     "G-13": {

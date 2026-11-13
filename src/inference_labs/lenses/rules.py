@@ -305,7 +305,8 @@ def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
          "physiology in either setting, so this axis cannot show what moving from hospital observations to the "
          "point of injury would do (E-11)",
          f"With the scan in hospital: {disc(in_tx)}; {cal(in_tx)}. The scan item is more often right in hospital"),
-        ("7 Decision value", decision.decision_value(baseline.priority_one(observed, reading), truth["needs_lsi"]),
+        ("7 Decision value", decision.decision_value(baseline.priority_one(observed, reading), truth["needs_lsi"],
+                                                     battle=(observed["stream"] == "battle").to_numpy()),
          decision.decision_value(abc_table(battle_obs)["score"].to_numpy() >= ABC_ACTIVATES_AT, battle_truth["bleeding"]) +
          ", against significant bleeding, battle casualties, scan before hospital"),
     ]

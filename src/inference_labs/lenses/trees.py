@@ -458,6 +458,7 @@ def seven_axes() -> pd.DataFrame:
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     observed, truth = baseline.generator_sample()
     need = truth["needs_lsi"].to_numpy(bool)
+    battle = (observed["stream"] == "battle").to_numpy()
     p_all = probabilities(observed)
     battle_obs, battle_truth = rules.battle_sample("pre_hospital")
     fig, txt = (baseline.diagnosis_results("pre_hospital", r) for r in ("figure", "text"))
@@ -502,10 +503,10 @@ def seven_axes() -> pd.DataFrame:
          f"only the scan", f"Scan in hospital: {disc(inside['forest'])}, unchanged for the same reason",
          "Unchanged", "Unchanged",
          f"Scan in hospital: {disc(tx_in['tree'])}. The scan item is more often right in hospital"),
-        ("7 Decision value", decision.decision_value(p_all["single tree"], need),
-         decision.decision_value(p_all["forest"], need),
-         decision.decision_value(baseline.priority_one(observed, "figure"), need),
-         decision.decision_value(baseline.priority_one(observed, "text"), need),
+        ("7 Decision value", decision.decision_value(p_all["single tree"], need, battle=battle),
+         decision.decision_value(p_all["forest"], need, battle=battle),
+         decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
+         decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
          decision.decision_value(treatment_tree("pre_hospital").predict_proba(tx_matrix(battle_obs))[:, 1],
                                  battle_truth["bleeding"]) + ", against significant bleeding, battle casualties, scan before hospital"),
     ]
@@ -535,6 +536,8 @@ def battle_calibration() -> dict:
 def panel(record: Mapping[str, Any]) -> dict:
     """The trees panel for one synthetic casualty on app page 1. Every number is formatted here, so the page shows
     only what the library computed (gate G-8)."""
+    from inference_labs.lenses import decision
+
     answer = LENS.diagnose(record)
     m = models()
     cal = battle_calibration()
@@ -551,7 +554,9 @@ def panel(record: Mapping[str, Any]) -> dict:
                  f"leaf where {_pct(m.tree_threshold)} or more need one (mechanism). "
                  f"Among the battle casualties in that leaf, {_pct(cal['leaf'][leaf_node])} need one (mechanism)."),
         "forest": (f"Forest of {FOREST_TREES} trees: probability {answer.forest_probability:.4f} that this casualty "
-                   f"needs a life-saving intervention; it flags at {m.forest_threshold:.4f} or more, so it "
+                   f"needs a life-saving intervention, "
+                   f"{decision.against_threshold(answer.forest_probability, m.forest_threshold, places=4, show=False)}"
+                   f", so it "
                    f"{'flags' if answer.forest_probability >= m.forest_threshold else 'does not flag'} this casualty "
                    f"(mechanism). Both were fitted on the whole military cohort, disease admissions and non-battle "
                    f"injuries included; on its battle casualties the forest's mean probability is {cal['forest']:.2f} "

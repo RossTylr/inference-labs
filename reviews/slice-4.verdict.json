@@ -1,9 +1,9 @@
 {
   "slice": 4,
-  "attempt": 7,
-  "when": "2026-11-13T19:41",
-  "verdict": "BUILT",
-  "tally": "13/13 pass",
+  "attempt": 8,
+  "when": "2026-11-13T20:28",
+  "verdict": "REVISE",
+  "tally": "12/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -15,7 +15,7 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "201 tests, 0 skipped with a reason, none failing",
+      "reason": "207 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -1005,7 +1005,7 @@
     "G-9": {
       "passed": true,
       "evaluable": true,
-      "reason": "1 app file(s) read nothing outside the package",
+      "reason": "7 app file(s) read nothing outside the package",
       "detail": null
     },
     "G-10": {
@@ -1015,15 +1015,15 @@
       "detail": null
     },
     "G-11": {
-      "passed": true,
+      "passed": false,
       "evaluable": true,
-      "reason": "reviews/slice-4.md is current and records HOLDS against 6 checks",
+      "reason": "the review is older than notebooks/04_decision_trees.ipynb",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 7.67s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.66s)",
       "detail": null
     },
     "G-13": {

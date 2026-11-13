@@ -63,15 +63,30 @@ def test_holding_a_casualty_raises_expected_bleeding_deaths():
     """R-5.8: each minute held adds to the expected bleeding deaths; the chance is the truncal site's."""
     curve = d.hold_curve(0.5, 30.0)
     assert curve.is_monotonic_increasing
-    assert float(d.death_by(0)) == 0 and 0 < float(d.death_by(60)) < float(d.death_by(240)) < 1
-    assert float(d.death_by(240)) > float(d.death_by(240, "extremity"))
+    assert float(d.death_between(30, 30)) == 0 and 0 < float(d.death_between(30, 60)) < float(d.death_between(30, 240)) < 1
+    assert float(d.death_between(30, 240)) > float(d.death_between(30, 240, "extremity"))
 
 
-def test_ordering_by_belief_and_clock_does_no_worse_than_the_rule_or_chance():
+def test_the_chance_of_death_is_conditional_on_being_alive_at_the_decision():
+    """Lesson 14: deaths before the decision are not counted, and the chance is that of a casualty alive now."""
+    q = d.generator.derived().site_death_prob[d.BLEEDING_SITE]
+    now, then = 40.0, 70.0
+    before, by_then = float(d.share_dead_by(now)), float(d.share_dead_by(then))
+    assert float(d.death_between(now, then)) == pytest.approx(q * (by_then - before) / (1 - q * before))
+    assert float(d.death_between(now, then)) < q * by_then
+    assert float(d.death_between(now, np.inf, chance=0.0)) == 0
+
+
+def test_ordering_by_belief_and_clock_is_reported_with_its_spread_across_seeds():
+    """Lesson 13: a difference smaller than its spread across seeds is a tie and is called one."""
     for setting in d.SETTINGS:
-        r = d.aircraft_policy(setting)
-        assert r["knowing who is bleeding"] <= r["belief and clock"] <= r["chance"]
-        assert r["belief and clock"] <= r["MPTT-24 priority, then the longer wait"]
+        table = d.aircraft_spread(setting)
+        assert len(table) == d.SEEDS >= 20
+        assert (table["knowing who is bleeding"] <= table["belief and clock"]).all()
+    assert d.aircraft_summary("pre_hospital")["against the rule"].startswith("fewer")
+    assert d.aircraft_summary("in_hospital")["against the rule"].startswith("no detectable difference")
+    assert d.spread_words([-0.2, 0.1]).startswith("no detectable difference")
+    assert d.spread_words([0.2, 0.4]).startswith("more")
 
 
 def test_accuracy_loses_the_torso_bleeds():
@@ -81,6 +96,31 @@ def test_accuracy_loses_the_torso_bleeds():
     assert acc["accuracy"] > cost["accuracy"]
     assert acc["by site"].loc["truncal", "expected deaths among the missed"] > \
         cost["by site"].loc["truncal", "expected deaths among the missed"]
+
+
+def test_probabilities_and_thresholds_are_compared_at_full_precision_and_shown_alike():
+    """Lesson 15."""
+    assert d.against_threshold(0.0996, 0.1) == "at the threshold of 0.100 to 3 decimal places, and below it at full precision"
+    assert d.against_threshold(0.1001, 0.1).endswith("at or above it at full precision")
+    assert d.against_threshold(0.309, 0.1) == "0.309, at or above the threshold of 0.100"
+    assert d.against_threshold(0.05, 0.1, show=False) == "below the threshold of 0.100"
+
+
+def test_the_battle_casualties_alone_reverse_the_comparison_with_treating_all():
+    """Lesson 16 and D-26: among battle casualties half need an intervention, and treating all beats every method."""
+    table = d.battle_reversal()
+    alone = table["battle casualties alone"]
+    assert (alone.drop("treat all") < alone["treat all"]).all()
+    assert table.loc["logistic score (lens 02)", "every stream"] > table.loc["treat all", "every stream"]
+    assert d.battle_share_in_need()["battle casualties alone"] > 0.4
+    flags_all = d.decision_value(np.ones(4, bool), np.array([True, False, True, False]))
+    assert "flags every casualty" in flags_all
+
+
+def test_the_torso_failure_holds_across_seeds():
+    spread = d.torso_spread()
+    assert len(spread) >= 20
+    assert (spread["highest accuracy"] > spread["lowest cost, misses weighed by lethality"]).all()
 
 
 def test_axis_seven_is_computed_for_every_built_lens():
@@ -107,6 +147,7 @@ def test_the_panel_calls_every_cost_an_assumption():
     record = observed[observed["stream"] == "battle"].iloc[0].to_dict()
     shown = d.panel(record, bayesian.belief_line(record))
     assert "an assumption" in shown["costs"] and "assumptions" in shown["evacuation"]
+    assert "civilian centres" in shown["evacuation"] and "Alive now" in shown["evacuation"]
     assert "(mechanism)" in shown["costs"] and "(mechanism)" in shown["evacuation"]
     inside = d.panel({**record, "setting": "in_hospital"}, bayesian.belief_line({**record, "setting": "in_hospital"}))
     assert "after triage" in inside["evacuation"] and "after the scan" in shown["evacuation"]

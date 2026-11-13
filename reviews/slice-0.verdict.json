@@ -1,7 +1,7 @@
 {
   "slice": 0,
-  "attempt": 13,
-  "when": "2026-11-13T19:39",
+  "attempt": 14,
+  "when": "2026-11-13T20:26",
   "verdict": "BUILT",
   "tally": "7/7 pass",
   "open_items_unresolved": [],
@@ -15,7 +15,7 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "201 tests, 0 skipped with a reason, none failing",
+      "reason": "207 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -993,7 +993,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 7.77s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.65s)",
       "detail": null
     }
   }

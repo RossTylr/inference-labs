@@ -15,10 +15,13 @@ rate between a miss and a false alarm, and none is implied.
 Assumptions
 - The default costs (a miss weighed nine times a false alarm), the cost of each casualty flagged beyond capacity, the
   flight time and the holding times are choices made here, for the reader to change.
-- Surgery on arrival is taken to stop a bleeding death; the chance of dying before arrival is the generator's, without
-  tranexamic acid: the truncal site's chance of a bleeding death, set so that deaths from bleeding split by site as in
-  E-41, times the share of those deaths that have happened by then under the hazard fitted to the three hourly rates
-  of E-85, which were measured from hospital admission and run here from injury, as in the generator.
+- Surgery on arrival is taken to stop a bleeding death. The chance of dying before arrival is the generator's, without
+  tranexamic acid, for a casualty still alive when the decision is made: the truncal site's chance of a bleeding death,
+  set so that deaths from bleeding split by site as in E-41, applied to the share of bleeding deaths falling between
+  the decision and arrival under the hazard fitted to the three hourly rates of E-85. E-85 was measured from hospital
+  admission at civilian centres; running it from injury, for battle casualties, is an assumption, as in the generator.
+- A comparison of expected deaths is reported with its spread across 20 seeds; where the spread covers no difference,
+  it is called a tie.
 - The aircraft takes the casualty to surgery. A scan in hospital is done on arrival, after the flight, so in that
   setting the choice of who flies first rests on the belief after triage.
 - Under-triage is 1 minus sensitivity and over-triage 1 minus the positive predictive value, the MPTT-24 authors'
@@ -48,6 +51,7 @@ HOLD_MIN = 30.0               # assumption: the extra time held here in the pane
 THRESHOLDS = np.round(np.arange(0.01, 0.61, 0.01), 2)
 CAPACITIES = (60, 50, 40, 30, 25, 20, 15, 10)            # flagged casualties that can be handled, per 100
 PAIRS, PAIR_SEED = 2_000, 10
+SEEDS = 20                    # seeds behind every spread of a comparison of expected deaths
 SETTINGS = baseline.SETTINGS
 SETTING_NAMES = baseline.SETTING_NAMES
 
@@ -55,6 +59,17 @@ SETTING_NAMES = baseline.SETTING_NAMES
 def threshold(costs: Mapping[str, float] = DEFAULT_COSTS) -> float:
     """The probability above which acting costs less, in expectation, than not acting."""
     return float(costs["false alarm"] / (costs["false alarm"] + costs["miss"]))
+
+
+def against_threshold(p: float, t: float, places: int = 3, show: bool = True) -> str:
+    """A probability against a threshold: compared at full precision, both shown to the same number of places. Where
+    the two print alike, the text says so and states which side the probability falls. With show=False the
+    probability itself is left to the caller."""
+    shown, line = f"{p:.{places}f}", f"{t:.{places}f}"
+    side = "at or above" if p >= t else "below"
+    if shown == line:
+        return f"at the threshold of {line} to {places} decimal places, and {side} it at full precision"
+    return f"{shown + ', ' if show else ''}{side} the threshold of {line}"
 
 
 def expected_cost(flag: np.ndarray, need: np.ndarray, costs: Mapping[str, float] = DEFAULT_COSTS) -> float:
@@ -196,23 +211,34 @@ def load_shift(costs_key: tuple = tuple(DEFAULT_COSTS.items()), overflow: float 
 BLEEDING_SITE = "truncal"     # in the generator, free fluid in the abdomen is significant bleeding in the trunk
 
 
-def death_by(minutes, site: str = BLEEDING_SITE) -> np.ndarray:
-    """The generator's chance that a casualty bleeding significantly at `site` dies from bleeding by `minutes` after
-    injury, without tranexamic acid and on average over severity: the site's chance of a bleeding death times the share
-    of bleeding deaths that have happened by then, under the hazard fitted to E-85 (run from injury, an assumption)."""
+def share_dead_by(minutes) -> np.ndarray:
+    """The share of the generator's bleeding deaths that have happened by `minutes` after injury, from its hazard
+    fitted to E-85 (measured from admission at civilian centres; run from injury, an assumption)."""
     d = generator.derived()
-    return d.site_death_prob[site] * np.interp(np.asarray(minutes, float) / 60, d.grid_h, d.death_time_cdf)
+    return np.interp(np.asarray(minutes, float) / 60, d.grid_h, d.death_time_cdf)
 
 
-def expected_deaths(belief, minutes) -> Any:
-    """Belief that the casualty is bleeding into the abdomen, times the chance of a bleeding death by arrival."""
-    return belief * float(death_by(minutes))
+def death_between(now_min, then_min, site: str = BLEEDING_SITE, chance=None) -> np.ndarray:
+    """The generator's chance that a casualty bleeding significantly at `site`, alive `now_min` minutes after injury,
+    dies from bleeding by `then_min`, without tranexamic acid. It is conditional on being alive when the decision is
+    made: the chance of a bleeding death, `chance` or else the site's average over severity, times the share of
+    bleeding deaths falling between the two times, over the chance of being alive now."""
+    q = generator.derived().site_death_prob[site] if chance is None else np.asarray(chance, float)
+    before, by_then = share_dead_by(now_min), share_dead_by(then_min)
+    return q * (by_then - before) / (1 - q * before)
+
+
+def expected_deaths(belief, now_min: float, then_min: float) -> Any:
+    """Belief that the casualty is bleeding into the abdomen, times the chance that, alive now, they die from
+    bleeding before arrival."""
+    return belief * float(death_between(now_min, then_min))
 
 
 def hold_curve(belief: float, now_min: float, flight_min: float = FLIGHT_MIN,
                holds: tuple[int, ...] = tuple(range(0, 121, 10))) -> pd.Series:
-    """Expected bleeding deaths per 100 such casualties, by minutes held here before the flight."""
-    return pd.Series([100 * belief * float(death_by(now_min + h + flight_min)) for h in holds],
+    """Expected bleeding deaths before surgery per 100 such casualties alive now, by minutes held here before the
+    flight."""
+    return pd.Series([100 * belief * float(death_between(now_min, now_min + h + flight_min)) for h in holds],
                      index=pd.Index(holds, name="minutes held"), name="expected deaths per 100")
 
 
@@ -225,8 +251,10 @@ class Casualty:
 
 def aircraft(a: Casualty, b: Casualty, flight_min: float = FLIGHT_MIN) -> dict:
     """One aircraft, two casualties: the second waits a round trip. Expected bleeding deaths for each order."""
-    first_a = expected_deaths(a.belief, a.now_min + flight_min) + expected_deaths(b.belief, b.now_min + 3 * flight_min)
-    first_b = expected_deaths(b.belief, b.now_min + flight_min) + expected_deaths(a.belief, a.now_min + 3 * flight_min)
+    first_a = (expected_deaths(a.belief, a.now_min, a.now_min + flight_min)
+               + expected_deaths(b.belief, b.now_min, b.now_min + 3 * flight_min))
+    first_b = (expected_deaths(b.belief, b.now_min, b.now_min + flight_min)
+               + expected_deaths(a.belief, a.now_min, a.now_min + 3 * flight_min))
     out = {f"{a.label} first": first_a, f"{b.label} first": first_b}
     if hasattr(first_a, "draws"):
         out["chance the first order is better"] = float(np.mean(first_a.draws < first_b.draws))
@@ -234,10 +262,11 @@ def aircraft(a: Casualty, b: Casualty, flight_min: float = FLIGHT_MIN) -> dict:
 
 
 @lru_cache(maxsize=None)
-def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MIN) -> dict:
+def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MIN, seed: int = PAIR_SEED) -> dict:
     """Random pairs of the evaluation sample's battle casualties. Three ways to choose who flies first, scored by the
-    expected bleeding deaths of those truly bleeding into the abdomen, per 100 pairs (mechanism). A scan in hospital
-    comes after the flight, so in that setting the belief is the one after triage."""
+    expected bleeding deaths, before surgery, of those truly bleeding into the abdomen and alive at the decision, per
+    100 pairs (mechanism). A scan in hospital comes after the flight, so in that setting the belief is the one after
+    triage."""
     from inference_labs.lenses import bayesian
 
     observed, truth = rules.battle_sample(setting)
@@ -246,16 +275,19 @@ def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MI
     bleeding = truth["free_fluid"].to_numpy(bool)
     now = observed["t_phec_min"].to_numpy(float)
     urgent = baseline.priority_one(observed, "figure")
-    rng = np.random.default_rng(PAIR_SEED)
+    rng = np.random.default_rng(seed)
     i, j = rng.choice(len(observed), (2, PAIRS))
     keep = i != j
     i, j = i[keep], j[keep]
 
-    def deaths(first, second):
-        return bleeding[first] * death_by(now[first] + flight_min) + bleeding[second] * death_by(now[second] + 3 * flight_min)
+    def die(k, wait):
+        return death_between(now[k], now[k] + wait)
 
-    by_belief = (belief[i] * death_by(now[i] + flight_min) + belief[j] * death_by(now[j] + 3 * flight_min) <=
-                 belief[j] * death_by(now[j] + flight_min) + belief[i] * death_by(now[i] + 3 * flight_min))
+    def deaths(first, second):
+        return bleeding[first] * die(first, flight_min) + bleeding[second] * die(second, 3 * flight_min)
+
+    by_belief = (belief[i] * die(i, flight_min) + belief[j] * die(j, 3 * flight_min) <=
+                 belief[j] * die(j, flight_min) + belief[i] * die(i, 3 * flight_min))
     by_rule = np.where(urgent[i] == urgent[j], now[i] >= now[j], urgent[i])
     by_chance = rng.random(i.size) < 0.5
     result = {}
@@ -269,18 +301,45 @@ def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MI
     return result
 
 
+@lru_cache(maxsize=None)
+def aircraft_spread(setting: str = "pre_hospital") -> pd.DataFrame:
+    """The four ways of choosing, each scored on SEEDS different draws of random pairs (mechanism)."""
+    rows = {seed: {k: v for k, v in aircraft_policy(setting, seed=seed).items() if k != "pairs"}
+            for seed in range(PAIR_SEED, PAIR_SEED + SEEDS)}
+    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("pair seed")
+
+
+def spread_words(differences, unit: str = "") -> str:
+    """A difference reported with its spread across seeds: a tie where the spread covers no difference."""
+    d = np.asarray(differences, float)
+    lo, hi = float(d.min()), float(d.max())
+    span = f"from {lo:+.2f} to {hi:+.2f}{unit} across {d.size} seeds"
+    if lo <= 0 <= hi:
+        return f"no detectable difference (the difference runs {span})"
+    return f"{'fewer' if hi < 0 else 'more'}: the difference runs {span}"
+
+
+def aircraft_summary(setting: str = "pre_hospital") -> dict:
+    """Mean expected bleeding deaths per 100 pairs for each way of choosing, and the belief-and-clock order against
+    the MPTT-24's priority with its spread across seeds."""
+    table = aircraft_spread(setting)
+    diff = table["belief and clock"] - table["MPTT-24 priority, then the longer wait"]
+    return {"mean": table.mean().to_dict(), "against the rule": spread_words(diff), "seeds": len(table),
+            "pairs": aircraft_policy(setting)["pairs"]}
+
+
 # ------------------------------------------------------------------------------------------------ the failure
 
 @lru_cache(maxsize=None)
 def torso_failure(setting: str = "pre_hospital", costs_key: tuple = tuple(DEFAULT_COSTS.items())) -> dict:
     """The treatment tree's probability of significant bleeding on the evaluation sample's battle casualties, cut where
-    overall accuracy is highest and where the cost is lowest once each missed bleeder is weighed by their chance of a
-    bleeding death. Misses and the expected deaths among them, by site (mechanism)."""
+    overall accuracy is highest and where the cost is lowest once each missed bleeder is weighed by their chance, alive
+    at triage, of a bleeding death after it. Misses and the expected deaths among them, by site (mechanism)."""
     costs = dict(costs_key)
     observed, truth = rules.battle_sample(setting)
     p = trees.treatment_tree(setting).predict_proba(trees.tx_matrix(observed))[:, 1]
     bleed = truth["bleeding"].to_numpy(bool)
-    lethal = np.nan_to_num(truth["p_death_untreated"].to_numpy(float))
+    lethal = lethal_after_triage(observed, truth)
     site = truth["site"].to_numpy(object)
     accuracy = [float(((p >= t) == bleed).mean()) for t in THRESHOLDS]
     weight = lethal / lethal[bleed].mean()
@@ -300,23 +359,85 @@ def torso_failure(setting: str = "pre_hospital", costs_key: tuple = tuple(DEFAUL
     return out
 
 
+def lethal_after_triage(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
+    """Each casualty's chance, alive at triage, of dying from bleeding after it without tranexamic acid: the
+    generator's own chance of a bleeding death for them, conditioned on being alive at the triage time."""
+    chance = np.nan_to_num(truth["p_death_untreated"].to_numpy(float))
+    return death_between(observed["t_phec_min"].to_numpy(float), np.inf, chance=chance)
+
+
+def torso_spread(setting: str = "pre_hospital") -> pd.DataFrame:
+    """Expected deaths among the missed truncal bleeders at the two cuts of torso_failure, on SEEDS further samples of
+    100,000 synthetic casualties (seeds 43 onward), battle casualties only (mechanism)."""
+    cuts = {name: r["threshold"] for name, r in torso_failure(setting).items()}
+    tree = trees.treatment_tree(setting)
+    rows = {}
+    for seed in range(baseline.EVAL_SEED + 1, baseline.EVAL_SEED + 1 + SEEDS):
+        observed, truth = generator.sample(baseline.EVAL_N, seed, setting=setting, return_truth=True)
+        keep = (observed["stream"] == "battle").to_numpy()
+        observed, truth = observed[keep].reset_index(drop=True), truth[keep].reset_index(drop=True)
+        p = tree.predict_proba(trees.tx_matrix(observed))[:, 1]
+        truncal = truth["bleeding"].to_numpy(bool) & (truth["site"].to_numpy(object) == "truncal")
+        lethal = lethal_after_triage(observed, truth)
+        rows[seed] = {name: float(lethal[truncal & (p < t)].sum()) for name, t in cuts.items()}
+    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("sample seed")
+
+
 # ------------------------------------------------------------------------------------------------ axis 7
 
-def _nb_text(nb: float, all_: float, t: float, costs: Mapping[str, float]) -> str:
-    worse = (" (worse than treating none)" if nb < 0 else " (below treating all)" if nb < all_ - 1e-9 else
-             " (no better than treating all)" if nb <= all_ + 1e-9 else "")
-    return (f"Net benefit {100 * nb:.1f} per 100 at a threshold of {t:.2f}{worse}, with a miss weighed "
-            f"{costs['miss'] / costs['false alarm']:g} times a false alarm (an assumption); treat all "
+def _worse(nb: float, all_: float, flags_all: bool) -> str:
+    if flags_all:
+        return " (it flags every casualty at this threshold, so it scores exactly as treating all)"
+    return (" (worse than treating none)" if nb < 0 else " (below treating all)" if nb < all_ - 1e-9 else
+            " (no better than treating all)" if nb <= all_ + 1e-9 else "")
+
+
+def _nb_text(nb: float, all_: float, t: float, costs: Mapping[str, float], flags_all: bool = False) -> str:
+    return (f"Net benefit {100 * nb:.1f} per 100 at a threshold of {t:.2f}{_worse(nb, all_, flags_all)}, with a miss "
+            f"weighed {costs['miss'] / costs['false alarm']:g} times a false alarm (an assumption); treat all "
             f"{100 * all_:.1f}, treat none 0 (mechanism)")
 
 
-def decision_value(flag_or_p: np.ndarray, target: np.ndarray, costs: Mapping[str, float] = DEFAULT_COSTS) -> str:
-    """Axis 7 of D-21 for one lens's output: net benefit at the threshold the costs set."""
+def decision_value(flag_or_p: np.ndarray, target: np.ndarray, costs: Mapping[str, float] = DEFAULT_COSTS,
+                   battle: np.ndarray | None = None) -> str:
+    """Axis 7 of D-21 for one lens's output: net benefit at 0.10 for every lens (D-26), the threshold the default
+    costs set. Given `battle`, the battle casualties alone are reported too, since there the comparison reverses."""
     t = threshold(costs)
     arr = np.asarray(flag_or_p)
     flag = arr if arr.dtype == bool else arr >= t
     target = np.asarray(target, bool)
-    return _nb_text(net_benefit(flag, target, t), treat_all(target, t), t, costs)
+    text = _nb_text(net_benefit(flag, target, t), treat_all(target, t), t, costs, bool(flag.all()))
+    if battle is not None:
+        b = np.asarray(battle, bool)
+        nb, all_ = net_benefit(flag[b], target[b], t), treat_all(target[b], t)
+        text += (f". Battle casualties alone, where {_pct(target[b].mean())} need it against a threshold of {t:.2f}: "
+                 f"net benefit {100 * nb:.1f}{_worse(nb, all_, bool(flag[b].all()))}, treat all {100 * all_:.1f}")
+    return text
+
+
+@lru_cache(maxsize=None)
+def battle_reversal() -> pd.DataFrame:
+    """Net benefit per 100 at the cost threshold for every method, on all the military cohort's 100,000 synthetic
+    casualties and on its battle casualties alone (mechanism)."""
+    observed, _ = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
+    d, t = diagnosis_inputs(), threshold()
+    flags = {**{k: p >= t for k, p in d["probabilities"].items()}, **d["flags"]}
+    rows = {}
+    for name, flag in flags.items():
+        rows[name] = {"every stream": 100 * net_benefit(flag, d["need"], t),
+                      "battle casualties alone": 100 * net_benefit(flag[battle], d["need"][battle], t)}
+    rows["treat all"] = {"every stream": 100 * treat_all(d["need"], t),
+                         "battle casualties alone": 100 * treat_all(d["need"][battle], t)}
+    return pd.DataFrame.from_dict(rows, orient="index")
+
+
+def battle_share_in_need() -> dict:
+    """The share needing a life-saving intervention, every stream and battle casualties alone (mechanism)."""
+    observed, _ = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
+    need = diagnosis_inputs()["need"]
+    return {"every stream": float(need.mean()), "battle casualties alone": float(need[battle].mean())}
 
 
 def bayesian_decision_value(setting: str) -> dict:
@@ -369,12 +490,14 @@ class DecisionLens:
                                          f"against need for a life-saving intervention, {SETTING_NAMES[setting]}",
                                          round(f(flag), 4), round(f(rule), 4), "mechanism", "weak", "generator"))
         for setting in SETTINGS:
-            r = aircraft_policy(setting)
+            r = aircraft_summary(setting)
             after = "" if setting == "pre_hospital" else ", belief after triage as the scan comes after the flight"
             rows.append(ScorecardRow(NAME, "treatment", "expected bleeding deaths per 100 pairs, one aircraft, belief and "
-                                     f"clock against MPTT-24 priority, battle casualties, assumed flight time, "
+                                     f"clock against MPTT-24 priority, mean over {r['seeds']} draws of pairs, battle "
+                                     f"casualties alive at the decision, assumed flight time, "
                                      f"{SETTING_NAMES[setting]}{after}",
-                                     round(r["belief and clock"], 4), round(r["MPTT-24 priority, then the longer wait"], 4),
+                                     round(r["mean"]["belief and clock"], 4),
+                                     round(r["mean"]["MPTT-24 priority, then the longer wait"], 4),
                                      "mechanism", "native", "generator"))
         return rows
 
@@ -393,8 +516,11 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
     p = d["probabilities"]["logistic score (lens 02)"]
     flag = p >= t
     fig, txt = d["flags"]["MPTT-24, figure (as published)"], d["flags"]["MPTT-24, text (as validated)"]
-    pre, inside = aircraft_policy("pre_hospital"), aircraft_policy("in_hospital")
+    pre, inside = aircraft_summary("pre_hospital"), aircraft_summary("in_hospital")
+    m_pre, m_in = pre["mean"], inside["mean"]
+    rule = "MPTT-24 priority, then the longer wait"
     need = d["need"]
+    battle = (baseline.generator_sample()[0]["stream"] == "battle").to_numpy()
 
     def disc(f):
         return f"sensitivity {_pct(f[need].mean())}, specificity {_pct((~f[~need]).mean())}"
@@ -405,27 +531,28 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
     group = "all 100,000 synthetic casualties of the military cohort, disease included"
     rows = [
         ("1 Discrimination (mechanism)", f"{disc(flag)} at the cost threshold {t:.2f}; {group}", disc(fig), disc(txt),
-         f"Not a classifier: expected bleeding deaths per 100 pairs of battle casualties, at an assumed flight time, "
-         f"{pre['belief and clock']:.2f}, against "
-         f"{pre['MPTT-24 priority, then the longer wait']:.2f} by the MPTT-24's priority and {pre['chance']:.2f} by "
-         f"chance; {pre['knowing who is bleeding']:.2f} if it were known who is bleeding; scan before hospital"),
+         f"Not a classifier: expected bleeding deaths before surgery per 100 pairs of battle casualties alive at the "
+         f"decision, at an assumed flight time, mean over {pre['seeds']} draws of pairs: {m_pre['belief and clock']:.2f}, "
+         f"against {m_pre[rule]:.2f} by the MPTT-24's priority, {pre['against the rule']}; {m_pre['chance']:.2f} by "
+         f"chance; {m_pre['knowing who is bleeding']:.2f} if it were known who is bleeding; scan before hospital"),
         ("2 Calibration (mechanism)", f"{cost(flag)}; the probability it acts on has calibration "
          f"{frequentist.diagnosis_results('pre_hospital')['calibration']:+.3f}", cost(fig), cost(txt),
          "Not applicable"),
         ("3 Uncertainty expressed", "None in the decision; the costs are stated, not estimated", "None: a priority",
          "None: a priority", "The belief behind each casualty is a distribution (lens 03)"),
         ("4 What it needed", "Lens 02's probability and two stated costs (assumptions)", "Rules only (E-08)",
-         "Rules only (E-08)", "Lens 03's belief, the generator's bleeding hazard (E-85, run from injury, an assumption) "
-         "and a stated flight time (an assumption)"),
+         "Rules only (E-08)", "Lens 03's belief, the generator's bleeding hazard (fitted to E-85, measured from "
+         "admission at civilian centres; applied to battle casualties from injury, an assumption) and a stated flight "
+         "time (an assumption)"),
         ("5 Readability", "One comparison: is the probability above the threshold the costs set?",
          "Six yes-or-no steps", "Six yes-or-no steps", "Two sums of two products, compared"),
         ("6 Robustness, setting changed (mechanism)",
          f"Scan in hospital: {disc(d_in['probabilities']['logistic score (lens 02)'] >= t)}, unchanged because in the "
          f"generator the setting changes only the scan", "Unchanged", "Unchanged",
          f"Scan in hospital: the scan comes after the flight, so the choice rests on the belief after triage: "
-         f"{inside['belief and clock']:.2f} against {inside['MPTT-24 priority, then the longer wait']:.2f} per 100 pairs"),
-        ("7 Decision value", decision_value(p, need, costs), decision_value(fig, need, costs),
-         decision_value(txt, need, costs), "Expected deaths are the decision value here: see axis 1"),
+         f"{m_in['belief and clock']:.2f} against {m_in[rule]:.2f} per 100 pairs, {inside['against the rule']}"),
+        ("7 Decision value", decision_value(p, need, costs, battle), decision_value(fig, need, costs, battle),
+         decision_value(txt, need, costs, battle), "Expected deaths are the decision value here: see axis 1"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: decision on lens 02's score",
                                        "baseline: MPTT-24, figure (as published)",
@@ -456,7 +583,7 @@ def panel(record: Mapping[str, Any], line: Mapping[str, Any]) -> dict:
     before = record["setting"] == "pre_hospital"
     belief = float(line["evacuation" if before else "triage"].mean())
     now = float(record["t_phec_min"])
-    go, wait = (float(death_by(now + FLIGHT_MIN)), float(death_by(now + HOLD_MIN + FLIGHT_MIN)))
+    go, wait = (float(death_between(now, now + FLIGHT_MIN)), float(death_between(now, now + HOLD_MIN + FLIGHT_MIN)))
     which = ("after the scan" if before else "after triage, since the scan in hospital comes after the flight")
     mean_p, share = frequentist.battle_calibration()
     below, below_need = battle_not_acted()
@@ -465,22 +592,23 @@ def panel(record: Mapping[str, Any], line: Mapping[str, Any]) -> dict:
         "heading": "Decision panel: a probability becomes a decision only once each mistake has a cost",
         "costs": (f"With a miss weighed {DEFAULT_COSTS['miss'] / DEFAULT_COSTS['false alarm']:g} times a false alarm "
                   f"(an assumption: no source states an exchange rate between a miss and a false alarm), the "
-                  f"threshold is {decision.threshold:.2f}. Lens 02's probability for this casualty is "
-                  f"{decision.probability:.3f}, so at these costs the decision is "
+                  f"threshold is {decision.threshold:.3f}. Lens 02's probability for this casualty is "
+                  f"{against_threshold(decision.probability, decision.threshold)}, so at these costs the decision is "
                   f"{'to act' if decision.act else 'not to act'} (mechanism). The probability was fitted on the whole "
                   f"military cohort, disease admissions included. On the battle casualties among that cohort's 100,000 "
-                  f"synthetic casualties, the kind this page shows, it averages {mean_p:.3f} where {_pct(share)} need an intervention, so for a battle casualty it "
-                  f"runs low and the decision errs towards not acting: {_pct(below)} of them are told not to act, and "
+                  f"synthetic casualties, the kind this page shows, it averages {mean_p:.3f} where {_pct(share)} "
+                  f"need an intervention, so for a battle casualty it runs low and the decision errs towards not acting: {_pct(below)} of them are told not to act, and "
                   f"{_pct(below_need)} of those need an intervention"
                   + (", so at these costs acting on all of them would cost less (mechanism)." if cheaper else
                      " (mechanism).")),
         "evacuation": (f"Belief that this casualty is bleeding into the abdomen, {which}: {_pct(belief)} (lens 03). "
-                       f"Flown now, {FLIGHT_MIN:.0f} minutes to surgery, the expected chance of dying from bleeding "
-                       f"before arrival is {_pct(belief * go)}; held {HOLD_MIN:.0f} minutes more, "
-                       f"{_pct(belief * wait)}. The times are assumptions. The chance of a bleeding death is the "
-                       f"generator's for bleeding into the trunk, without tranexamic acid, from a hazard fitted to "
-                       f"E-85 (4,064 haemorrhaging patients in five prospective studies, timed from hospital "
-                       f"admission) and run here from injury, an assumption (mechanism)."),
+                       f"Alive now and flown now, {FLIGHT_MIN:.0f} minutes to surgery, the expected chance of dying "
+                       f"from bleeding before arrival is {_pct(belief * go)}; held {HOLD_MIN:.0f} minutes more, "
+                       f"{_pct(belief * wait)}. The times are assumptions, and surgery on arrival is taken to stop a "
+                       f"bleeding death. The chance of a bleeding death is the generator's for bleeding into the "
+                       f"trunk, without tranexamic acid, from a hazard fitted to E-85 (4,064 haemorrhaging patients in "
+                       f"five prospective studies at civilian centres, timed from hospital admission). Applying it to "
+                       f"a battle casualty, and from injury, is an assumption (mechanism)."),
     }
 
 

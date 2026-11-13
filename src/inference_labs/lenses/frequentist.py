@@ -416,6 +416,7 @@ def seven_axes() -> pd.DataFrame:
 
     observed, truth = baseline.generator_sample()
     need = truth["needs_lsi"].to_numpy(bool)
+    battle = (observed["stream"] == "battle").to_numpy()
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     fig, txt = (baseline.diagnosis_results("pre_hospital", r) for r in ("figure", "text"))
     civ = roc("civilian")["points"]
@@ -461,9 +462,9 @@ def seven_axes() -> pd.DataFrame:
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, text (as validated)']['sensitivity'][0])}, "
          f"specificity {_pct(civ['MPTT-24, text (as validated)']['specificity'][0])}",
          "Not applicable: the setting does not enter"),
-        ("7 Decision value", decision.decision_value(probability(observed), need),
-         decision.decision_value(baseline.priority_one(observed, "figure"), need),
-         decision.decision_value(baseline.priority_one(observed, "text"), need),
+        ("7 Decision value", decision.decision_value(probability(observed), need, battle=battle),
+         decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
+         decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
          "Not applicable: a trial read as an interval is not a decision on one casualty"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: logistic score", "baseline: MPTT-24, figure (as published)",
@@ -485,6 +486,8 @@ def battle_calibration() -> tuple[float, float]:
 def panel(record: Mapping[str, Any]) -> dict:
     """The frequentist panel for one synthetic casualty on app page 1. Every number is formatted here, so the page
     shows only what the library computed (gate G-8)."""
+    from inference_labs.lenses import decision
+
     score = fitted_score()
     p = probability_one(record)
     pre = diagnosis_results("pre_hospital")
@@ -497,9 +500,9 @@ def panel(record: Mapping[str, Any]) -> dict:
     return {
         "heading": "Frequentist panel: a score, its sensitivity and specificity, and a trial read as an interval",
         "score": (f"Logistic score from walking, conscious level, respiratory rate and heart rate: probability "
-                  f"{p:.3f} that this casualty needs a life-saving intervention (mechanism). The threshold is "
-                  f"{score.threshold:.3f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
-                  f"this casualty. The score was fitted on the whole military cohort, disease admissions and "
+                  f"{p:.3f} that this casualty needs a life-saving intervention (mechanism), "
+                  f"{decision.against_threshold(p, score.threshold, show=False)}, so the score "
+                  f"{'flags' if p >= score.threshold else 'does not flag'} this casualty. The score was fitted on the whole military cohort, disease admissions and "
                   f"non-battle injuries included; on its battle casualties the mean probability is {mean_p:.2f} "
                   f"where {_pct(share)} need an intervention (mechanism), so for a battle casualty it runs low."),
         "errors": (f"At that threshold, on all 100,000 synthetic casualties of the military cohort, disease included "
