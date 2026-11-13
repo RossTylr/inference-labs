@@ -1,9 +1,9 @@
 {
   "slice": 5,
-  "attempt": 5,
-  "when": "2026-11-13T18:19",
-  "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "attempt": 6,
+  "when": "2026-11-13T18:32",
+  "verdict": "BUILT",
+  "tally": "13/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -1015,15 +1015,15 @@
       "detail": null
     },
     "G-11": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "the review is older than src/inference_labs/lenses/decision.py; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; 1 further line(s) marked BREACH; the review's verdict is BREACH",
+      "reason": "reviews/slice-5.md is current and records HOLDS against 7 checks",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 7.61s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 7.55s)",
       "detail": null
     },
     "G-13": {
