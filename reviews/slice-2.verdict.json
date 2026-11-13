@@ -1,7 +1,7 @@
 {
   "slice": 2,
-  "attempt": 15,
-  "when": "2026-11-13T13:50",
+  "attempt": 16,
+  "when": "2026-11-13T13:52",
   "verdict": "BUILT",
   "tally": "13/13 pass",
   "open_items_unresolved": [],
@@ -993,7 +993,7 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "01_rules.ipynb ran in 4 s with 8 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "01_rules.ipynb ran in 3 s with 8 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -1023,7 +1023,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (61 passed in 9.98s)",
+      "reason": "13 gates each fail their planted defect (61 passed in 8.99s)",
       "detail": null
     },
     "G-13": {
