@@ -86,9 +86,9 @@ SCAN_ACCURACY = {
         "basis": "an assumption centred on the pooled 74% and 98%",
     },
 }
-E14_STUDIES = 75        # E-14: a pooled analysis of 75 studies
-SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital figure is from a pooled analysis of "
-                f"{E14_STUDIES} studies (E-14).")
+E14_STUDIES, E14_FREE_FLUID_STUDIES = 75, 52     # E-14: 75 studies in all; free fluid pooled from 52 of them
+SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital free-fluid figure is pooled from "
+                f"{E14_FREE_FLUID_STUDIES} of the {E14_STUDIES} studies in E-14.")
 
 # E-22: relative risk of death from bleeding with tranexamic acid, by time to treatment, in CRASH-2,
 # a civilian trial. Using these figures for a military casualty is an assumption.
