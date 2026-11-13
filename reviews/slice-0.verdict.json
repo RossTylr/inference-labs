@@ -1,7 +1,7 @@
 {
   "slice": 0,
-  "attempt": 14,
-  "when": "2026-11-13T20:26",
+  "attempt": 15,
+  "when": "2026-11-13T20:51",
   "verdict": "BUILT",
   "tally": "7/7 pass",
   "open_items_unresolved": [],
@@ -993,7 +993,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (63 passed in 7.65s)",
+      "reason": "13 gates each fail their planted defect (63 passed in 7.89s)",
       "detail": null
     }
   }
