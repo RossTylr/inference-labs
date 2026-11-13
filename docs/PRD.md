@@ -175,6 +175,30 @@ The rule every later lens is compared against (D-9). Background: [`background/01
 **Gates run:** all. The sceptic's review is checked by G-11.
 **Blocked by:** O-1, closed 12 November 2026.
 
+
+### 6.3 Slice 3 — lens 02, Frequentist and signal detection
+
+Every test and every trial reports error rates under repetition. Background: [`background/02-frequentist.md`](background/02-frequentist.md).
+
+| Id | Requirement | Gate |
+|---|---|---|
+| R-3.1 | `lenses/frequentist.py` implements the Lens interface. `diagnose` returns a logistic score's probability that the casualty needs a life-saving intervention, fitted on the four signs the MPTT-24 reads (walking, conscious level, respiratory rate and heart rate) on a generator sample separate from the casualties it is scored on. Its operating threshold is where its specificity on the training sample equals the MPTT-24's under the figure reading. Real trial data are not used while O-2 is open: the treatment row runs on the CRASH-2 fixture and is labelled as a fixture | G-2, G-6 |
+| R-3.2 | Notebook `02_frequentist.ipynb` follows the seven-part pattern and opens on the background file's hook: 680 bleeding patients, 12.7% died with one transfusion ratio and 17.0% with the other, and the paper reports no significant difference (E-72). Does the ratio matter? The reader guesses before the answer is given | G-7, G-10 |
+| R-3.3 | By hand: a hundred synthetic casualties sorted into hits, misses, false alarms and correct rejections for the MPTT-24, counted on paper, in plain Python and by the library, which must agree; then the Military Sieve's published operating point (E-10) applied to the same hundred as expected counts, because the Sieve is not coded | G-7 |
+| R-3.4 | Central figure: two hills and a sliding line. The score's distribution in those who need an intervention and those who do not, a movable threshold with the four outcomes shaded, and the receiver operating curve beside it with the threshold's point. The threshold is a control. Marked central | G-7 |
+| R-3.5 | Sensitivity and specificity with 95% intervals, by cohort and setting, for the baseline under both readings (D-24) and for the logistic score, on the generator (mechanism). Wherever the rule's accuracy on the generator is quoted, D-23's statement goes with it | G-2, G-7 |
+| R-3.6 | The receiver operating curve for the score, with the MPTT-24's points on the generator and the published points of the MPTT-24 (E-09) and the earlier MPTT (E-03, E-05, E-07), each labelled by source and cohort | G-7, G-10 |
+| R-3.7 | Diagnosis case, from the background file: the accuracy of one rule across cohorts (E-03, E-05, E-07, E-09) produced as a table before any one figure is quoted (E-13); protocol against practice (E-88) as two points in the study's own terms; the scan in two settings (E-14, E-16). Over-triage is never equated with 1 minus specificity (E-12) | G-7, G-10 |
+| R-3.8 | Sampling variability: repeated samples of 357 casualties from the generator, the size of the prospective cohort in E-07, showing how far one cohort's estimate can sit from the long-run value. The notebook says this illustrates sample size on synthetic data and does not explain E-07 | G-2, G-7 |
+| R-3.9 | Treatment case: PROPPR (E-72) read as a test and an interval, beside CRASH-2 (E-19 to E-21) and RePHILL (E-77). An interval is recomputed by hand only where the register holds the counts needed, otherwise quoted. The asymmetric significance thresholds of E-79 are shown as evidence that the line is chosen | G-2, G-7, G-10 |
+| R-3.10 | CRASH-2's time subgroups against its prespecified heterogeneity threshold (E-20), then the later exploratory time result (E-22, E-23) and the check on rival explanations (E-124) as the sequel | G-7, G-10 |
+| R-3.11 | Failure, from the background file: one accuracy figure quoted for the wrong setting, and a non-significant result read as no effect | G-7, G-10 |
+| R-3.12 | The lens's scorecard reports the seven axes of D-21, with the baseline under the figure reading and the text reading beside it, labelled as validated (D-24). App page 1 gains the frequentist panel for the selected casualty; every number comes from the library and carries a label | G-6, G-7, G-8, G-9 |
+
+**Done when:** `python -m harness.validate --slice 3` writes BUILT.
+**Gates run:** all. The sceptic's review is checked by G-11.
+**Blocked by:** nothing. O-2 stays open; no real trial data are read.
+
 ---
 
 ## 7. Build plan
