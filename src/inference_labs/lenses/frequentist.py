@@ -101,6 +101,7 @@ class TrialResult:
     p_value: str = ""
     recomputed: bool = False
     note: str = ""
+    precision: int = 1                      # decimals to print the percentages with, as the source gives them
 
 
 def wilson(k: int, n: int, z: float = Z95) -> tuple[float, float, float]:
@@ -158,7 +159,7 @@ def trials() -> tuple[TrialResult, ...]:
                     note="recomputed from the counts without adjustment; the trial's adjusted interval runs from "
                          "-9.0 to 9.0 points"),
         TrialResult("RePHILL", "death within 3 hours", "red cells and plasma", "saline", "E-77", 16.0, 22.0,
-                    relative_risk=(0.75, 0.50, 1.13), note="quoted"),
+                    relative_risk=(0.75, 0.50, 1.13), note="quoted", precision=0),
     )
 
 
@@ -465,6 +466,15 @@ def seven_axes() -> pd.DataFrame:
 
 # ------------------------------------------------------------------------------------------------ app page 1
 
+@lru_cache(maxsize=None)
+def battle_calibration() -> tuple[float, float]:
+    """Mean probability and share in need among the military evaluation sample's battle casualties, the only
+    casualties app page 1 shows. The score was fitted on every stream, so on them it runs low (mechanism)."""
+    observed, truth = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
+    return float(probability(observed)[battle].mean()), float(truth["needs_lsi"].to_numpy(bool)[battle].mean())
+
+
 def panel(record: Mapping[str, Any]) -> dict:
     """The frequentist panel for one synthetic casualty on app page 1. Every number is formatted here, so the page
     shows only what the library computed (gate G-8)."""
@@ -474,17 +484,24 @@ def panel(record: Mapping[str, Any]) -> dict:
     rule = baseline.diagnosis_results("pre_hospital", "figure")
     crash2 = trials()[2]
     rr, d = crash2.relative_risk, crash2.difference
+    mean_p, share = battle_calibration()
+    from inference_labs.lenses import rules
+    registry = rules.PUBLISHED["MPTT-24, military"].prevalence
     return {
         "heading": "Frequentist panel: a score, its two error rates, and a trial read as an interval",
         "score": (f"Logistic score from walking, conscious level, respiratory rate and heart rate: probability "
                   f"{p:.2f} that this casualty needs a life-saving intervention (mechanism). The threshold is "
                   f"{score.threshold:.2f}, so the score {'flags' if p >= score.threshold else 'does not flag'} "
-                  f"this casualty."),
+                  f"this casualty. The score was fitted on the whole military cohort, disease admissions and "
+                  f"non-battle injuries included; on its battle casualties the mean probability is {mean_p:.2f} "
+                  f"where {_pct(share)} need an intervention, so for a battle casualty it runs low."),
         "errors": (f"At that threshold, on all 100,000 synthetic casualties of the military cohort, disease included "
                    f"(mechanism): sensitivity {_ci(pre['sensitivity'])}, "
                    f"specificity {_ci(pre['specificity'])}. The MPTT-24 as published, on the same casualties: "
                    f"sensitivity {_pct(rule['sensitivity'])}, specificity {_pct(rule['specificity'])} "
-                   f"(mechanism)."),
+                   f"(mechanism). Among the generator's injured, {_pct(baseline.calibration_need('military'))} need a "
+                   f"life-saving intervention, against {_pct(registry)} Priority 1 in the military registry (E-09), "
+                   f"so the generator's injured are a milder cohort than the one the rule was validated on (D-23)."),
         "trial": (f"CRASH-2, death from bleeding: {crash2.treated_pct:.1f}% with tranexamic acid against "
                   f"{crash2.control_pct:.1f}% with placebo: {difference_words(d)}, a relative risk of {rr[0]:.2f} "
                   f"({rr[1]:.2f} to {rr[2]:.2f}), recomputed from the counts (E-19, E-21). CRASH-2 is civilian, so using it for a military casualty is an "
