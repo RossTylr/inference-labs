@@ -50,7 +50,8 @@ FLIGHT_MIN = 30.0             # assumption: flight time to surgery
 HOLD_MIN = 30.0               # assumption: the extra time held here in the panel's example
 THRESHOLDS = np.round(np.arange(0.01, 0.61, 0.01), 2)
 CAPACITIES = (60, 50, 40, 30, 25, 20, 15, 10)            # flagged casualties that can be handled, per 100
-PAIRS, PAIR_SEED = 2_000, 10
+PAIRS, PAIR_SEED = 200_000, 10
+SPREAD_N = 400_000            # synthetic casualties in each further sample behind the aircraft spread
 SEEDS = 20                    # seeds behind every spread of a comparison of expected deaths
 SETTINGS = baseline.SETTINGS
 SETTING_NAMES = baseline.SETTING_NAMES
@@ -266,13 +267,15 @@ def aircraft(a: Casualty, b: Casualty, flight_min: float = FLIGHT_MIN) -> dict:
 
 @lru_cache(maxsize=None)
 def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MIN, seed: int = PAIR_SEED) -> dict:
-    """Random pairs of the evaluation sample's battle casualties. Three ways to choose who flies first, scored by the
-    expected bleeding deaths, before surgery, of those truly bleeding into the abdomen and alive at the decision, per
-    100 pairs (mechanism). A scan in hospital comes after the flight, so in that setting the belief is the one after
-    triage."""
+    """Random pairs of the evaluation sample's battle casualties alive at the decision. Three ways to choose who flies
+    first, scored by the expected deaths before surgery of those truly bleeding into the abdomen, per 100 pairs
+    (mechanism). A scan in hospital comes after the flight, so in that setting the belief is the one after triage."""
+    return _score_pairs(*rules.battle_sample(setting), setting, flight_min, seed)
+
+
+def _score_pairs(observed: pd.DataFrame, truth: pd.DataFrame, setting: str, flight_min: float, seed: int) -> dict:
     from inference_labs.lenses import bayesian
 
-    observed, truth = rules.battle_sample(setting)
     alive = alive_at_triage(observed, truth)
     observed, truth = observed[alive].reset_index(drop=True), truth[alive].reset_index(drop=True)
     seen = observed if setting == "pre_hospital" else observed.assign(scan_free_fluid=pd.NA)
@@ -281,9 +284,9 @@ def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MI
     now = observed["t_phec_min"].to_numpy(float)
     urgent = baseline.priority_one(observed, "figure")
     rng = np.random.default_rng(seed)
-    i, j = rng.choice(len(observed), (2, PAIRS))
-    keep = i != j
-    i, j = i[keep], j[keep]
+    n = len(observed)
+    i = rng.integers(0, n, PAIRS)
+    j = (i + rng.integers(1, n, PAIRS)) % n          # a second casualty, never the first again
 
     def die(k, wait):
         return death_between(now[k], now[k] + wait)
@@ -311,10 +314,17 @@ def aircraft_policy(setting: str = "pre_hospital", flight_min: float = FLIGHT_MI
 
 @lru_cache(maxsize=None)
 def aircraft_spread(setting: str = "pre_hospital") -> pd.DataFrame:
-    """The four ways of choosing, each scored on SEEDS different draws of random pairs (mechanism)."""
-    rows = {seed: {k: v for k, v in aircraft_policy(setting, seed=seed).items() if k != "pairs"}
-            for seed in range(PAIR_SEED, PAIR_SEED + SEEDS)}
-    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("pair seed")
+    """The four ways of choosing, each scored on SEEDS further samples of SPREAD_N synthetic casualties (seeds 43
+    onward), with PAIRS random pairs of their battle casualties alive at the decision drawn from each (mechanism)."""
+    rows = {}
+    for k in range(SEEDS):
+        seed = baseline.EVAL_SEED + 1 + k
+        observed, truth = generator.sample(SPREAD_N, seed, setting=setting, return_truth=True)
+        keep = (observed["stream"] == "battle").to_numpy()
+        scored = _score_pairs(observed[keep].reset_index(drop=True), truth[keep].reset_index(drop=True), setting,
+                              FLIGHT_MIN, PAIR_SEED + k)
+        rows[seed] = {name: value for name, value in scored.items() if name != "pairs"}
+    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("sample seed")
 
 
 def spread_words(differences, unit: str = "") -> str:
@@ -524,7 +534,8 @@ class DecisionLens:
             after = "" if setting == "pre_hospital" else ", belief after triage as the scan comes after the flight"
             rows.append(ScorecardRow(NAME, "treatment", "expected deaths before surgery from bleeding into the abdomen "
                                      "per 100 pairs, one aircraft, belief and "
-                                     f"clock against MPTT-24 priority, mean over {r['seeds']} draws of pairs, battle "
+                                     f"clock against MPTT-24 priority, mean over {r['seeds']} samples of "
+                                     f"{SPREAD_N:,} casualties with {PAIRS:,} pairs from each, battle "
                                      f"casualties alive at the decision, assumed flight time, "
                                      f"{SETTING_NAMES[setting]}{after}; {r['against the rule']}",
                                      round(r["mean"]["belief and clock"], 4),
@@ -564,7 +575,9 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
         ("1 Discrimination (mechanism)", f"{disc(flag)} at the cost threshold {t:.2f}; {group}", disc(fig), disc(txt),
          f"Not a classifier: expected deaths before surgery from bleeding into the abdomen per 100 pairs of battle "
          f"casualties alive at the "
-         f"decision, at an assumed flight time, mean over {pre['seeds']} draws of pairs: {m_pre['belief and clock']:.2f}, "
+         f"decision, at an assumed flight time, mean over {pre['seeds']} samples of {SPREAD_N:,} casualties with "
+         f"{PAIRS:,} pairs from each: "
+         f"{m_pre['belief and clock']:.2f}, "
          f"against {m_pre[rule]:.2f} by the MPTT-24's priority, {pre['against the rule']}; {m_pre['chance']:.2f} by "
          f"chance; {m_pre['knowing who is bleeding']:.2f} if it were known who is bleeding; scan before hospital"),
         ("2 Calibration (mechanism)", f"{cost(flag)}; the probability it acts on has calibration "
