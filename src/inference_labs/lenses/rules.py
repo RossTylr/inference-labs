@@ -4,8 +4,8 @@ A rule is a decision made in advance. What matters is where it came from, who it
 throws away.
 
 Diagnosis. The MPTT-24, coded in `baseline.py` from E-08, with both readings of its voice step. The Military
-Sieve, the rule it replaced, is not coded: the register holds its performance (E-10), not its algorithm, so it
-appears here only as a published operating point.
+Sieve is not coded: the register holds its performance (E-10), not its algorithm, so it appears here only as a
+published operating point.
 
 Treatment.
 - The ABC score (E-31): four unweighted yes-or-no items, penetrating mechanism, positive scan, systolic pressure
@@ -13,8 +13,8 @@ Treatment.
 - US military resuscitation doctrine (E-86): three of four of systolic pressure under 100, heart rate over 100,
   haematocrit under 32% and pH under 7.25 predicts about a 70% risk of massive transfusion. Two of the four need a
   laboratory, so at the point of injury only the two bedside items can be read and the rule cannot be met.
-- Tranexamic acid only if started within 3 hours of injury (E-86): the time-to-treatment result of CRASH-2 (E-22)
-  written as an instruction. That analysis was exploratory (E-23), and CRASH-2 is civilian.
+- Tranexamic acid only if started within 3 hours of injury (E-86). CRASH-2's analysis by time to treatment (E-22)
+  was exploratory (E-23), and CRASH-2 is civilian.
 
 Failure. A rule meeting a population it was not written for: a needle of about 5 cm against a mean chest wall of
 5.36 cm in 100 male military cases (E-104), and the field record (E-106); the MPTT-24 in a civilian registry
@@ -116,7 +116,7 @@ def txa_inside(minutes_from_injury: float) -> bool:
 
 
 # E-22: deaths from bleeding in CRASH-2 by time from injury to treatment, tranexamic acid against placebo, per
-# cent, with the relative risk and its 95% interval. An exploratory analysis (E-23) of a civilian trial.
+# cent, with the relative risk and its interval. An exploratory analysis (E-23) of a civilian trial.
 E22_BANDS = (
     {"band": "up to 1 hour", "tranexamic acid": 5.3, "placebo": 7.7, "rr": (0.68, 0.57, 0.82)},
     {"band": "1 to 3 hours", "tranexamic acid": 4.8, "placebo": 6.1, "rr": (0.79, 0.64, 0.97)},
@@ -146,9 +146,9 @@ PUBLISHED = {
     "MPTT-24, civilian": OperatingPoint("MPTT-24", TARN, 0.535, 0.748, "E-09", prevalence=0.195, ppv=0.340),
     "Military Sieve, military": OperatingPoint("Military Sieve", JTTR, 0.432, 0.937, "E-10"),
     "Military Sieve, civilian": OperatingPoint("Military Sieve", TARN, 0.280, 0.941, "E-10"),
-    "ABC score, original": OperatingPoint("ABC score", "596 patients, 12.4% massively transfused", 0.75, 0.86, "E-31",
+    "ABC score, 596 patients": OperatingPoint("ABC score", "596 patients, 12.4% massively transfused", 0.75, 0.86, "E-31",
                                           prevalence=0.124),
-    "ABC score, later": OperatingPoint("ABC score", "2,438 patients, 4.9% massively transfused", 0.36, 0.80, "E-90",
+    "ABC score, 2,438 patients": OperatingPoint("ABC score", "2,438 patients, 4.9% massively transfused", 0.36, 0.80, "E-90",
                                        prevalence=0.049),
 }
 HOSPITAL_OBSERVATIONS = ("measured on first recorded hospital observations and registry GCS, not at the point of "
@@ -290,8 +290,9 @@ def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
          "None: activate or not"),
         ("4 What it needed",
          "Rules only at the point of use. Its thresholds descend from the MPTT, derived by logistic regression on "
-         "3,654 registry patients with complete data (E-01, E-02)",
-         "Rules only at the point of use. Its published figures come from 596 patients (E-31)"),
+         "3,654 patients with complete data (E-01, E-02, E-08)",
+         "Rules only at the point of use. Its published accuracy, 75% sensitive and 86% specific at a score of 2 "
+         "or more, comes from 596 patients (E-31)"),
         ("5 Readability", "A medic can follow it at the point of care: six yes-or-no steps, one observation each",
          "A medic can follow it: four yes-or-no items, counted"),
         ("6 Robustness, setting changed (mechanism)",
@@ -341,8 +342,9 @@ def panel(record: Mapping[str, Any], needs_lsi: bool, significant_bleeding: bool
         f"{int(record['sbp'])} mm Hg, {ABC_SBP_AT_OR_BELOW} or less {_yes(items[ABC_ITEMS[2]])}; heart rate "
         f"{int(record['heart_rate'])}, {ABC_HR_AT_OR_ABOVE} or more {_yes(items[ABC_ITEMS[3]])}. Score {score} of 4: "
         f"{'activates' if score >= ABC_ACTIVATES_AT else 'does not activate'} transfusion, which needs "
-        f"{ABC_ACTIVATES_AT} or more. The items and the threshold come from 596 patients (E-31) whom the register "
-        f"does not describe as military, so applying the score to a military casualty is an assumption. The score "
+        f"{ABC_ACTIVATES_AT} or more. The score's published accuracy, 75% sensitive and 86% specific at a score of 2 "
+        f"or more, comes from 596 patients (E-31). The register does not describe them as military, so applying the "
+        f"score to a military casualty is an assumption. The score "
         f"counts a positive scan as one point and a clear or missing scan as none, whatever the belief after it; the "
         f"Bayesian panel's belief after the scan is {belief_after_scan}."
     )
@@ -356,9 +358,7 @@ def panel(record: Mapping[str, Any], needs_lsi: bool, significant_bleeding: bool
                  if txa_inside(minutes) else ": outside 3 hours, so the rule withholds it.")
     txa = (
         f"Tranexamic acid, US military resuscitation doctrine (E-86): given only if started within 3 hours of "
-        f"injury. Time to pre-hospital care {minutes:.0f} minutes{condition} "
-        "The limit is CRASH-2's exploratory result by time to treatment written as an instruction (E-22, E-23); "
-        "CRASH-2 is civilian, so applying it to a military casualty is an assumption."
+        f"injury. Time to pre-hospital care {minutes:.0f} minutes{condition}"
     )
     mil, civ, sieve = PUBLISHED["MPTT-24, military"], PUBLISHED["MPTT-24, civilian"], PUBLISHED["Military Sieve, military"]
     published = (

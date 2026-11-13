@@ -10,8 +10,6 @@ record), six steps in this order and with these thresholds and no others:
     step 5  respiratory rate 12 to 23   no:  Priority 1
     step 6  heart rate below 100        yes: Priority 2; no: Priority 1
 
-Five of the six exits can end in Priority 1 or Dead before the last question is reached.
-
 The voice step is read two ways, because the paper's text and its figure differ for one group (E-08). The text
 says 'responds to voice' replaces 'GCS below 14', the alert and voice boundary sitting at a median GCS of 13: on
 that reading anything below alert leaves for Priority 1. Read literally, the figure lets a casualty who responds
