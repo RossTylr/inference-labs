@@ -223,6 +223,30 @@ A tree is a rule the data wrote; one tree is readable and fragile, many are stro
 **Gates run:** all. The sceptic's review is checked by G-11.
 **Blocked by:** nothing. CRASH-2 and DDXPlus data are not read; O-2 stays open.
 
+
+### 6.5 Slice 5 — lens 10, Decision theory
+
+A probability is not a decision: to act, each kind of mistake must be given a cost, and that is a judgement someone owns. Background: [`background/10-decision-theory.md`](background/10-decision-theory.md).
+
+| Id | Requirement | Gate |
+|---|---|---|
+| R-5.1 | `lenses/decision.py` implements the Lens interface. `diagnose` turns lens 02's probability into a decision at the threshold set by the costs; `treat` orders two casualties for one aircraft by expected bleeding deaths, using lens 03's belief and the generator's bleeding hazard. Every cost and utility is a named control with a default labelled as an assumption, and no exchange rate is attributed to a source | G-2, G-6 |
+| R-5.2 | Notebook `10_decision_theory.ipynb` follows the seven-part pattern and opens on the background file's hook: an alarm fires on 18% of all admissions and still misses 67% of sepsis cases (E-96). Would you switch it on? The reader guesses before the answer is given | G-7, G-10 |
+| R-5.3 | By hand: ten synthetic casualties, a stated cost for each kind of error, and the total cost at three thresholds, counted on paper, in plain Python and by the library, which must agree | G-7 |
+| R-5.4 | Central figure: the scales. A miss on one pan and a false alarm on the other, with weights the reader sets, and the expected cost across thresholds with the best threshold moving in response. Marked central | G-7 |
+| R-5.5 | Net benefit across thresholds (E-93) for the baseline under both readings, lens 02's logistic score and lens 04's single tree and forest, with treat all and treat none drawn, on the generator (mechanism) | G-2, G-7, G-10 |
+| R-5.6 | Diagnosis case: where to set the triage threshold. The MPTT-24 and the Military Sieve as published points (E-09, E-10), the benchmark of under-triage below 5% and over-triage below 50% as one point among others (E-87), protocol against practice (E-88), London 2005 (E-126), and the reader's own weights as a further point. Each source's definition of over-triage is stated where the register gives one (E-12, E-125) | G-7, G-10 |
+| R-5.7 | The cost of a false alarm depending on load (E-125): the best threshold moves as capacity tightens. A mechanism demonstration on assumed costs, and said to be one | G-2, G-7 |
+| R-5.8 | Treatment case: treat here or evacuate, with the expected bleeding deaths rising with each minute held, from lens 03's belief and the generator's hazard fitted to E-85; then two casualties and one aircraft | G-2, G-7, G-10 |
+| R-5.9 | Failure: optimising overall accuracy and losing the torso bleeds (E-38, E-41) | G-2, G-7, G-10 |
+| R-5.10 | Axis 7, decision value, is computed for every built lens: net benefit at a stated threshold, with treat all and treat none. Notebooks 01, 02, 03 and 04 are re-executed so their pending entries are replaced | G-6, G-7 |
+| R-5.11 | Two recorded limits are fixed: notebook 01 attaches E-08 to the MPTT-24's steps, and notebook 03's count of belief-line steps agrees with design section 12.4 | G-7, G-10 |
+| R-5.12 | The lens's scorecard reports the seven axes of D-21 with the baseline under both readings (D-24). App page 1 gains the decision panel for the selected casualty, with every cost shown as an assumption; every number comes from the library and carries a label | G-6, G-7, G-8, G-9 |
+
+**Done when:** `python -m harness.validate --slice 5` writes BUILT, and slices 1 to 4 read BUILT after the changes under R-5.10 and R-5.11 are reviewed.
+**Gates run:** all. The sceptic's review is checked by G-11.
+**Blocked by:** nothing.
+
 ---
 
 ## 7. Build plan

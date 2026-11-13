@@ -144,10 +144,16 @@ slices:
       - app/streamlit_app.py
   5:
     title: Lens 10, Decision theory
-    approved: null
+    approved: 2026-11-13
     blocked_by: []
+    background: docs/background/10-decision-theory.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    # The sceptic's review, reviews/slice-5.md, is checked by G-11, not listed here.
+    files:
+      - src/inference_labs/lenses/decision.py
+      - tests/test_decision.py
+      - notebooks/10_decision_theory.ipynb
+      - app/streamlit_app.py
   6:
     title: Lens 05, Stochastic
     approved: null
