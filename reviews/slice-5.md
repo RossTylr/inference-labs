@@ -227,3 +227,9 @@ Each figure was viewed and checked against its `concludes:` tag and the output i
   - New. The module docstring's assumptions (lines 18 to 22) still give the chance of dying before arrival as the truncal site's average. That is the chance every choice, the hold curve, the two-casualty example and the panel use. The scoring of the random pairs now uses each bleeder's own chance (lines 286 and 294 to 295), as the `aircraft_policy` docstring (lines 270 to 274) and cell 21 say. The module docstring is shown in neither the notebook nor the panel.
 
 VERDICT: HOLDS
+
+## Reviewed sources
+
+- `notebooks/10_decision_theory.ipynb` 0abedac52abc458f0eacda3394410cbf94c476419d163ffc19345590478649d5
+- `src/inference_labs/lenses/decision.py` 7f322c5e5793a01a9294159739e2c2cac49c94e8df9560ccaffff06726e49c4f
+- `app/panels/decision.py` 8fc7fb89f394638291f092de6f3dc73103967cf5e48f8cc57dd43e85663cf6f1
