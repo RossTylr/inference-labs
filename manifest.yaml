@@ -310,7 +310,7 @@ slices:
   7:
     title: Lens 07, Causal
     approved: 2026-11-14
-    blocked_by: [O-2]
+    blocked_by: []
     note: O-2 blocks real-data cells only
     background: docs/background/07-causal.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]

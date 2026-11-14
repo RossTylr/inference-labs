@@ -146,7 +146,7 @@ One row each. Before a slice starts, its row is expanded into a requirements tab
 | 4 | 04 Decision trees | `04-decision-trees.md` | A single tree against a forest; instability under resampling | — |
 | 5 | 10 Decision theory | `10-decision-theory.md` | Threshold from stated costs; net benefit; two casualties and one aircraft | — |
 | 6 | 05 Stochastic | `05-stochastic.md` | Time-varying hazard against measured points; constant-hazard failure; decay of benefit | — |
-| 7 | 07 Causal | `07-causal.md` | Observational against randomised estimate on the generator; survival bias reproduced and removed | O-2 for any real-data cell |
+| 7 | 07 Causal | `07-causal.md` | Observational against randomised estimate on the generator; survival bias reproduced and removed | — (O-2 gates real-data cells only; see R-7.11) |
 | 8 | 08 Knowledge graph | `08-knowledge-graph.md` | Capability chain traversal; provenance query; a stale dosing edge returned and then caught | O-3 |
 | 9 | 09 Reinforcement learning | `09-reinforcement-learning.md` | Policy learned on the benchmark; do-nothing policy winning under naive off-policy evaluation; true value revealed | — |
 | 10 | 06 Connectionist | `06-connectionist.md` | Method on a proxy image set, labelled as such; a shortcut feature learned and exposed | — |
@@ -371,7 +371,7 @@ Seeing that treated casualties did better is not knowing that treatment made the
 
 **Done when:** `python -m harness.validate --slice 7` writes BUILT.
 **Gates run:** all. The sceptic's review is checked by G-11.
-**Blocked by:** O-2, open on 14 November 2026. The manifest lists it for this slice, so the build stops until it is closed or waived (BUILD.md section 2, S-4). While it is open, no real trial data are read (R-7.11).
+**Blocked by:** nothing. O-2 stays open, and under R-7.11 the slice reads no real trial data while it is.
 
 ---
 
