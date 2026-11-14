@@ -351,10 +351,20 @@ slices:
       - app/panels/causal.py
   8:
     title: Lens 08, Knowledge graph
-    approved: null
+    approved: 2026-11-14
     blocked_by: [O-3]
+    note: "O-3 is waived under D-28"
+    background: docs/background/08-knowledge-graph.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    review_sources:
+      - notebooks/08_knowledge_graph.ipynb
+      - src/inference_labs/lenses/knowledge.py
+      - app/panels/knowledge.py
+    files:
+      - src/inference_labs/lenses/knowledge.py
+      - tests/test_knowledge.py
+      - notebooks/08_knowledge_graph.ipynb
+      - app/panels/knowledge.py
   9:
     title: Lens 09, Reinforcement learning
     approved: null
