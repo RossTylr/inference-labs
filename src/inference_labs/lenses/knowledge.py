@@ -710,13 +710,17 @@ def chain(injury: str, start: str = POINT, when: str = TODAY, population: str = 
 
 
 def placed_at(intervention: str, echelon: str, graph: Graph | None = None) -> tuple | None:
-    """The first requires, held_by and available_at edges that put an intervention at an echelon, or None."""
+    """The requires, held_by and available_at edges that put an intervention at an echelon, or None. Of every such
+    path the graph holds, the first that carries an edge labelled doctrine is returned, otherwise the first."""
     g = care_graph() if graph is None else graph
-    for req in g.edges(src=_k("intervention", intervention), type="requires"):
-        for held in g.edges(src=req.dst, type="held_by"):
-            for at in g.edges(src=held.dst, dst=_k("echelon", echelon), type="available_at"):
-                return req, held, at
-    return None
+    paths = [(req, held, at)
+             for req in g.edges(src=_k("intervention", intervention), type="requires")
+             for held in g.edges(src=req.dst, type="held_by")
+             for at in g.edges(src=held.dst, dst=_k("echelon", echelon), type="available_at")]
+    for path in paths:
+        if any(e.label == "doctrine" for e in path):
+            return path
+    return paths[0] if paths else None
 
 
 def options_at(echelon: str, graph: Graph | None = None) -> pd.DataFrame:
@@ -1088,8 +1092,11 @@ def panel(record: Mapping[str, Any], setting: str = "pre_hospital") -> dict:
         cand = (f"Candidates, ranked by the graph's own weights, each finding adding one over the number of injuries "
                 f"it suggests: {listed}. Every suggests edge is an assumption, written from what the generator's code "
                 f"does.")
+    elif not d.findings:
+        cand = "No finding is present in the record, so the list is empty."
     else:
-        cand = "No finding in the record is joined to an injury in the graph, so the list is empty."
+        cand = (f"None of the findings present is joined to an injury along an edge the graph follows for a casualty "
+                f"{d.context}, so the list is empty.")
     found = ", ".join(d.findings) if d.findings else "none"
     out = {
         "heading": "Knowledge graph panel: what the map joins to this casualty's findings",
