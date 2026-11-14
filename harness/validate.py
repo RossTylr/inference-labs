@@ -1,9 +1,13 @@
 """Compute the verdict for one slice: BUILT, REVISE or BLOCKED (PRD section 3).
 
     python -m harness.validate --slice N
+    python -m harness.validate --slice N --stamp-review
 
 Runs the gates the manifest lists for slice N, writes reviews/slice-N.verdict.json and appends one row to
 LEDGER.md. The verdict and the gate tally are written here and nowhere else.
+
+With --stamp-review it instead writes the "Reviewed sources" hash block at the end of reviews/slice-N.md (gate
+G-11) and stops: no gate is run and no ledger row is written. The reviewer uses it once the review is finished.
 
 BUILT    every listed gate passes and no open item in the slice's blocked_by list is unresolved
 REVISE   one or more gates fail; the builder may try again
@@ -100,7 +104,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--slice", type=int, required=True)
     parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--stamp-review", action="store_true",
+                        help="write the review's hash block (gate G-11) and stop, without validating")
     args = parser.parse_args(argv)
+
+    if args.stamp_review:
+        from harness.gates.g11_sceptic import write_hash_block
+
+        print(write_hash_block(args.root, args.slice), end="")
+        return 0
 
     manifest = load_manifest(args.root)
     gate_ids = list(slice_config(manifest, args.slice).get("gates") or [])

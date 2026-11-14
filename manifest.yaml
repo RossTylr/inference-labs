@@ -23,12 +23,17 @@ open_items:
   O-8: {status: open, reason: "Complete author lists and check the surnames listed in EVIDENCE.md Part C"}
   O-9: {status: closed, reason: "Read the full papers behind E-76, E-79, E-81 and the 2022 RePHILL report"}
 
+# Changes that cross lenses, held for a consolidation pass (BUILD.md section 7). One line each.
+deferred: []
+
 slices:
   0:
     title: Foundations
     approved: 2026-11-12
     blocked_by: []
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-12]
+    # No notebook, lens or panel, and no review (D-29).
+    review_sources: []
     files:
       - pyproject.toml
       - manifest.yaml
@@ -86,6 +91,11 @@ slices:
     background: docs/background/03-bayesian.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
     # The sceptic's review, reviews/slice-1.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/03_bayesian.ipynb
+      - src/inference_labs/lenses/bayesian.py
+      - app/panels/bayesian.py
     files:
       - src/inference_labs/lenses/bayesian.py
       - tests/test_bayesian.py
@@ -113,6 +123,11 @@ slices:
     background: docs/background/01-rules.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
     # The sceptic's review, reviews/slice-2.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/01_rules.ipynb
+      - src/inference_labs/lenses/rules.py
+      - app/panels/rules.py
     files:
       - src/inference_labs/baseline.py
       - src/inference_labs/lenses/rules.py
@@ -127,6 +142,11 @@ slices:
     background: docs/background/02-frequentist.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
     # The sceptic's review, reviews/slice-3.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/02_frequentist.ipynb
+      - src/inference_labs/lenses/frequentist.py
+      - app/panels/frequentist.py
     files:
       - src/inference_labs/lenses/frequentist.py
       - tests/test_frequentist.py
@@ -139,6 +159,11 @@ slices:
     background: docs/background/04-decision-trees.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
     # The sceptic's review, reviews/slice-4.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/04_decision_trees.ipynb
+      - src/inference_labs/lenses/trees.py
+      - app/panels/trees.py
     files:
       - src/inference_labs/lenses/trees.py
       - tests/test_trees.py
@@ -151,6 +176,11 @@ slices:
     background: docs/background/10-decision-theory.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
     # The sceptic's review, reviews/slice-5.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/10_decision_theory.ipynb
+      - src/inference_labs/lenses/decision.py
+      - app/panels/decision.py
     files:
       - src/inference_labs/lenses/decision.py
       - tests/test_decision.py
