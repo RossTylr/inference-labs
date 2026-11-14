@@ -309,11 +309,22 @@ slices:
       - app/panels/stochastic.py
   7:
     title: Lens 07, Causal
-    approved: null
+    approved: 2026-11-14
     blocked_by: [O-2]
     note: O-2 blocks real-data cells only
+    background: docs/background/07-causal.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    # The sceptic's review, reviews/slice-7.md, is checked by G-11, not listed here.
+    # Gate G-11 hashes these; nothing else makes the review stale (D-29).
+    review_sources:
+      - notebooks/07_causal.ipynb
+      - src/inference_labs/lenses/causal.py
+      - app/panels/causal.py
+    files:
+      - src/inference_labs/lenses/causal.py
+      - tests/test_causal.py
+      - notebooks/07_causal.ipynb
+      - app/panels/causal.py
   8:
     title: Lens 08, Knowledge graph
     approved: null
