@@ -1,21 +1,21 @@
 {
   "slice": 7,
-  "attempt": 1,
-  "when": "2026-11-14T17:13",
-  "verdict": "BLOCKED",
-  "tally": "9/13 pass",
+  "attempt": 3,
+  "when": "2026-11-14T17:37",
+  "verdict": "REVISE",
+  "tally": "12/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "missing: src/inference_labs/lenses/causal.py, tests/test_causal.py, notebooks/07_causal.ipynb, app/panels/causal.py",
+      "reason": "4 listed files present; nothing unlisted",
       "detail": null
     },
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "234 tests, 0 skipped with a reason, none failing",
+      "reason": "248 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -987,13 +987,13 @@
     "G-6": {
       "passed": true,
       "evaluable": true,
-      "reason": "86 scorecard rows correctly labelled across 7 lenses",
+      "reason": "106 scorecard rows correctly labelled across 8 lenses",
       "detail": null
     },
     "G-7": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "07_causal.ipynb: missing",
+      "reason": "07_causal.ipynb ran in 10 s with 7 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -1005,13 +1005,13 @@
     "G-9": {
       "passed": true,
       "evaluable": true,
-      "reason": "8 app file(s) read nothing outside the package",
+      "reason": "9 app file(s) read nothing outside the package",
       "detail": null
     },
     "G-10": {
-      "passed": false,
-      "evaluable": false,
-      "reason": "gate raised FileNotFoundError: [Errno 2] No such file or directory: '/Users/rosstaylor/Code/inference-labs/inference-labs-repo/inference-labs/notebooks/07_causal.ipynb'",
+      "passed": true,
+      "evaluable": true,
+      "reason": "17 evidence ids listed and resolved; no NOT READ entry quoted as a number; every CARRIED entry marked provisional; every civilian source called civilian where cited (11 panel strings read)",
       "detail": null
     },
     "G-11": {
@@ -1023,7 +1023,7 @@
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (74 passed in 7.66s)",
+      "reason": "13 gates each fail their planted defect (74 passed in 7.70s)",
       "detail": null
     },
     "G-13": {
