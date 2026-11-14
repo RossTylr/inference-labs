@@ -325,6 +325,30 @@ A probability is not a decision: to act, each kind of mistake must be given a co
 **Gates run:** all. The sceptic's review is checked by G-11.
 **Blocked by:** nothing.
 
+
+### 6.6 Slice 6 — lens 05, Stochastic processes
+
+One casualty's course cannot be predicted and a thousand casualties' can; the skill is choosing a description of the dice that matches how risk changes with time. Background: [`background/05-stochastic.md`](background/05-stochastic.md).
+
+| Id | Requirement | Gate |
+|---|---|---|
+| R-6.1 | `lenses/stochastic.py` implements the Lens interface. `diagnose` returns, for a casualty alive at pre-hospital care, the chance of dying from bleeding in the next hour if bleeding significantly, conditional on being alive then, under the generator's hazard fitted to E-85. `treat` returns the relative reduction in death from bleeding left at the casualty's delay to tranexamic acid, as draws (R-6.8). The generator's constant-hazard option is called by the failure (R-6.11) and nowhere else | G-2, G-6 |
+| R-6.2 | Notebook `05_stochastic.ipynb` follows the seven-part pattern and opens on the background file's hook: among patients who bleed to death after reaching a trauma centre, how long does the middle one live? The reader guesses before the answer, 2.0 to 2.6 hours from admission (E-85), is given | G-7, G-10 |
+| R-6.3 | By hand: ten casualties stepped forward three intervals through a three-state chain (bleeding, bleeding stopped, dead) with a coin and a die, the rolls printed for the reader; counted on paper, in plain Python and by the library, which must agree; then the transition matrix and the expected share in each state after three steps | G-7 |
+| R-6.4 | Central figure: many lives. A hundred lives of a casualty bleeding from the moment of wounding, each drawn as a line through the states, with the count in each state stacked beneath and the evacuation time as a control. The generator holds no repeated observations, so the lives are constructed from its hazard and its assumed times and are labelled constructed. Marked central | G-7 |
+| R-6.5 | Diagnosis case: deterioration from point of injury to Role 2. A fixed-rate chain and then the time-varying hazard, each checked against E-85's three hourly rates, its median and its share of deaths within 6 hours, with E-25 beside them; then the lens's chance from R-6.1 on the generator's battle casualties bleeding significantly and alive at pre-hospital care. E-85's rates are measured from hospital admission and run here from injury, and this is said wherever they are used | G-2, G-7, G-10 |
+| R-6.6 | A second, independent source for a front-loaded risk before hospital (E-127) set beside E-85, with what each measures and from when | G-7, G-10 |
+| R-6.7 | Beside the central figure's evacuation control, the golden hour study's figures (E-81) are quoted with its limit, that transport time was matched for only 37.3% of casualties, and the fall in killed in action is not attributed to the mandate | G-7, G-10 |
+| R-6.8 | Treatment case: the decline of tranexamic acid's benefit with delay as a function of time, from E-22's bands and E-24's decline, with E-22's uncertainty carried as draws. The notebook states that the timing analysis was exploratory (E-23) and civilian, and that half of E-24's patients were obstetric (E-26) | G-2, G-7, G-10 |
+| R-6.9 | Early against late outcome: on the generator, the benefit of tranexamic acid counted at 3 hours and at 30 days, with later deaths from other causes constructed and their share an assumption, as mechanism and with the spread across 20 seeds, beside RePHILL's figures (E-77) | G-2, G-7, G-10 |
+| R-6.10 | Recorded time is rounded (E-20): the generator's delays rounded to the nearest half hour, the decline refitted and the delay bands recomputed, with the change and its spread across 20 seeds | G-2, G-7, G-10 |
+| R-6.11 | Failure: a constant hazard fitted to a front-loaded process. The generator's constant-hazard option, fitted to the same median time to death, set against E-85's three hourly rates and against the time-varying hazard on the same synthetic casualties, with the spread across 20 seeds | G-2, G-7, G-10 |
+| R-6.12 | The lens's scorecard reports the seven axes of D-21, with the baseline under the figure reading and the text reading beside it, labelled as validated (D-24), and axis 7 as net benefit at 0.10 (D-26). App page 1 gains the stochastic panel for the selected casualty; every number comes from the library and carries a label | G-6, G-7, G-8, G-9, G-10 |
+
+**Done when:** `python -m harness.validate --slice 6` writes BUILT.
+**Gates run:** all. The sceptic's review is checked by G-11.
+**Blocked by:** nothing. No real trial data are read; O-2 stays open.
+
 ---
 
 ## 7. Build plan
