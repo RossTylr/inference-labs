@@ -14,7 +14,10 @@ Where the numbers come from
 - The casualties are the generator's battle casualties alive at pre-hospital care, judged by its outcome without
   tranexamic acid. Each one's outcome is read from the generator's two potential outcomes: death from bleeding with
   the drug if treated, without it if not. The true effect is the difference between the two, averaged over the same
-  casualties.
+  casualties. The generator's effect of the drug, which fixes that difference, is set from CRASH-2, a civilian trial:
+  it reproduces E-22's relative risks by time to treatment and falls to none at 3 hours as E-24 found in CRASH-2
+  pooled with WOMAN, a trial in postpartum haemorrhage; its size at no delay is an assumption, and applying it to
+  battle casualties is an assumption.
 - The constructed allocation is an assumption, labelled constructed. The chance of treatment rises with four
   recorded signs (heart rate 100 or more, systolic pressure 90 or less, below alert, catastrophic haemorrhage) and
   with one variable a record would not hold: how heavily the casualty is bleeding, the generator's severity centile
@@ -23,8 +26,9 @@ Where the numbers come from
 - Adjustment is inverse probability weighting: the chance of treatment fitted by logistic regression on the
   variables named, each arm weighted by one over its fitted chance, and the weighted shares compared.
 - Survival bias, in the failure, reads each casualty's outcome as if untreated, so the drug has no effect. The
-  generator's death times run from injury on a hazard fitted to E-85, measured from hospital admission: an
-  assumption.
+  generator's death times come from a hazard fitted to E-85, measured from hospital admission in haemorrhaging
+  patients in five prospective civilian studies; running it from injury, and applying it to battle casualties, are
+  assumptions.
 - Scan accuracy is the generator's: before hospital set from E-16, a civilian helicopter service; in hospital from
   E-14's pooled figures. Both are applied to battle casualties, an assumption. The two selections, who is scanned
   and whose true state is confirmed, are constructed and are assumptions.
@@ -85,6 +89,13 @@ E120 = {"trained": 17_083, "tested": 79_073, "hospitals": 128}
 E123 = {"casualties": 4_542, "trend": (0.99, 0.94, 1.03), "transfusion": (0.17, 0.06, 0.51),
         "surgical_team": (0.67, 0.58, 0.78), "transport": (0.61, 0.51, 0.74), "more_kia": (135, 105, 164),
         "rivals": 5}
+
+
+# Where the true value comes from: the generator's effect of the drug.
+TRUE_SOURCE = ("The true value is the generator's effect of the drug, set from CRASH-2, a civilian trial: it reproduces "
+               "E-22's relative risks by time to treatment and falls to none at 3 hours as E-24 found in CRASH-2 pooled "
+               "with WOMAN, a trial in postpartum haemorrhage; its size at no delay is an assumption, and applying it to "
+               "battle casualties is an assumption")
 
 
 def _pct(x: float, places: int = 1) -> str:
@@ -639,7 +650,8 @@ def seven_axes() -> pd.DataFrame:
          f"Not a classifier: the effect of tranexamic acid on death from bleeding among {e['casualties']:,} battle "
          f"casualties alive at pre-hospital care, under the constructed allocation. True value: {true.words()}. "
          f"Naive: {e['naive'].direction()}. Adjusted for every variable the allocation uses: "
-         f"{e[ESTIMATORS[1]].direction()}. Adjusted on the recorded signs alone: {e[ESTIMATORS[2]].direction()}"),
+         f"{e[ESTIMATORS[1]].direction()}. Adjusted on the recorded signs alone: {e[ESTIMATORS[2]].direction()}. "
+         f"{TRUE_SOURCE}"),
         ("2 Calibration (mechanism)",
          f"Brier {pre['scan metrics']['brier']:.3f}; share positive minus share with free fluid "
          f"{pre['scan metrics']['calibration']:+.3f}, on every casualty. What a positive scan means moves with who is "
@@ -660,7 +672,7 @@ def seven_axes() -> pd.DataFrame:
          "battle casualties (an assumption)",
          "Rules only (E-08)", "Rules only (E-08)",
          "A stated causal structure: every variable that drives who is given the drug, recorded. The allocation is "
-         "constructed and is an assumption, and only the generator holds the true value"),
+         f"constructed and is an assumption, and only the generator holds the true value. {TRUE_SOURCE}"),
         ("5 Readability", "Two counts a reader can ask for: who was scanned, and whose true state was confirmed",
          "Six yes-or-no steps", "Six yes-or-no steps",
          "One diagram: the arrows into treatment, and whether each is recorded"),
@@ -677,7 +689,8 @@ def seven_axes() -> pd.DataFrame:
          stochastic.axis7(pre["figure flag"], pre["state"]) + ", against free fluid",
          stochastic.axis7(pre["text flag"], pre["state"]) + ", against free fluid",
          "Net benefit scores a flag, not an effect estimate. What the decision needs is the effect's sign and size. "
-         f"Read naively, the record shows {e['naive'].direction()}; the true value is {true.direction()}"),
+         f"Read naively, the record shows {e['naive'].direction()}; the true value is {true.direction()}. "
+         f"{TRUE_SOURCE}"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: the scan for free fluid, as measured and as it is",
                                        "baseline: MPTT-24, figure (as published)",
@@ -716,7 +729,7 @@ def panel(record: Mapping[str, Any]) -> dict:
         "effect": (f"Effect of tranexamic acid on death from bleeding in this band (mechanism). Read naively: "
                    f"{effect.naive.words()}. Adjusted for every variable the allocation uses: "
                    f"{effect.adjusted.words()}. True value, from both outcomes of the same casualties, which only the "
-                   f"generator holds: {effect.true.words()}."),
+                   f"generator holds: {effect.true.words()}. {TRUE_SOURCE}."),
         "spread": (f"Distance from the true value across {SEEDS} further samples: naive, {spread(ESTIMATORS[0])}; "
                    f"adjusted, {spread(ESTIMATORS[1])}."),
         "scan": (f"Scan for free fluid, {SETTING_NAMES[reading.setting]}: {scan}. The scan's accuracy on the battle "
