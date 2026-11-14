@@ -1,7 +1,7 @@
 {
   "slice": 1,
-  "attempt": 33,
-  "when": "2026-11-14T10:41",
+  "attempt": 34,
+  "when": "2026-11-14T11:16",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -1011,19 +1011,19 @@
     "G-10": {
       "passed": true,
       "evaluable": true,
-      "reason": "18 evidence ids listed and resolved; no NOT READ entry quoted as a number; every CARRIED entry marked provisional; every civilian source called civilian where cited (75 panel strings read)",
+      "reason": "19 evidence ids listed and resolved; no NOT READ entry quoted as a number; every CARRIED entry marked provisional; every civilian source called civilian where cited (77 panel strings read)",
       "detail": null
     },
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "the review has no 'Reviewed sources' block",
+      "reason": "notebooks/03_bayesian.ipynb has changed since the review; src/inference_labs/lenses/bayesian.py has changed since the review; app/panels/bayesian.py has changed since the review; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; BREACH recorded for the epistemic check 'civilian data read as military'; 1 further line(s) marked BREACH; the review's verdict is BREACH",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (74 passed in 7.60s)",
+      "reason": "13 gates each fail their planted defect (74 passed in 7.53s)",
       "detail": null
     },
     "G-13": {

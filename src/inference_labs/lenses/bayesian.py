@@ -88,6 +88,12 @@ SCAN_ACCURACY = {
 E14_STUDIES, E14_FREE_FLUID_STUDIES = 75, 52     # E-14: 75 studies in all; free fluid pooled from 52 of them
 SCAN_SOURCES = (f"The pre-hospital study is civilian (E-16); the in-hospital free-fluid figure is pooled from "
                 f"{E14_FREE_FLUID_STUDIES} of the {E14_STUDIES} studies in E-14.")
+SCAN_SOURCE_NOTE = {   # the panel's statement of where the scan accuracy for the casualty's setting comes from
+    "pre_hospital": ("The scan's accuracy before hospital comes from the two-by-two counts of one civilian "
+                     "helicopter service (E-16); using it for a military casualty is an assumption."),
+    "in_hospital": ("The scan's accuracy in hospital is an assumption centred on the pooled sensitivity and "
+                    "specificity for free fluid in E-14."),
+}
 
 # E-22: relative risk of death from bleeding with tranexamic acid, by time to treatment, in CRASH-2,
 # a civilian trial. Using these figures for a military casualty is an assumption.
@@ -503,14 +509,17 @@ class Walkthrough:
                 f"Systolic pressure {int(self.record['sbp'])} mm Hg "
                 f"({'at or below' if triage_reading(self.record) else 'above'} {TRIAGE_SBP_AT_OR_BELOW}). "
                 f"Scan {SETTING_NAMES[self.setting]}: {scan_text}. "
-                f"Time to pre-hospital care {self.record['t_phec_min']:.0f} minutes, so the tranexamic acid band is "
+                f"Time to pre-hospital care {self.record['t_phec_min']:.1f} minutes, so the tranexamic acid band is "
                 f"{self.band_name}; belief times relative reduction is {self.reduction.mean():.2f} "
-                f"({lo:.2f} to {hi:.2f}), a mechanism figure."
+                f"({lo:.2f} to {hi:.2f}), a mechanism figure, using the relative risk for that band in CRASH-2, a "
+                "trial in a civilian population (E-22). Using CRASH-2's figures for a military casualty is an "
+                "assumption."
                 + (" Below zero means harm: in this band CRASH-2 found more deaths from bleeding with tranexamic "
                    "acid, not fewer (E-22)." if self.reduction.mean() < 0 else "")
             ),
             "truth": ("In the generator this casualty is bleeding into the abdomen."
                       if self.bleeding else "In the generator this casualty is not bleeding into the abdomen."),
+            "scan_source": SCAN_SOURCE_NOTE[self.setting],
             "scan_sources": SCAN_SOURCES,
             "band": self.band(),
         }
