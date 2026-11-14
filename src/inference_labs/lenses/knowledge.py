@@ -954,7 +954,10 @@ class KnowledgeLens:
         table = treatment_table()
         for _, row in table.dropna(subset=["share within the timeline"]).iterrows():
             rows.append(ScorecardRow(NAME, "treatment", f"share of casualties with {row['condition']} whose assumed "
-                                     f"time to {row['echelon']} is within the timeline for {row['intervention']}",
+                                     f"time to {row['echelon']}, read from injury, is within the timeline on the edge "
+                                     f"into {row['echelon']} ({row['timeline']}); {row['echelon']} is the first "
+                                     f"echelon on the route holding {row['intervention']}, and the timeline is not a "
+                                     f"target for it",
                                      round(row["share within the timeline"], 4), NO_BASELINE, "mechanism", "native",
                                      "generator"))
         return rows
