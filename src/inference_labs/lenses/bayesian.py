@@ -480,7 +480,7 @@ class Walkthrough:
                 "Belief after the scan": percent(final.mean()),
                 "Chance the belief is above one half": percent(final.prob(lambda d: d > EVACUATE_ABOVE)),
                 "Belief times relative reduction (mechanism)": f"{self.reduction.mean():.2f}",
-                "CRASH-2 absolute reduction, within an hour (E-22)": f"{TXA_FIRST_HOUR_POINTS:.1f} points",
+                "CRASH-2 (civilian) absolute reduction, within an hour (E-22)": f"{TXA_FIRST_HOUR_POINTS:.1f} points",
             },
             "treatment": (
                 "Belief times relative reduction is the belief that this casualty is bleeding, multiplied by the "

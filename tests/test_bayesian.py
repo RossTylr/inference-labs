@@ -158,7 +158,7 @@ def test_the_belief_weighted_reduction_is_shown_with_its_scale_and_population():
     shown = w.display()
     assert shown["metrics"]["Belief times relative reduction (mechanism)"] == f"{w.reduction.mean():.2f}"
     assert b.TXA_FIRST_HOUR_DEATHS == (7.7, 5.3) and b.TXA_FIRST_HOUR_POINTS == 2.4
-    assert shown["metrics"]["CRASH-2 absolute reduction, within an hour (E-22)"] == "2.4 points"
+    assert shown["metrics"]["CRASH-2 (civilian) absolute reduction, within an hour (E-22)"] == "2.4 points"
     note = shown["treatment"]
     for words in ("not a treatment result", "not a change in this casualty's risk of death", "7.7% with placebo",
                   "5.3% with tranexamic acid", "CRASH-2 is civilian", "for a military casualty is an assumption"):
