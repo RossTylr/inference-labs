@@ -839,8 +839,8 @@ def seven_axes() -> pd.DataFrame:
         ("3 Uncertainty expressed", "None: one chance for each casualty", "None: a priority", "None: a priority",
          f"A distribution: E-22's bands carried as {DRAWS:,} draws"),
         ("4 What it needed",
-         f"A hazard through three published hourly rates ({E85_SOURCE}, run here from injury, an assumption), the "
-         f"time since injury, and who is bleeding significantly, which the generator supplies and no medic knows for "
+         f"A hazard through three published hourly rates ({E85_SOURCE}, run here from injury and applied to battle "
+         f"casualties, both assumptions), the time since injury, and who is bleeding significantly, which the generator supplies and no medic knows for "
          f"certain",
          "Rules only (E-08)", "Rules only (E-08)",
          "E-22's bands, from an exploratory analysis (E-23) of CRASH-2, a civilian trial; E-24's end of the benefit "
