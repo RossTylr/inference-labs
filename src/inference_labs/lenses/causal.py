@@ -13,9 +13,11 @@ same casualties and asks how far each way of reading that record lands from the 
 Where the numbers come from
 - The casualties are the generator's battle casualties alive at pre-hospital care, judged by its outcome without
   tranexamic acid. Each one's outcome is read from the generator's two potential outcomes: death from bleeding with
-  the drug if treated, without it if not. The true effect is the difference between the two, averaged over the same
-  casualties. The generator's effect of the drug, which fixes that difference, is set from CRASH-2, a civilian trial:
-  it reproduces E-22's relative risks by time to treatment and falls to none at 3 hours as E-24 found in CRASH-2
+  the drug if treated, without it if not. The generator's drug changes whether a casualty dies, not when, so a death
+  it adds can fall at or before the time the drug is given; such a death is not counted, because a drug cannot cause a
+  death before it is given. The true effect is the difference between the two, averaged over the same casualties.
+  The generator's effect of the drug, which fixes that difference, is set from CRASH-2, a civilian trial: its relative
+  risk in each band of time to treatment is set from E-22's, and it falls to none at 3 hours as E-24 found in CRASH-2
   pooled with WOMAN, a trial in postpartum haemorrhage; its size at no delay is an assumption, and applying it to
   battle casualties is an assumption.
 - The constructed allocation is an assumption, labelled constructed. The chance of treatment rises with four
@@ -92,10 +94,11 @@ E123 = {"casualties": 4_542, "trend": (0.99, 0.94, 1.03), "transfusion": (0.17, 
 
 
 # Where the true value comes from: the generator's effect of the drug.
-TRUE_SOURCE = ("The true value is the generator's effect of the drug, set from CRASH-2, a civilian trial: it reproduces "
-               "E-22's relative risks by time to treatment and falls to none at 3 hours as E-24 found in CRASH-2 pooled "
-               "with WOMAN, a trial in postpartum haemorrhage; its size at no delay is an assumption, and applying it to "
-               "battle casualties is an assumption")
+TRUE_SOURCE = ("The true value is the generator's effect of the drug, set from CRASH-2, a civilian trial: its relative "
+               "risk in each band of time to treatment is set from E-22's, and it falls to none at 3 hours as E-24 "
+               "found in CRASH-2 pooled with WOMAN, a trial in postpartum haemorrhage; its size at no delay is an "
+               "assumption, and applying it to battle casualties is an assumption. Counted on the casualties of one "
+               "band in one sample, the true value varies from sample to sample")
 
 
 def _pct(x: float, places: int = 1) -> str:
@@ -169,10 +172,18 @@ def allocate(observed: pd.DataFrame, truth: pd.DataFrame, strength: float = DEFA
     return u < chance_of_treatment(observed, truth, strength)
 
 
-def outcome(truth: pd.DataFrame, treated: np.ndarray) -> np.ndarray:
-    """Death from bleeding, read from the generator's two potential outcomes: with the drug if treated, without if
-    not."""
-    return np.where(treated, truth["died_if_treated"].to_numpy(bool), truth["died_if_untreated"].to_numpy(bool))
+def potential_outcomes(observed: pd.DataFrame, truth: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+    """Death from bleeding without the drug and with it, for casualties alive at pre-hospital care, when the drug is
+    given. The generator's drug changes whether a casualty dies, not when, so a death it adds can fall at or before the
+    time the drug is given; such a death is not counted, because a drug cannot cause a death before it is given."""
+    after = 60 * truth["t_death_potential_h"].to_numpy(float) > observed["t_phec_min"].to_numpy(float)
+    return truth["died_if_untreated"].to_numpy(bool), truth["died_if_treated"].to_numpy(bool) & after
+
+
+def outcome(observed: pd.DataFrame, truth: pd.DataFrame, treated: np.ndarray) -> np.ndarray:
+    """Death from bleeding, read from the two potential outcomes: with the drug if treated, without if not."""
+    without, with_drug = potential_outcomes(observed, truth)
+    return np.where(treated, with_drug, without)
 
 
 @dataclass(frozen=True)
@@ -206,10 +217,10 @@ class Estimate:
                 f"{self.direction()} ({ratio})")
 
 
-def true_effect(truth: pd.DataFrame, mask: np.ndarray) -> Estimate:
+def true_effect(observed: pd.DataFrame, truth: pd.DataFrame, mask: np.ndarray) -> Estimate:
     """Both potential outcomes of the same casualties: what only the generator can give."""
-    return Estimate(100 * float(truth["died_if_treated"].to_numpy(bool)[mask].mean()),
-                    100 * float(truth["died_if_untreated"].to_numpy(bool)[mask].mean()))
+    without, with_drug = potential_outcomes(observed, truth)
+    return Estimate(100 * float(with_drug[mask].mean()), 100 * float(without[mask].mean()))
 
 
 def naive(treated: np.ndarray, died: np.ndarray, mask: np.ndarray) -> Estimate:
@@ -248,7 +259,7 @@ def estimates(seed: int = EVAL_SEED, n: int = EVAL_N, strength: float = DEFAULT_
     variable the allocation uses, with adjustment on the recorded signs alone, and its true value (mechanism)."""
     observed, truth = at_care(seed, n)
     treated = allocate(observed, truth, strength, seed)
-    died = outcome(truth, treated)
+    died = outcome(observed, truth, treated)
     recorded = signs(observed).to_numpy()
     full = fitted_chance(np.column_stack([recorded, hidden(truth)]), treated)
     partial = fitted_chance(recorded, treated)
@@ -258,7 +269,7 @@ def estimates(seed: int = EVAL_SEED, n: int = EVAL_N, strength: float = DEFAULT_
                      "naive": naive(treated, died, mask),
                      "adjusted for every variable the allocation uses": weighted(treated, died, full, mask),
                      "adjusted on the recorded signs alone": weighted(treated, died, partial, mask),
-                     "true value": true_effect(truth, mask)}
+                     "true value": true_effect(observed, truth, mask)}
     return out
 
 

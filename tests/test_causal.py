@@ -33,9 +33,13 @@ def test_strength_zero_is_a_coin():
 def test_the_outcome_is_read_from_the_two_potential_outcomes():
     observed, truth = c.at_care()
     treated = c.allocate(observed, truth)
-    died = c.outcome(truth, treated)
-    assert (died[treated] == truth["died_if_treated"].to_numpy(bool)[treated]).all()
-    assert (died[~treated] == truth["died_if_untreated"].to_numpy(bool)[~treated]).all()
+    died = c.outcome(observed, truth, treated)
+    without, with_drug = c.potential_outcomes(observed, truth)
+    assert (died[treated] == with_drug[treated]).all() and (died[~treated] == without[~treated]).all()
+    # a death counted with the drug falls after the drug is given; without it, every casualty here is alive then
+    care = observed["t_phec_min"].to_numpy(float)
+    minutes = 60 * truth["t_death_potential_h"].to_numpy(float)
+    assert (minutes[with_drug] > care[with_drug]).all() and (minutes[without] > care[without]).all()
 
 
 def test_the_naive_estimate_is_wrong_and_full_adjustment_ties_with_the_truth():
