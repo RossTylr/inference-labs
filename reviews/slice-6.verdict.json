@@ -1,9 +1,9 @@
 {
   "slice": 6,
-  "attempt": 3,
-  "when": "2026-11-14T12:37",
-  "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "attempt": 4,
+  "when": "2026-11-14T12:49",
+  "verdict": "BUILT",
+  "tally": "13/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -1015,9 +1015,9 @@
       "detail": null
     },
     "G-11": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "notebooks/05_stochastic.ipynb has changed since the review; src/inference_labs/lenses/stochastic.py has changed since the review; BREACH recorded for the epistemic check 'civilian data read as military'; 1 further line(s) marked BREACH; the review's verdict is BREACH",
+      "reason": "reviews/slice-6.md matches its 3 review sources and records HOLDS against 7 checks",
       "detail": null
     },
     "G-12": {

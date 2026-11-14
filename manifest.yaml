@@ -115,6 +115,20 @@ deferred:
   - "Slice 1, limit 28: In hospital the decision panel acts on the belief after triage while the band's Evacuation point is the belief after the in-hospital scan, 10.2% against 3% for haemorrhage casualty 1, so the band's evacuation belief may not be read as the one the decision panel acts on."
   - "Slice 1, limit 29: The figure titles at cells 15, 20, 23, 37 and 39 add a reading to what is plotted (\"barely moves it\", \"the lens is calibrated\", \"no prior makes a large benefit likely\", \"independent findings combine soundly\", \"nothing warns you\"); each is borne out by the plot, but lesson 6 asks for titles that ...."
   - "Slice 1, limit 30: The panel file's docstring says every number comes from `bayesian.page_panel`; the dotted line is drawn at `bayesian.EVACUATE_ABOVE`, a library constant that `page_panel` does not return."
+  - "Slice 6, limit 1: E-127 (cell 15; the figure in cell 16)."
+  - "Slice 6, limit 2: E-85's hourly rates are shown as an \"hourly death rate among those alive\" (cell 12's published column; the stars of cell 33), which is how `params.yaml` reads them: \"deaths per casualty-hour at risk\", \"taken as the hazard\"."
+  - "Slice 6, limit 3: Cell 32's \"used here and nowhere else\" is true of running the generator with the constant-hazard option."
+  - "Slice 6, limit 4: `spread_words` (stochastic.py lines 101 to 109) says \"a tie: no detectable difference\" whenever the range across seeds covers zero."
+  - "Slice 6, limit 5: Axis 7's \"treat all\" and \"treat none\" (stochastic.py lines 396 to 416), and cell 39's \"treating none\", are net benefit's names for flagging every casualty and none for death within the hour; they are not a treatment."
+  - "Slice 6, limit 6: D-23's statement (axis 1 of the baseline column; cell 36) describes the generator's injured, battle and non-battle together, of whom 26.5% need a life-saving intervention."
+  - "Slice 6, limit 7: The panel's treatment line gives the share of the reduction left \"on the lens's line\" without saying that the straight line, and so the share, is an assumption."
+  - "Slice 6, limit 8: Cell 11 gives E-25's 884 of 1,408 for \"the trials pooled by E-24\" and, from E-26, that time-to-death data existed only for the obstetric trial."
+  - "Slice 6, limit 9: The scorecard rows named \"mean chance minus observed share\" (stochastic.py lines 747 to 748 and 774 to 775; rows 3 and 7 of cell 38) carry as the rule's baseline its share flagged less the share who died, 0.574, under a name that speaks of a chance."
+  - "Slice 6, limit 10: App page 1 draws its casualties from all battle casualties, including 10 of the 327 bleeding significantly in each setting whom the generator has dead from bleeding before pre-hospital care."
+  - "Slice 6, limit 11: The short labels that carry E-85 into a figure or a printed heading name only the clock: the lower title of cell 3, the heading printed by cell 12, the axis labels of cells 13 and 33, and the line printed by cell 35."
+  - "Slice 6, limit 12: Cell 34's \"the one it misses is the rate at 9 hours\" rests on reading the chain's 4.56% and 1.07% as meeting E-85's \"about 4.6%\" and \"about 1%\"; the tolerances `params.yaml` sets for those two rates (line 413, 0.006 and 0.0035) admit both."
+  - "Slice 6, limit 13: RePHILL's second figure (cells 26 to 28) is the register's death, 43% against 45%, which the row gives with no time point; the background file's table gives \"death within 30 days 42% against 45%\"."
+  - "Slice 6, limit 14: Two module strings no reader sees name only the clock assumption for E-85: the docstring (stochastic.py lines 13 to 16), \"The generator runs it from injury, an assumption, and so does this lens\", and `E85_CLOCK` (line 70), which nothing in the package, the app or the notebook uses."
 
 slices:
   0:
