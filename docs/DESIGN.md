@@ -48,6 +48,8 @@ inference-labs is a learning repository: its aim is to learn inference through u
 | D-26 | Axis 7 is net benefit at one threshold for every lens: 0.10, the value implied by the default weighting of a miss at nine times a false alarm. A lens may also report its own threshold, labelled as such. Where a model flags every casualty at 0.10, the scorecard says so in words | Two thresholds were in use and one notebook described the wrong one |
 | D-27 | Each lens has its own app panel file under app/panels/. The app's entry file finds panels automatically and does not change when a lens is added. A slice's sources for the review gate include its own panel file only | One shared app file made every earlier review stale whenever a lens was added |
 | D-28 | O-3 is waived. Echelon and timeline edges from AJP-4.10 carry the edition they were read from and the note 'currency not confirmed' | The knowledge graph's own lesson is that every edge carries its version; an unconfirmed edition is a case of it |
+| D-29 | Build approach version 2: one session per unit of work; a review is stale only when the content of its review sources changes; cross-lens changes are deferred to consolidation passes; one commit closes a slice | Slices 2 to 5 spent most of their time and tokens on a single long session and on re-reviews of slices that had not materially changed |
+| D-30 | Gate G-10 also checks that a cited civilian source is called civilian where it is cited | The commonest review breach was mechanical |
 
 ---
 

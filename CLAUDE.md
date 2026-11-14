@@ -21,7 +21,8 @@ When Ross says **build**, **review**, **status** or **unstick**, follow [`docs/B
 - Nothing listed under "What must not be claimed" in a background file may appear in a notebook or the app.
 - `generator.py` and `params.yaml` are frozen after slice 1. If a slice seems to need a change, stop and report.
 - The validator writes the verdict and the gate tally. Never type them.
-- Commit every attempt, whatever its verdict.
+- The ledger records every validator run. Commit at the end of each phase, as docs/BUILD.md sets out.
+- One session does one unit of work, then stops.
 - If something cannot be done as specified, stop and record BLOCKED with the reason. That is a legitimate outcome.
 - British English. Plain professional prose. No emojis in code, notebooks or documents.
 - Notebooks and documents are written in Ross's voice as author, with no reference to how they were produced.
