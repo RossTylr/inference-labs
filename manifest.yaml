@@ -49,6 +49,15 @@ deferred:
   - "Slice 2, limit 22: The scorecard (cells 41 and 43; rules.py lines 249 to 257 and 267 to 313) gives the MPTT-24 under the figure reading only."
   - "Slice 2, limit 23: Axis 7's comparisons come from one sample, seed 42, and no spread across seeds is reported, as standing lesson 12 asks."
   - "Slice 2, limit 24: Cell 17's \"Most who respond to voice have a fast pulse or an abnormal respiratory rate, or are walking\" gives as \"most\" a count the notebook does not print: 3,046 of the 3,930 who respond only to voice (77.5%), or 3,054 (77.7%) with those bleeding catastrophically, who are also sorted the same ...."
+  - "Slice 4, limit 1: Published comparisons (cells 10, 14 and 15)."
+  - "Slice 4, limit 2: The weight in axis 7 is fixed in this notebook. `seven_axes` calls `decision_value` with the default costs, so \"an assumption for the reader to change\" means changing it in notebook 10, and cell 28 does not follow."
+  - "Slice 4, limit 3: What axis 7's figures belong to."
+  - "Slice 4, limit 4: \"Treat all\", and cell 27's \"treating everyone\", is net benefit's name for flagging every casualty."
+  - "Slice 4, limit 5: The panel's flags are set on every stream."
+  - "Slice 4, limit 6: The panel's treatment line applies E-31's four items to a battle casualty and gives the source and its id but not its 596 patients, nor that applying the score to a military casualty is an assumption (lesson 1)."
+  - "Slice 4, limit 7: The treatment case. \"Mean probability minus share in need\" in the treatment column (axis 2 in cell 28; rows 19 and 23 of cell 29) is the share bleeding significantly, the stand-in."
+  - "Slice 4, limit 8: Every model is fitted to the generator and scored on it, and its results may be claimed only as what such models do there."
+  - "Slice 4, limit 9: Standing lessons 7 and 12."
 
 slices:
   0:
