@@ -452,7 +452,9 @@ class BayesianLens:
             if not is_real_data_path(self.crash3_path, REPO_ROOT):
                 raise ValueError("a real-data path must be an absolute path outside the repository")
             real = reread_trial(summary_from_file(self.crash3_path), PRIORS[CRASH2_PRIOR])
-            rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(real.prob_benefit(), 4), NO_BASELINE,
+            real_metric = ("probability tranexamic acid reduces head injury death on the trial data in the file named "
+                           "as this row's data source, under the prior from CRASH-2, a civilian trial")
+            rows.append(ScorecardRow(LENS_NAME, "treatment", real_metric, round(real.prob_benefit(), 4), NO_BASELINE,
                                      "evidence", "weak", self.crash3_path))
         return rows
 
