@@ -459,21 +459,67 @@ def _methods(observed: pd.DataFrame) -> dict:
             FIGURE: baseline.priority_one(observed, "figure"), TEXT: baseline.priority_one(observed, "text")}
 
 
+TX_TREE, ABC = "treatment tree", "ABC score"
+
+
+@lru_cache(maxsize=None)
+def _further_spread() -> pd.DataFrame:
+    """The same 20 further samples, seeds 43 onward, 100,000 of the military cohort each, scan before hospital: each
+    method's Brier score on every stream, and its specificity among the injured, battle and non-battle, and among the
+    battle casualties alone, the trees and the score at their own thresholds and the rule as flagged; and on each
+    sample's battle casualties, the treatment tree's sensitivity and specificity against significant bleeding, at the
+    threshold set on the evaluation sample, beside the ABC score's (mechanism)."""
+    from inference_labs.lenses import decision
+
+    m = models()
+    own = {TREE: m.tree_threshold, FOREST: m.forest_threshold, SCORE: frequentist.fitted_score().threshold}
+    tx_threshold, tx_tree = treatment_results("pre_hospital")["threshold"], treatment_tree("pre_hospital")
+
+    def one(seed: int) -> dict:
+        observed, truth = generator.sample(baseline.EVAL_N, seed, setting="pre_hospital", return_truth=True)
+        need = truth["needs_lsi"].to_numpy(bool)
+        battle = (observed["stream"] == "battle").to_numpy()
+        groups = ((", injured", baseline.calibration_cohort(observed)), (", battle", battle))
+        row = {}
+        for name, out in _methods(observed).items():
+            out = np.asarray(out)
+            flag = out if out.dtype == bool else out >= own[name]
+            row[f"brier: {name}"] = float(np.mean((out.astype(float) - need) ** 2))
+            for group, keep in groups:
+                row[f"specificity{group}: {name}"] = float((~flag[keep & ~need]).mean())
+        battle_obs, bleed = observed[battle], truth["bleeding"].to_numpy(bool)[battle]
+        flags = {TX_TREE: tx_tree.predict_proba(tx_matrix(battle_obs))[:, 1] >= tx_threshold,
+                 ABC: (rules.abc_table(battle_obs)["score"] >= rules.ABC_ACTIVATES_AT).to_numpy()}
+        for name, flag in flags.items():
+            row[f"sensitivity, bleeding: {name}"] = float(flag[bleed].mean())
+            row[f"specificity, bleeding: {name}"] = float((~flag[~bleed]).mean())
+        return row
+
+    return decision.across_seeds(one)
+
+
 def scorecard_spread() -> pd.DataFrame:
     """The trees, lens 02's score and the rule on 20 further samples of 100,000, seeds 43 onward
-    (decision.need_spread): each model at its own threshold for sensitivity and specificity, and at 0.10 for net
-    benefit (mechanism)."""
+    (decision.need_spread, with _further_spread joined): each model at its own threshold for sensitivity and
+    specificity, with specificity also among the injured and among the battle casualties alone, its probability or
+    flag for the Brier score, and 0.10 for net benefit, on every stream and on the battle casualties alone; and the
+    treatment tree beside the ABC score on the battle casualties (mechanism)."""
     from inference_labs.lenses import decision
 
     m = models()
     return decision.need_spread(_methods, ((TREE, m.tree_threshold), (FOREST, m.forest_threshold),
-                                           (SCORE, frequentist.fitted_score().threshold)))
+                                           (SCORE, frequentist.fitted_score().threshold))).join(_further_spread())
 
 
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
     computed on the generator (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's
-    default costs set (mechanism). Each comparison is given with its spread across 20 further samples (lesson 12)."""
+    default costs set (mechanism). Across 20 further samples (lesson 12), the spread is given of each tree's
+    sensitivity, specificity, Brier score and net benefit less the MPTT-24's (figure); of the forest's area under the
+    curve, Brier score and net benefit less the single tree's, and its area under the curve less lens 02's score's;
+    of the text reading's net benefit less the figure reading's; of each diagnosis and baseline column's net benefit
+    less that of flagging every casualty; and of the treatment tree's sensitivity and specificity less the ABC
+    score's. Net benefit is compared on every stream and among the battle casualties alone."""
     from inference_labs.lenses import decision
 
     sp = scorecard_spread()
@@ -482,11 +528,30 @@ def seven_axes() -> pd.DataFrame:
         return decision.spread_words(sp[f"area under the curve: {a}"] - sp[f"area under the curve: {b}"], "", 4,
                                      "lower", "higher")
 
-    def nb_less(name):
-        return (decision.versus(sp[f"net benefit: {name}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)")
-                + "; among the battle casualties alone, "
-                + decision.versus(sp[f"net benefit, battle: {name}"] - sp[f"net benefit, battle: {decision.FLAG_ALL}"],
-                                  decision.FLAGGING_ALL))
+    def less(measure, a, b=FIGURE):
+        return decision.spread_words(100 * (sp[f"{measure}: {a}"] - sp[f"{measure}: {b}"]), " points", 1,
+                                     "lower", "higher")
+
+    def brier_less(a, b):
+        return decision.spread_words(sp[f"brier: {a}"] - sp[f"brier: {b}"], "", 3, "lower, so better",
+                                     "higher, so worse")
+
+    def nb_less(group, name, other, against):
+        return decision.versus(sp[f"net benefit{group}: {name}"] - sp[f"net benefit{group}: {other}"], against)
+
+    def nb_spreads(name, others):
+        """Net benefit less each of `others`, then less flagging every casualty: on every stream, then among the
+        battle casualties alone."""
+        others = (*others, (decision.FLAG_ALL, decision.FLAGGING_ALL))
+        return "".join(f". {opening}, " + "; ".join(nb_less(group, name, o, against) for o, against in others)
+                       for group, opening in (("", "On every stream"), (", battle", "Among the battle casualties alone")))
+
+    def against_rule(name):
+        return (f"on every stream, its sensitivity less the MPTT-24's (figure) is {less('sensitivity', name)}, and its "
+                f"specificity less the figure reading's is {less('specificity', name)}; among the injured alone, "
+                f"battle and non-battle, its specificity less the figure reading's is "
+                f"{less('specificity, injured', name)}; and among the battle casualties alone, it is "
+                f"{less('specificity, battle', name)}")
 
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     observed, truth = baseline.generator_sample()
@@ -515,13 +580,23 @@ def seven_axes() -> pd.DataFrame:
 
     group = "all 100,000 synthetic casualties of the military cohort, disease included"
     rows = [
-        ("1 Discrimination (mechanism)", f"{disc(pre['single tree'])}; {group}",
+        ("1 Discrimination (mechanism)",
+         f"{disc(pre['single tree'])}; {group}. Across 20 further samples, at the tree's own threshold, "
+         f"{against_rule(TREE)}",
          f"{disc(pre['forest'])}; {group}. Across 20 further samples the forest's area under the curve less the single "
-         f"tree's is {auc_less(FOREST, TREE)}; less lens 02's score's it is {auc_less(FOREST, SCORE)}",
+         f"tree's is {auc_less(FOREST, TREE)}; less lens 02's score's it is {auc_less(FOREST, SCORE)}. Across the same "
+         f"samples, at the forest's own threshold, {against_rule(FOREST)}",
          rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"{disc(tx_pre['tree'])}; significant bleeding, battle casualties, scan before hospital. ABC score: "
-         f"{rule_disc({k: tx_pre['abc'][k][0] for k in ('sensitivity', 'specificity')})}"),
-        ("2 Calibration (mechanism)", cal(pre["single tree"]), cal(pre["forest"]),
+         f"{rule_disc({k: tx_pre['abc'][k][0] for k in ('sensitivity', 'specificity')})}. Across 20 further samples "
+         f"of 100,000, on their battle casualties, at the threshold set on the evaluation sample, the tree's "
+         f"sensitivity less the ABC score's is {less('sensitivity, bleeding', TX_TREE, ABC)}; its specificity less "
+         f"the ABC score's is {less('specificity, bleeding', TX_TREE, ABC)}"),
+        ("2 Calibration (mechanism)",
+         f"{cal(pre['single tree'])}. Across 20 further samples, on every stream, its Brier score less the MPTT-24's "
+         f"(figure) is {brier_less(TREE, FIGURE)}",
+         f"{cal(pre['forest'])}. Across 20 further samples, on every stream, its Brier score less the MPTT-24's "
+         f"(figure) is {brier_less(FOREST, FIGURE)}; less the single tree's, it is {brier_less(FOREST, TREE)}",
          rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
          rule_cal(txt), cal(tx_pre["tree"])),
         ("3 Uncertainty expressed", "A share in need for each leaf", "A probability, the average over the trees",
@@ -539,10 +614,15 @@ def seven_axes() -> pd.DataFrame:
          f"only the scan", f"Scan in hospital: {disc(inside['forest'])}, unchanged for the same reason",
          "Unchanged", "Unchanged",
          f"Scan in hospital: {disc(tx_in['tree'])}. The scan item is more often right in hospital"),
-        ("7 Decision value", decision.decision_value(p_all["single tree"], need, battle=battle) + "; " + nb_less(TREE),
-         decision.decision_value(p_all["forest"], need, battle=battle) + "; " + nb_less(FOREST),
-         decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
-         decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
+        ("7 Decision value",
+         decision.decision_value(p_all["single tree"], need, battle=battle)
+         + nb_spreads(TREE, ((FIGURE, "the MPTT-24 (figure)"),)),
+         decision.decision_value(p_all["forest"], need, battle=battle)
+         + nb_spreads(FOREST, ((FIGURE, "the MPTT-24 (figure)"), (TREE, "the single tree"))),
+         decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle)
+         + nb_spreads(FIGURE, ()),
+         decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle)
+         + nb_spreads(TEXT, ((FIGURE, "the figure reading"),)),
          decision.decision_value(treatment_tree("pre_hospital").predict_proba(tx_matrix(battle_obs))[:, 1],
                                  battle_truth["bleeding"]) + ", against significant bleeding, battle casualties, scan before hospital"),
     ]
