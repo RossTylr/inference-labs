@@ -90,14 +90,16 @@ The reviewer did not build the slice. `build` starts a subagent with a fresh con
 > Write `reviews/slice-N.md`, one line per check, each marked HOLDS or BREACH with the cell or line:
 > each line under "What must not be claimed" in the background file; accuracy quoted for the wrong cohort or setting; proxy data read as the real thing; civilian data read as military; a diagnosis result read as a treatment result; each number traced to an evidence id that says what the notebook says; each sentence about the generator or graph against the code; each figure, whether it changes what a reader would conclude.
 >
-> Be exhaustive in one pass: every cell, every string the lens module can return, every element of the panel, against every item. Mark as MISSED any breach in lines unchanged since the previous review. Under a heading "Limits", list anything worth recording that is not a breach. End with `VERDICT: HOLDS` or `VERDICT: BREACH`, then the hash block. Edit nothing else. Propose no features and no later work.
+> Be exhaustive in one pass: every cell, every string the lens module can return, every element of the panel, against every item. Mark as MISSED any breach in lines unchanged since the previous review. Under a heading "Limits", list at most five things that would change what a reader concludes and are not breaches. Do not restate caveats the notebook already makes. End with `VERDICT: HOLDS` or `VERDICT: BREACH`, then the hash block. Edit nothing else. Propose no features and no later work.
 
 **After the review.**
 
 - HOLDS: go to section 6.
 - BREACH: fix only the lines marked, re-run the validator, and start a new reviewer. Three rounds at most (D-25). After a third BREACH, stop (state S-7).
-- Limits: copy each to the manifest's `deferred` list, one line each. Do not fix them now.
+- Limits stay in the review file. They are not copied to `deferred`. Ross promotes a limit to `deferred` if he wants it done.
 - Never edit a review file. If a finding looks wrong, stop and say why.
+
+**Re-review after consolidation.** The base for the diff is the last commit that changed the slice's review file; a review file is committed only when its slice closes or after a re-review, so that commit's sources match its hashes. The reviewer is given the diff of the slice's review sources between that commit and now, and checks only the changed lines against every item and the standing lessons. It records no new limits, and the review is then stamped afresh.
 
 ---
 
@@ -174,3 +176,9 @@ Read the slice's verdict file, its review and the last three ledger rows. Change
 | When a session stops on a blocked item | Close or waive the item in the manifest: `open_items: {O-2: {status: closed}}` |
 | After slice 8 | Run the notebooks and the app before the consolidation pass, and add anything to `deferred` |
 | Before any real-data cell | Close O-2: read the freeBIRD terms |
+
+---
+
+## 12. Unattended run
+
+When Ross types `build overnight`, a coordinator session runs the units in order, each in a fresh-context subagent, pushing after each. The builder subagent stops after its sweep; the coordinator starts the reviewer. If a slice ends its third review in BREACH, or cannot reach BUILT, it is parked: left as it is, recorded, and the run moves to the next unit that does not depend on it. Nothing is waived unattended.

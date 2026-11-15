@@ -50,6 +50,8 @@ inference-labs is a learning repository: its aim is to learn inference through u
 | D-28 | O-3 is waived. Echelon and timeline edges from AJP-4.10 carry the edition they were read from and the note 'currency not confirmed' | The knowledge graph's own lesson is that every edge carries its version; an unconfirmed edition is a case of it |
 | D-29 | Build approach version 2: one session per unit of work; a review is stale only when the content of its review sources changes; cross-lens changes are deferred to consolidation passes; one commit closes a slice | Slices 2 to 5 spent most of their time and tokens on a single long session and on re-reviews of slices that had not materially changed |
 | D-30 | Gate G-10 also checks that a cited civilian source is called civilian where it is cited | The commonest review breach was mechanical |
+| D-31 | Reviewer limits are a record, not a work list. Only items Ross places on `deferred` are done at consolidation, and a re-review after consolidation covers changed lines only | After slice 8 the list held 157 items, most of them restatements |
+| D-32 | An unattended run may take several units in sequence, each in a fresh context, parking any slice that stops | One session per unit is a cost rule; a coordinator that holds only reports keeps to it |
 
 ---
 
