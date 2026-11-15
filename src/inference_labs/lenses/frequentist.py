@@ -419,8 +419,9 @@ def _methods(observed: pd.DataFrame) -> dict:
 @lru_cache(maxsize=None)
 def _further_spread() -> pd.DataFrame:
     """The score and both readings of the rule on the same 20 further samples, seeds 43 onward: the Brier score and
-    calibration on 100,000 of the military cohort, every stream, scan before hospital, and sensitivity and
-    specificity on 100,000 of the civilian cohort, the score at its own threshold (mechanism)."""
+    calibration on 100,000 of the military cohort, every stream, scan before hospital, with specificity among its
+    injured, battle and non-battle, and among its battle casualties alone; and sensitivity and specificity on
+    100,000 of the civilian cohort; the score at its own threshold (mechanism)."""
     from inference_labs.lenses import decision
 
     own = fitted_score().threshold
@@ -430,13 +431,17 @@ def _further_spread() -> pd.DataFrame:
         for cohort in baseline.COHORTS:
             observed, truth = generator.sample(baseline.EVAL_N, seed, cohort=cohort, return_truth=True)
             need = truth["needs_lsi"].to_numpy(bool)
+            stream = observed["stream"].to_numpy()
+            groups = ((", injured", np.isin(stream, ("battle", "non_battle"))), (", battle", stream == "battle"))
             for name, out in _methods(observed).items():
                 out = np.asarray(out)
+                flag = out if out.dtype == bool else out >= own
                 if cohort == "military":
                     row[f"brier: {name}"] = float(np.mean((out.astype(float) - need) ** 2))
                     row[f"calibration: {name}"] = float(out.astype(float).mean() - need.mean())
+                    for group, keep in groups:
+                        row[f"specificity{group}: {name}"] = float((~flag[keep & ~need]).mean())
                 else:
-                    flag = out if out.dtype == bool else out >= own
                     row[f"sensitivity, civilian: {name}"] = float(flag[need].mean())
                     row[f"specificity, civilian: {name}"] = float((~flag[~need]).mean())
         return row
@@ -447,9 +452,10 @@ def _further_spread() -> pd.DataFrame:
 def scorecard_spread() -> pd.DataFrame:
     """The score against both readings of the rule on 20 further samples of 100,000, seeds 43 onward
     (decision.need_spread, with _further_spread joined): on the military cohort, every stream, the score at its own
-    threshold for sensitivity and specificity, its probability for the Brier score and calibration, and 0.10 for net
-    benefit, on every stream and on the battle casualties alone; on the civilian cohort, sensitivity and specificity
-    at its own threshold (mechanism)."""
+    threshold for sensitivity and specificity, with specificity also among the injured and among the battle
+    casualties alone, its probability for the Brier score and calibration, and 0.10 for net benefit, on every stream
+    and on the battle casualties alone; on the civilian cohort, sensitivity and specificity at its own threshold
+    (mechanism)."""
     from inference_labs.lenses import decision
 
     return decision.need_spread(_methods, ((SCORE, fitted_score().threshold),)).join(_further_spread())
@@ -487,10 +493,14 @@ def seven_axes() -> pd.DataFrame:
     def rule_disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
 
-    def rule_cal(r):
+    def flags(r):
         gap = r["calibration"]
-        side = "more" if gap > 0 else "fewer"
-        return f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points {side} than are in need"
+        return f"{100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than are in need"
+
+    def rule_cal(r, reading):
+        alone = baseline.flag_metrics(baseline.priority_one(observed, reading)[battle], need[battle])
+        return (f"Brier {r['brier']:.3f}, where lower is better; on every stream it flags {flags(r)}; among the battle "
+                f"casualties alone, it flags {flags(alone)}")
 
     rows = [
         ("1 Discrimination (mechanism)",
@@ -498,8 +508,10 @@ def seven_axes() -> pd.DataFrame:
          f"{pre['auc']:.3f}; all 100,000 synthetic casualties of the military cohort, disease included. Across 20 "
          f"further samples, at the score's own threshold, its sensitivity less the MPTT-24's (figure) is "
          f"{less('sensitivity')}; its specificity less the rule's is {less('specificity')}; its sensitivity less "
-         f"the MPTT-24's (text) is {less('sensitivity', TEXT)}; its specificity less the text reading's is "
-         f"{less('specificity', TEXT)}",
+         f"the MPTT-24's (text) is {less('sensitivity', TEXT)}; its specificity less the text reading's is, on every "
+         f"stream, {less('specificity', TEXT)}; among the injured alone, battle and non-battle, "
+         f"{less('specificity, injured', TEXT)}; and among the battle casualties alone, "
+         f"{less('specificity, battle', TEXT)}",
          rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"Not a classifier. On the CRASH-2 fixture, {k1} of {n1} died with tranexamic acid and {k0} of {n0} with "
          f"placebo: {difference_words(d)}; synthetic rows, not trial data"),
@@ -510,8 +522,8 @@ def seven_axes() -> pd.DataFrame:
          f"{brier_less(TEXT)}. Its mean probability minus share in need, less the MPTT-24's (figure) share flagged "
          f"minus share in need, is {less('calibration')}; less the MPTT-24's (text), it is "
          f"{less('calibration', TEXT)}",
-         rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
-         rule_cal(txt), "Not applicable"),
+         rule_cal(fig, "figure") + ". A rule gives no probability, so the Brier score is the share misclassified",
+         rule_cal(txt, "text"), "Not applicable"),
         ("3 Uncertainty expressed", "An interval on every rate",
          "None: a priority", "None: a priority", "An interval on the difference"),
         ("4 What it needed",
