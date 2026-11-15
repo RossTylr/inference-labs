@@ -278,9 +278,9 @@ def _pct(x: float) -> str:
 @lru_cache(maxsize=None)
 def scorecard_spread() -> pd.DataFrame:
     """The scorecard's comparisons on 20 further samples of 100,000 synthetic casualties, seeds 43 onward (lesson
-    12), through decision.across_seeds: the two readings against need for a life-saving intervention on every
-    stream, scan before hospital, on the four measures of baseline.flag_metrics and net benefit at the common
-    threshold; and the ABC score against the MPTT-24's Priority 1 (figure) for significant bleeding on the battle
+    12), through decision.across_seeds: the two readings against need for a life-saving intervention, scan before
+    hospital, on the four measures of baseline.flag_metrics and net benefit at the common threshold, each on every
+    stream and on the battle casualties alone; and the ABC score against the MPTT-24's Priority 1 (figure) for significant bleeding on the battle
     casualties, on the same four measures in each setting, with net benefit before hospital, and the share of battle
     casualties whose scan result matches the generator's free fluid in each setting (mechanism). Keys for the scan
     in hospital end ", in hospital" before the colon; the same seed gives the same casualties in either setting."""
@@ -293,13 +293,15 @@ def scorecard_spread() -> pd.DataFrame:
         observed, truth = generator.sample(baseline.EVAL_N, seed, return_truth=True)
         need = truth["needs_lsi"].to_numpy(bool)
         battle = (observed["stream"] == "battle").to_numpy()
+        groups = (("", np.ones_like(battle)), (", battle", battle))
         row = {"net benefit: flag every casualty": 100 * decision.flag_all(need, t),
                "net benefit, battle: flag every casualty": 100 * decision.flag_all(need[battle], t)}
         for reading in baseline.READINGS:
             flag = baseline.priority_one(observed, reading)
-            metrics = baseline.flag_metrics(flag, need)
-            for key in measures:
-                row[f"{key}: {reading}"] = metrics[key]
+            for group, keep in groups:
+                metrics = baseline.flag_metrics(flag[keep], need[keep])
+                for key in measures:
+                    row[f"{key}{group}: {reading}"] = metrics[key]
             row[f"net benefit: {reading}"] = 100 * decision.net_benefit(flag, need, t)
             row[f"net benefit, battle: {reading}"] = 100 * decision.net_benefit(flag[battle], need[battle], t)
         for setting in SETTINGS:
@@ -344,11 +346,17 @@ def seven_axes() -> pd.DataFrame:
     def disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
 
-    def cal(r):
+    def cal(r, who="the casualties"):
         gap = r["calibration"]
         side = "more" if gap > 0 else "fewer"
-        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points {side} of the "
-                f"casualties than are in need (share flagged minus share in need {gap:+.3f})")
+        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points {side} of "
+                f"{who} than are in need (share flagged minus share in need {gap:+.3f})")
+
+    def alone(reading, setting):
+        """The reading's Brier score and calibration against need on the battle casualties alone (lesson 15)."""
+        b_obs, b_truth = battle_sample(setting)
+        result = baseline.flag_metrics(baseline.priority_one(b_obs, reading), b_truth["needs_lsi"].to_numpy(bool))
+        return f"Battle casualties alone: {cal(result, 'the battle casualties')}"
 
     def points(a, b, what):
         return decision.spread_words(100 * (sp[a] - sp[b]), " points", 1, "lower", "higher") + what
@@ -378,21 +386,33 @@ def seven_axes() -> pd.DataFrame:
                 + nb(f"net benefit: {reading}", "net benefit: flag every casualty", decision.FLAGGING_ALL)
                 + "; among the battle casualties alone, "
                 + nb(f"net benefit, battle: {reading}", "net benefit, battle: flag every casualty",
-                     decision.FLAGGING_ALL))
+                     decision.FLAGGING_ALL)
+                + ("" if reading == "figure" else
+                   ". Across 20 further samples the text reading's net benefit less the figure's is, on every stream, "
+                   + decision.spread_words(sp["net benefit: text"] - sp["net benefit: figure"], " per 100", 1,
+                                           "lower", "higher")
+                   + "; among the battle casualties alone, "
+                   + decision.spread_words(sp["net benefit, battle: text"] - sp["net benefit, battle: figure"],
+                                           " per 100", 1, "lower", "higher")))
 
     def ruled(reading):
         pre, inside = dx[reading]
-        return (f"With the scan in hospital: {disc(inside)}; {cal(inside)}. Unchanged, because the generator draws the "
+        return (f"With the scan in hospital: {disc(inside)}; {cal(inside)}. {alone(reading, 'in_hospital')}. "
+                "Unchanged, because the generator draws the "
                 "same physiology in either setting, so this axis cannot show what moving from hospital observations "
                 "to the point of injury would do (E-11)")
 
     rows = [
         ("1 Discrimination (mechanism)", figure_dx, text_dx, tx),
         ("2 Calibration (mechanism)",
-         f"{cal(dx['figure'][0])}. A rule gives no probability, so the Brier score is the share misclassified",
-         f"{cal(dx['text'][0])}. Across 20 further samples the text reading's Brier score less the figure's is "
-         f"{shares('brier: text', 'brier: figure', 'brier')}; its share flagged minus share in need less the "
-         f"figure's is {shares('calibration: text', 'calibration: figure', 'calibration')}",
+         f"{cal(dx['figure'][0])}. A rule gives no probability, so the Brier score is the share misclassified. "
+         f"{alone('figure', 'pre_hospital')}",
+         f"{cal(dx['text'][0])}. {alone('text', 'pre_hospital')}. Across 20 further samples the text reading's Brier "
+         f"score less the figure's is, on every stream, {shares('brier: text', 'brier: figure', 'brier')}; and among "
+         f"the battle casualties alone, {shares('brier, battle: text', 'brier, battle: figure', 'brier')}. Its share flagged minus share "
+         f"in need less the figure's is, on every stream, "
+         f"{shares('calibration: text', 'calibration: figure', 'calibration')}; and among the battle casualties "
+         f"alone, {shares('calibration, battle: text', 'calibration, battle: figure', 'calibration')}",
          cal(pre_tx)),
         ("3 Uncertainty expressed", "None: a priority, not a probability or an interval",
          "None: a priority, not a probability or an interval", "None: activate or not"),
