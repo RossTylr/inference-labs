@@ -573,10 +573,14 @@ def seven_axes() -> pd.DataFrame:
     def rule_disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
 
-    def rule_cal(r):
+    def flags(r):
         gap = r["calibration"]
-        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points "
-                f"{'more' if gap > 0 else 'fewer'} than are in need")
+        return f"{100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than are in need"
+
+    def rule_cal(r, reading):
+        alone = baseline.flag_metrics(baseline.priority_one(observed, reading)[battle], need[battle])
+        return (f"Brier {r['brier']:.3f}, where lower is better; on every stream it flags {flags(r)}; among the battle "
+                f"casualties alone, it flags {flags(alone)}")
 
     group = "all 100,000 synthetic casualties of the military cohort, disease included"
     rows = [
@@ -597,8 +601,8 @@ def seven_axes() -> pd.DataFrame:
          f"(figure) is {brier_less(TREE, FIGURE)}",
          f"{cal(pre['forest'])}. Across 20 further samples, on every stream, its Brier score less the MPTT-24's "
          f"(figure) is {brier_less(FOREST, FIGURE)}; less the single tree's, it is {brier_less(FOREST, TREE)}",
-         rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
-         rule_cal(txt), cal(tx_pre["tree"])),
+         rule_cal(fig, "figure") + ". A rule gives no probability, so the Brier score is the share misclassified",
+         rule_cal(txt, "text"), cal(tx_pre["tree"])),
         ("3 Uncertainty expressed", "A share in need for each leaf", "A probability, the average over the trees",
          "None: a priority", "None: a priority", "A share bleeding for each leaf"),
         ("4 What it needed", f"Labelled cases: {frequentist.TRAIN_N:,} synthetic casualties (mechanism)",

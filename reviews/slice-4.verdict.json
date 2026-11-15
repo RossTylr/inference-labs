@@ -1,7 +1,7 @@
 {
   "slice": 4,
-  "attempt": 13,
-  "when": "2026-11-15T14:56",
+  "attempt": 14,
+  "when": "2026-11-15T15:16",
   "verdict": "REVISE",
   "tally": "12/13 pass",
   "open_items_unresolved": [],
@@ -1017,7 +1017,7 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "notebooks/04_decision_trees.ipynb has changed since the review; src/inference_labs/lenses/trees.py has changed since the review; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; 2 further line(s) marked BREACH; the review's verdict is BREACH",
+      "reason": "notebooks/04_decision_trees.ipynb has changed since the review; src/inference_labs/lenses/trees.py has changed since the review; 1 further line(s) marked BREACH; the review's verdict is BREACH",
       "detail": null
     },
     "G-12": {
