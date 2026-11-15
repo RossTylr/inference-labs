@@ -383,8 +383,9 @@ def evaluate(setting: str, prior: float | None = None) -> dict:
 @lru_cache(maxsize=None)
 def scorecard_spread(setting: str) -> pd.DataFrame:
     """evaluate's comparison of the lens with the MPTT-24 on 20 further samples of EVAL_N synthetic casualties, seeds
-    43 onward (lesson 12), through decision.across_seeds: sensitivity and specificity for bleeding into the abdomen, and
-    the Brier score, on the battle casualties (mechanism). The prior stays the one from the mix."""
+    43 onward (lesson 12), through decision.across_seeds: sensitivity and specificity for bleeding into the abdomen, the
+    Brier score, and calibration, the mean belief (for the rule the share flagged) minus the share bleeding, on the
+    battle casualties (mechanism). The prior stays the one from the mix."""
     from inference_labs.lenses import decision
 
     def one(seed: int) -> dict:
@@ -394,8 +395,10 @@ def scorecard_spread(setting: str) -> pd.DataFrame:
         flagged = belief > EVACUATE_ABOVE
         rule = baseline.flag_metrics(baseline.priority_one(observed), target)
         return {"lens sensitivity": float(flagged[target].mean()), "lens specificity": float((~flagged[~target]).mean()),
-                "lens Brier": float(np.mean((belief - target) ** 2)), "rule sensitivity": rule["sensitivity"],
-                "rule specificity": rule["specificity"], "rule Brier": rule["brier"]}
+                "lens Brier": float(np.mean((belief - target) ** 2)),
+                "lens calibration": float(belief.mean() - target.mean()), "rule sensitivity": rule["sensitivity"],
+                "rule specificity": rule["specificity"], "rule Brier": rule["brier"],
+                "rule calibration": rule["calibration"]}
 
     return decision.across_seeds(one)
 
@@ -406,7 +409,7 @@ def comparison_spread(setting: str) -> dict[str, str]:
 
     sp = scorecard_spread(setting)
     return {measure: decision.spread_words(sp[f"lens {measure}"] - sp[f"rule {measure}"], "", 3, "lower", "higher")
-            for measure in ("sensitivity", "specificity", "Brier")}
+            for measure in ("sensitivity", "specificity", "Brier", "calibration")}
 
 
 DIAGNOSIS_METRICS = (
