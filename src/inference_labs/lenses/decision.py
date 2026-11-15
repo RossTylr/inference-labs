@@ -714,8 +714,8 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
          f"generator the setting changes only the scan", "Unchanged", "Unchanged",
          f"Scan in hospital: the scan comes after the flight, so the choice rests on the belief after triage: "
          f"{m_in['belief and clock']:.2f} against {m_in[rule]:.2f} per 100 pairs, {inside['against the rule']}"),
-        ("7 Decision value", decision_value(p, need, costs, battle) + "; "
-         + versus(sp[f"net benefit: {LENS02}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)") + "; among "
+        ("7 Decision value", decision_value(p, need, costs, battle) + ". On every stream, "
+         + versus(sp[f"net benefit: {LENS02}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)") + ". Among "
          "the battle casualties alone, " + versus(sp[f"net benefit, battle: {LENS02}"]
                                                   - sp[f"net benefit, battle: {FLAG_ALL}"], FLAGGING_ALL),
          decision_value(fig, need, costs, battle), decision_value(txt, need, costs, battle),
