@@ -279,11 +279,15 @@ def _pct(x: float) -> str:
 def scorecard_spread() -> pd.DataFrame:
     """The scorecard's comparisons on 20 further samples of 100,000 synthetic casualties, seeds 43 onward (lesson
     12), through decision.across_seeds: the two readings against need for a life-saving intervention on every
-    stream, and the ABC score against the MPTT-24's Priority 1 for significant bleeding on the battle casualties,
-    scan before hospital, each with its net benefit at the common threshold (mechanism)."""
+    stream, scan before hospital, on the four measures of baseline.flag_metrics and net benefit at the common
+    threshold; and the ABC score against the MPTT-24's Priority 1 (figure) for significant bleeding on the battle
+    casualties, on the same four measures in each setting, with net benefit before hospital, and the share of battle
+    casualties whose scan result matches the generator's free fluid in each setting (mechanism). Keys for the scan
+    in hospital end ", in hospital" before the colon; the same seed gives the same casualties in either setting."""
     from inference_labs.lenses import decision
 
     t = decision.threshold()
+    measures = [key for key, _ in TREATMENT_METRICS]
 
     def one(seed: int) -> dict:
         observed, truth = generator.sample(baseline.EVAL_N, seed, return_truth=True)
@@ -293,19 +297,30 @@ def scorecard_spread() -> pd.DataFrame:
                "net benefit, battle: flag every casualty": 100 * decision.flag_all(need[battle], t)}
         for reading in baseline.READINGS:
             flag = baseline.priority_one(observed, reading)
-            row[f"sensitivity: {reading}"] = float(flag[need].mean())
-            row[f"specificity: {reading}"] = float((~flag[~need]).mean())
+            metrics = baseline.flag_metrics(flag, need)
+            for key in measures:
+                row[f"{key}: {reading}"] = metrics[key]
             row[f"net benefit: {reading}"] = 100 * decision.net_benefit(flag, need, t)
             row[f"net benefit, battle: {reading}"] = 100 * decision.net_benefit(flag[battle], need[battle], t)
-        b_obs, b_truth = _battle(observed, truth)
-        bleed = b_truth["bleeding"].to_numpy(bool)
-        abc = (abc_table(b_obs)["score"] >= ABC_ACTIVATES_AT).to_numpy()
-        rule = baseline.priority_one(b_obs, DEFAULT_READING)
-        for name, flag in (("ABC score", abc), ("MPTT-24 for bleeding", rule)):
-            row[f"sensitivity: {name}"] = float(flag[bleed].mean())
-            row[f"specificity: {name}"] = float((~flag[~bleed]).mean())
-            row[f"net benefit: {name}"] = 100 * decision.net_benefit(flag, bleed, t)
-        row["net benefit: flag every battle casualty for bleeding"] = 100 * decision.flag_all(bleed, t)
+        for setting in SETTINGS:
+            at = "" if setting == "pre_hospital" else ", in hospital"
+            if setting != "pre_hospital":
+                observed, truth = generator.sample(baseline.EVAL_N, seed, setting=setting, return_truth=True)
+            b_obs, b_truth = _battle(observed, truth)
+            bleed = b_truth["bleeding"].to_numpy(bool)
+            items = abc_table(b_obs)
+            abc = (items["score"] >= ABC_ACTIVATES_AT).to_numpy()
+            rule = baseline.priority_one(b_obs, DEFAULT_READING)
+            row[f"scan matches free fluid{at}"] = float(
+                (items[ABC_ITEMS[1]].to_numpy(bool) == b_truth["free_fluid"].to_numpy(bool)).mean())
+            for name, flag in (("ABC score", abc), ("MPTT-24 for bleeding", rule)):
+                metrics = baseline.flag_metrics(flag, bleed)
+                for key in measures:
+                    row[f"{key}{at}: {name}"] = metrics[key]
+                if setting == "pre_hospital":
+                    row[f"net benefit: {name}"] = 100 * decision.net_benefit(flag, bleed, t)
+            if setting == "pre_hospital":
+                row["net benefit: flag every battle casualty for bleeding"] = 100 * decision.flag_all(bleed, t)
         return row
 
     return decision.across_seeds(one)
@@ -337,6 +352,10 @@ def seven_axes() -> pd.DataFrame:
 
     def points(a, b, what):
         return decision.spread_words(100 * (sp[a] - sp[b]), " points", 1, "lower", "higher") + what
+
+    def shares(a, b, measure):
+        lower, higher = ("lower, so better", "higher, so worse") if measure == "brier" else ("lower", "higher")
+        return decision.spread_words(sp[a] - sp[b], "", 3, lower, higher)
 
     def nb(a, b, against):
         return decision.versus(sp[a] - sp[b], against)
@@ -371,7 +390,10 @@ def seven_axes() -> pd.DataFrame:
         ("1 Discrimination (mechanism)", figure_dx, text_dx, tx),
         ("2 Calibration (mechanism)",
          f"{cal(dx['figure'][0])}. A rule gives no probability, so the Brier score is the share misclassified",
-         cal(dx["text"][0]), cal(pre_tx)),
+         f"{cal(dx['text'][0])}. Across 20 further samples the text reading's Brier score less the figure's is "
+         f"{shares('brier: text', 'brier: figure', 'brier')}; its share flagged minus share in need less the "
+         f"figure's is {shares('calibration: text', 'calibration: figure', 'calibration')}",
+         cal(pre_tx)),
         ("3 Uncertainty expressed", "None: a priority, not a probability or an interval",
          "None: a priority, not a probability or an interval", "None: activate or not"),
         ("4 What it needed",
@@ -385,7 +407,15 @@ def seven_axes() -> pd.DataFrame:
          "A medic can follow it at the point of care: six yes-or-no steps, one observation each",
          "A medic can follow it: four yes-or-no items, counted"),
         ("6 Robustness, setting changed (mechanism)", ruled("figure"), ruled("text"),
-         f"With the scan in hospital: {disc(in_tx)}; {cal(in_tx)}. The scan item is more often right in hospital"),
+         f"With the scan in hospital: {disc(in_tx)}; {cal(in_tx)}. The scan item is more often right in hospital: "
+         f"across 20 further samples, the share of battle casualties whose scan result matches the generator's free "
+         f"fluid, in hospital less before hospital, is "
+         f"{points('scan matches free fluid, in hospital', 'scan matches free fluid', '')}. In hospital less "
+         f"before hospital, the score's sensitivity is "
+         f"{points('sensitivity, in hospital: ABC score', 'sensitivity: ABC score', '')}; its specificity is "
+         f"{points('specificity, in hospital: ABC score', 'specificity: ABC score', '')}; its Brier score is "
+         f"{shares('brier, in hospital: ABC score', 'brier: ABC score', 'brier')}; its share flagged minus share "
+         f"in need is {shares('calibration, in hospital: ABC score', 'calibration: ABC score', 'calibration')}"),
         ("7 Decision value", rule7("figure"), rule7("text"),
          decision.decision_value(abc_table(battle_obs)["score"].to_numpy() >= ABC_ACTIVATES_AT, battle_truth["bleeding"])
          + ", against significant bleeding, battle casualties, scan before hospital. "
@@ -396,6 +426,22 @@ def seven_axes() -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["axis", "diagnosis: MPTT-24, figure (as published)",
                                        "diagnosis: MPTT-24, text (as validated)", "treatment: ABC score"]
                         ).set_index("axis")
+
+
+def treatment_spread() -> pd.DataFrame:
+    """Each treatment row of the scorecard, the ABC score's value less its baseline, the MPTT-24's Priority 1
+    (figure), on 20 further samples (lesson 12), on the scale the scorecard shows (mechanism)."""
+    from inference_labs.lenses import decision
+
+    sp = scorecard_spread()
+    rows = []
+    for setting in SETTINGS:
+        at = "" if setting == "pre_hospital" else ", in hospital"
+        for key, name in TREATMENT_METRICS:
+            lower, higher = ("lower, so better", "higher, so worse") if key == "brier" else ("lower", "higher")
+            rows.append((treatment_metric(name, setting), decision.spread_words(
+                sp[f"{key}{at}: ABC score"] - sp[f"{key}{at}: MPTT-24 for bleeding"], "", 3, lower, higher)))
+    return pd.DataFrame(rows, columns=["metric", "value less baseline, across 20 further samples"]).set_index("metric")
 
 
 # ------------------------------------------------------------------------------------------------ app page 1
