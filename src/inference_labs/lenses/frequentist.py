@@ -416,19 +416,50 @@ def _methods(observed: pd.DataFrame) -> dict:
             TEXT: baseline.priority_one(observed, "text")}
 
 
-def scorecard_spread() -> pd.DataFrame:
-    """The score against the rule on 20 further samples of 100,000, seeds 43 onward (decision.need_spread): the
-    score at its own threshold for sensitivity and specificity, and at 0.10 for net benefit (mechanism)."""
+@lru_cache(maxsize=None)
+def _further_spread() -> pd.DataFrame:
+    """The score and both readings of the rule on the same 20 further samples, seeds 43 onward: the Brier score and
+    calibration on 100,000 of the military cohort, every stream, scan before hospital, and sensitivity and
+    specificity on 100,000 of the civilian cohort, the score at its own threshold (mechanism)."""
     from inference_labs.lenses import decision
 
-    return decision.need_spread(_methods, ((SCORE, fitted_score().threshold),))
+    own = fitted_score().threshold
+
+    def one(seed: int) -> dict:
+        row = {}
+        for cohort in baseline.COHORTS:
+            observed, truth = generator.sample(baseline.EVAL_N, seed, cohort=cohort, return_truth=True)
+            need = truth["needs_lsi"].to_numpy(bool)
+            for name, out in _methods(observed).items():
+                out = np.asarray(out)
+                if cohort == "military":
+                    row[f"brier: {name}"] = float(np.mean((out.astype(float) - need) ** 2))
+                    row[f"calibration: {name}"] = float(out.astype(float).mean() - need.mean())
+                else:
+                    flag = out if out.dtype == bool else out >= own
+                    row[f"sensitivity, civilian: {name}"] = float(flag[need].mean())
+                    row[f"specificity, civilian: {name}"] = float((~flag[~need]).mean())
+        return row
+
+    return decision.across_seeds(one)
+
+
+def scorecard_spread() -> pd.DataFrame:
+    """The score against both readings of the rule on 20 further samples of 100,000, seeds 43 onward
+    (decision.need_spread, with _further_spread joined): on the military cohort, every stream, the score at its own
+    threshold for sensitivity and specificity, its probability for the Brier score and calibration, and 0.10 for net
+    benefit, on every stream and on the battle casualties alone; on the civilian cohort, sensitivity and specificity
+    at its own threshold (mechanism)."""
+    from inference_labs.lenses import decision
+
+    return decision.need_spread(_methods, ((SCORE, fitted_score().threshold),)).join(_further_spread())
 
 
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
     computed on the generator or the fixture (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold
-    lens 10's default costs set (mechanism). Each comparison of the score with the rule is given with its spread
-    across 20 further samples (lesson 12)."""
+    lens 10's default costs set (mechanism). Each comparison of the score with either reading of the rule is given
+    with its spread across 20 further samples (lesson 12)."""
     from inference_labs.lenses import decision, rules
 
     sp = scorecard_spread()
@@ -436,6 +467,13 @@ def seven_axes() -> pd.DataFrame:
     def less(measure, other=FIGURE):
         return decision.spread_words(100 * (sp[f"{measure}: {SCORE}"] - sp[f"{measure}: {other}"]), " points", 1,
                                      "lower", "higher")
+
+    def brier_less(other):
+        return decision.spread_words(sp[f"brier: {SCORE}"] - sp[f"brier: {other}"], "", 3, "lower, so better",
+                                     "higher, so worse")
+
+    def nb_less(group, other, against):
+        return decision.versus(sp[f"net benefit{group}: {SCORE}"] - sp[f"net benefit{group}: {other}"], against)
 
     observed, truth = baseline.generator_sample()
     need = truth["needs_lsi"].to_numpy(bool)
@@ -459,13 +497,19 @@ def seven_axes() -> pd.DataFrame:
          f"sensitivity {_ci(pre['sensitivity'])}, specificity {_ci(pre['specificity'])}; area under the curve "
          f"{pre['auc']:.3f}; all 100,000 synthetic casualties of the military cohort, disease included. Across 20 "
          f"further samples, at the score's own threshold, its sensitivity less the MPTT-24's (figure) is "
-         f"{less('sensitivity')}; its specificity less the rule's is {less('specificity')}",
+         f"{less('sensitivity')}; its specificity less the rule's is {less('specificity')}; its sensitivity less "
+         f"the MPTT-24's (text) is {less('sensitivity', TEXT)}; its specificity less the text reading's is "
+         f"{less('specificity', TEXT)}",
          rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"Not a classifier. On the CRASH-2 fixture, {k1} of {n1} died with tranexamic acid and {k0} of {n0} with "
          f"placebo: {difference_words(d)}; synthetic rows, not trial data"),
         ("2 Calibration (mechanism)",
          f"Brier {pre['brier']:.3f}, where lower is better; mean probability minus share in need "
-         f"{pre['calibration']:+.3f}",
+         f"{pre['calibration']:+.3f}. Across 20 further samples, on every stream of the military cohort, its Brier "
+         f"score less the MPTT-24's (figure) is {brier_less(FIGURE)}; less the MPTT-24's (text), it is "
+         f"{brier_less(TEXT)}. Its mean probability minus share in need, less the MPTT-24's (figure) share flagged "
+         f"minus share in need, is {less('calibration')}; less the MPTT-24's (text), it is "
+         f"{less('calibration', TEXT)}",
          rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
          rule_cal(txt), "Not applicable"),
         ("3 Uncertainty expressed", "An interval on every rate",
@@ -482,17 +526,22 @@ def seven_axes() -> pd.DataFrame:
          f"Scan in hospital: sensitivity {_pct(inside['sensitivity'][0])}, specificity "
          f"{_pct(inside['specificity'][0])}, unchanged because in the generator the setting changes only the scan. Civilian cohort: "
          f"sensitivity {_pct(civ['logistic score']['sensitivity'][0])}, specificity "
-         f"{_pct(civ['logistic score']['specificity'][0])}",
+         f"{_pct(civ['logistic score']['specificity'][0])}. Across 20 further samples of the civilian cohort, at the "
+         f"score's own threshold, its sensitivity less the MPTT-24's (figure) is "
+         f"{less('sensitivity, civilian')}; its specificity less the figure reading's is "
+         f"{less('specificity, civilian')}; its sensitivity less the MPTT-24's (text) is {less('sensitivity, civilian', TEXT)}; its specificity less the "
+         f"text reading's is {less('specificity, civilian', TEXT)}",
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, figure (as published)']['sensitivity'][0])}, "
          f"specificity {_pct(civ['MPTT-24, figure (as published)']['specificity'][0])}",
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, text (as validated)']['sensitivity'][0])}, "
          f"specificity {_pct(civ['MPTT-24, text (as validated)']['specificity'][0])}",
          "Not applicable: the setting does not enter"),
-        ("7 Decision value", decision.decision_value(probability(observed), need, battle=battle) + "; "
-         + decision.versus(sp[f"net benefit: {SCORE}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)")
-         + "; among the battle casualties alone, "
-         + decision.versus(sp[f"net benefit, battle: {SCORE}"] - sp[f"net benefit, battle: {decision.FLAG_ALL}"],
-                           decision.FLAGGING_ALL),
+        ("7 Decision value", decision.decision_value(probability(observed), need, battle=battle)
+         + ". On every stream, " + nb_less("", FIGURE, "the MPTT-24 (figure)")
+         + "; " + nb_less("", TEXT, "the MPTT-24 (text)")
+         + ". Among the battle casualties alone, " + nb_less(", battle", FIGURE, "the MPTT-24 (figure)")
+         + "; " + nb_less(", battle", TEXT, "the MPTT-24 (text)")
+         + "; " + nb_less(", battle", decision.FLAG_ALL, decision.FLAGGING_ALL),
          decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
          decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
          "Not applicable: a trial read as an interval is not a decision on one casualty"),
