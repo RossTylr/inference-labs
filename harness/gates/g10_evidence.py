@@ -11,10 +11,10 @@ Conventions checked here
 - A line that cites a CARRIED entry must hold the word "provisional".
 - The app's source is read under the same two rules, so a figure shown on the page is held to them too (R-1.10).
 - An evidence id is civilian when a source its register row names in backticks has `population: civilian` in
-  library/curated.yaml. Every markdown cell of the slice's notebook, and every string the slice's own panel shows
-  (its SOURCE applied to the walk-through casualty under each of gate G-8's control settings), that cites a
-  civilian id must contain the word "civilian" itself. A source the register names with no recognised population
-  makes the gate not evaluable.
+  library/curated.yaml. Every markdown cell of the slice's notebook, the text every code cell prints (its stream
+  and text outputs, read together), and every string the slice's own panel shows (its SOURCE applied to the
+  walk-through casualty under each of gate G-8's control settings), that cites a civilian id must contain the word
+  "civilian" itself. A source the register names with no recognised population makes the gate not evaluable.
 """
 from __future__ import annotations
 
@@ -38,16 +38,26 @@ def status_word(cell: str) -> str:
 NUMBER = re.compile(r"(?<![\w.\-])\d+(?:[.,]\d+)?%?")
 
 
+TEXT_KINDS = ("text/plain", "text/markdown", "text/html")
+
+
+def printed_text(cell) -> str:
+    """Everything a code cell prints as text: its stream outputs and the text forms of its results."""
+    parts = []
+    for out in cell.get("outputs", []):
+        if "text" in out:
+            parts.append(str(out["text"]))
+        for kind in TEXT_KINDS:
+            if kind in out.get("data", {}):
+                parts.append(str(out["data"][kind]))
+    return "\n".join(parts)
+
+
 def _lines_of_notebook(nb) -> list[str]:
     lines = []
     for cell in nb.cells:
         lines += cell.source.splitlines()
-        for out in cell.get("outputs", []):
-            if "text" in out:
-                lines += str(out["text"]).splitlines()
-            for kind in ("text/plain", "text/markdown", "text/html"):
-                if kind in out.get("data", {}):
-                    lines += str(out["data"][kind]).splitlines()
+        lines += printed_text(cell).splitlines()
     return lines
 
 
@@ -181,8 +191,12 @@ def check(root: Path, slice_id: int, notebooks: list[Path] | None = None, app_fi
         for n, cell in enumerate(nb.cells):
             if cell.cell_type == "markdown":
                 problem = _civilian_problem(cell.source, civil, f"{path.name} cell {n}")
-                if problem:
-                    problems.append(problem)
+            elif cell.cell_type == "code":
+                problem = _civilian_problem(printed_text(cell), civil, f"{path.name} cell {n} printout")
+            else:
+                problem = None
+            if problem:
+                problems.append(problem)
     for path in app_files:
         problems += line_problems(path.read_text(encoding="utf-8").splitlines(), evidence, path.name)
     for where, text in panel_text.items():
@@ -194,4 +208,4 @@ def check(root: Path, slice_id: int, notebooks: list[Path] | None = None, app_fi
         return GateResult(False, "; ".join(problems[:8]), detail=problems)
     return GateResult(True, f"{cited} evidence ids listed and resolved; no NOT READ entry quoted as a number; "
                             "every CARRIED entry marked provisional; every civilian source called civilian where "
-                            f"cited ({len(panel_text)} panel strings read)")
+                            f"cited, in markdown cells, cell printouts and {len(panel_text)} panel strings")

@@ -34,7 +34,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 import numpy as np
 import pandas as pd
@@ -52,7 +52,15 @@ THRESHOLDS = np.round(np.arange(0.01, 0.61, 0.01), 2)
 CAPACITIES = (60, 50, 40, 30, 25, 20, 15, 10)            # flagged casualties that can be handled, per 100
 PAIRS, PAIR_SEED = 200_000, 10
 SPREAD_N = 400_000            # synthetic casualties in each further sample behind the aircraft spread
-SEEDS = 20                    # seeds behind every spread of a comparison of expected deaths
+SEEDS = 20                    # seeds behind every spread across samples (lesson 12)
+SPREAD_SEEDS = tuple(range(baseline.EVAL_SEED + 1, baseline.EVAL_SEED + 1 + SEEDS))   # the further samples, 43 to 62
+FLAG_ALL, FLAG_NONE = "flag every casualty", "flag none"   # net benefit's two reference strategies (E-93)
+FLAGGING_ALL, FLAGGING_NONE = "flagging every casualty", "flagging none"
+NET_BENEFIT_MEANING = (
+    "Net benefit judges a model by its consequences, at a threshold probability that encodes how a false alarm is "
+    "weighed against a miss (E-93); here it is computed per 100 casualties as those correctly flagged less those "
+    "wrongly flagged, the second weighted by the threshold over one minus it, and set beside flagging every casualty "
+    "and flagging none, which scores zero.")
 SETTINGS = baseline.SETTINGS
 SETTING_NAMES = baseline.SETTING_NAMES
 
@@ -88,9 +96,77 @@ def net_benefit(flag: np.ndarray, need: np.ndarray, t: float) -> float:
     return float((tp - fp * t / (1 - t)) / need.size)
 
 
-def treat_all(need: np.ndarray, t: float) -> float:
+def flag_all(need: np.ndarray, t: float) -> float:
+    """Net benefit, per casualty, of flagging every casualty at threshold t."""
     q = float(np.mean(need))
     return q - (1 - q) * t / (1 - t)
+
+
+def as_flag(flag_or_p: np.ndarray, t: float | None = None) -> np.ndarray:
+    """A flag as it is, or a probability flagged at the threshold (by default the common one, 0.10)."""
+    arr = np.asarray(flag_or_p)
+    return arr if arr.dtype == bool else arr >= (threshold() if t is None else t)
+
+
+# ------------------------------------------------------------------------------------------------ spread (lesson 12)
+
+def across_seeds(compute: Callable[[int], Mapping[str, float]]) -> pd.DataFrame:
+    """The one helper behind every spread across samples (lesson 12): `compute(seed)` on each of the SEEDS further
+    samples, seeds 43 onward, one row per seed."""
+    return pd.DataFrame.from_dict({seed: dict(compute(seed)) for seed in SPREAD_SEEDS},
+                                  orient="index").rename_axis("sample seed")
+
+
+def spread_words(differences, unit: str = "", places: int = 2, lower: str = "fewer", higher: str = "more") -> str:
+    """A difference reported with its spread across seeds: a tie where the spread covers no difference (lesson 12).
+    `lower` and `higher` name the direction where the whole spread lies on one side."""
+    d = np.asarray(differences, float)
+    lo, hi = float(d.min()), float(d.max())
+    span = f"from {lo:+.{places}f} to {hi:+.{places}f}{unit} across {d.size} seeds"
+    if lo <= 0 <= hi:
+        return f"a tie: no detectable difference (the difference runs {span})"
+    return f"{lower if hi < 0 else higher}: the difference runs {span}"
+
+
+@lru_cache(maxsize=None)
+def need_spread(methods: Callable[[pd.DataFrame], Mapping[str, np.ndarray]],
+                own: tuple[tuple[str, float], ...] = (), setting: str = "pre_hospital") -> pd.DataFrame:
+    """Every method that flags need for a life-saving intervention, on SEEDS further samples of 100,000 synthetic
+    casualties of the military cohort, every stream (mechanism). `methods(observed)` returns each method's
+    probability or flag. Per seed and method: net benefit per 100 at the common threshold on every stream and on the
+    battle casualties alone, expected cost per 100 at the default costs, and sensitivity and specificity at the
+    method's own threshold, given in `own`, or as flagged; a probability also gets its area under the curve."""
+    from sklearn.metrics import roc_auc_score
+
+    t, thresholds = threshold(), dict(own)
+
+    def one(seed: int) -> dict:
+        observed, truth = generator.sample(baseline.EVAL_N, seed, setting=setting, return_truth=True)
+        need = truth["needs_lsi"].to_numpy(bool)
+        battle = (observed["stream"] == "battle").to_numpy()
+        row = {f"net benefit: {FLAG_ALL}": 100 * flag_all(need, t),
+               f"net benefit, battle: {FLAG_ALL}": 100 * flag_all(need[battle], t)}
+        for name, out in methods(observed).items():
+            out = np.asarray(out)
+            flag = as_flag(out, t)
+            mine = out if out.dtype == bool else out >= thresholds.get(name, t)
+            row[f"net benefit: {name}"] = 100 * net_benefit(flag, need, t)
+            row[f"net benefit, battle: {name}"] = 100 * net_benefit(flag[battle], need[battle], t)
+            row[f"expected cost: {name}"] = expected_cost(flag, need)
+            row[f"sensitivity: {name}"] = float(mine[need].mean())
+            row[f"specificity: {name}"] = float((~mine[~need]).mean())
+            if out.dtype != bool:
+                row[f"area under the curve: {name}"] = float(roc_auc_score(need, out))
+        return row
+
+    return across_seeds(one)
+
+
+def versus(differences, against: str, unit: str = " per 100", places: int = 1) -> str:
+    """A comparison of net benefit across the further samples, in words: `against` names what it is set against."""
+    d = np.asarray(differences, float)
+    return (f"across {d.size} further samples its net benefit less that of {against} is "
+            f"{spread_words(d, unit, places, 'lower', 'higher')}")
 
 
 # ------------------------------------------------------------------------------------------------ diagnosis
@@ -109,15 +185,16 @@ def diagnosis_inputs(setting: str = "pre_hospital") -> dict:
 
 @lru_cache(maxsize=None)
 def net_benefit_table() -> pd.DataFrame:
-    """Net benefit per 100 casualties across thresholds for each method, treat all and treat none (mechanism)."""
+    """Net benefit per 100 casualties across thresholds for each method, flagging every casualty and flagging none
+    (mechanism)."""
     d = diagnosis_inputs()
     rows = {}
     for name, p in d["probabilities"].items():
         rows[name] = [100 * net_benefit(p >= t, d["need"], t) for t in THRESHOLDS]
     for name, flag in d["flags"].items():
         rows[name] = [100 * net_benefit(flag, d["need"], t) for t in THRESHOLDS]
-    rows["treat all"] = [100 * treat_all(d["need"], t) for t in THRESHOLDS]
-    rows["treat none"] = [0.0] * len(THRESHOLDS)
+    rows[FLAG_ALL] = [100 * flag_all(d["need"], t) for t in THRESHOLDS]
+    rows[FLAG_NONE] = [0.0] * len(THRESHOLDS)
     return pd.DataFrame(rows, index=pd.Index(THRESHOLDS, name="threshold"))
 
 
@@ -319,25 +396,14 @@ def _score_pairs(observed: pd.DataFrame, truth: pd.DataFrame, setting: str, flig
 def aircraft_spread(setting: str = "pre_hospital") -> pd.DataFrame:
     """The four ways of choosing, each scored on SEEDS further samples of SPREAD_N synthetic casualties (seeds 43
     onward), with PAIRS random pairs of their battle casualties alive at the decision drawn from each (mechanism)."""
-    rows = {}
-    for k in range(SEEDS):
-        seed = baseline.EVAL_SEED + 1 + k
+    def one(seed: int) -> dict:
         observed, truth = generator.sample(SPREAD_N, seed, setting=setting, return_truth=True)
         keep = (observed["stream"] == "battle").to_numpy()
         scored = _score_pairs(observed[keep].reset_index(drop=True), truth[keep].reset_index(drop=True), setting,
-                              FLIGHT_MIN, PAIR_SEED + k)
-        rows[seed] = {name: value for name, value in scored.items() if name != "pairs"}
-    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("sample seed")
+                              FLIGHT_MIN, PAIR_SEED + SPREAD_SEEDS.index(seed))
+        return {name: value for name, value in scored.items() if name != "pairs"}
 
-
-def spread_words(differences, unit: str = "") -> str:
-    """A difference reported with its spread across seeds: a tie where the spread covers no difference."""
-    d = np.asarray(differences, float)
-    lo, hi = float(d.min()), float(d.max())
-    span = f"from {lo:+.2f} to {hi:+.2f}{unit} across {d.size} seeds"
-    if lo <= 0 <= hi:
-        return f"a tie: no detectable difference (the difference runs {span})"
-    return f"{'fewer' if hi < 0 else 'more'}: the difference runs {span}"
+    return across_seeds(one)
 
 
 def aircraft_summary(setting: str = "pre_hospital") -> dict:
@@ -386,8 +452,7 @@ def torso_failure(setting: str = "pre_hospital", costs_key: tuple = tuple(DEFAUL
 def alive_at_triage(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
     """False for a casualty whose bleeding death without tranexamic acid, in the generator, falls at or before the
     triage time; those casualties are not there to be triaged or flown."""
-    died = truth["died_if_untreated"].to_numpy(bool)
-    return ~(died & (60 * truth["t_death_potential_h"].to_numpy(float) <= observed["t_phec_min"].to_numpy(float)))
+    return ~baseline.died_before_care(observed, truth)
 
 
 def lethal_after_triage(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
@@ -402,31 +467,32 @@ def torso_spread(setting: str = "pre_hospital") -> pd.DataFrame:
     100,000 synthetic casualties (seeds 43 onward), battle casualties alive at triage only (mechanism)."""
     cuts = {name: r["threshold"] for name, r in torso_failure(setting).items()}
     tree = trees.treatment_tree(setting)
-    rows = {}
-    for seed in range(baseline.EVAL_SEED + 1, baseline.EVAL_SEED + 1 + SEEDS):
+
+    def one(seed: int) -> dict:
         observed, truth = generator.sample(baseline.EVAL_N, seed, setting=setting, return_truth=True)
         keep = (observed["stream"] == "battle").to_numpy() & alive_at_triage(observed, truth)
         observed, truth = observed[keep].reset_index(drop=True), truth[keep].reset_index(drop=True)
         p = tree.predict_proba(trees.tx_matrix(observed))[:, 1]
         truncal = truth["bleeding"].to_numpy(bool) & (truth["site"].to_numpy(object) == "truncal")
         lethal = lethal_after_triage(observed, truth)
-        rows[seed] = {name: float(lethal[truncal & (p < t)].sum()) for name, t in cuts.items()}
-    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("sample seed")
+        return {name: float(lethal[truncal & (p < t)].sum()) for name, t in cuts.items()}
+
+    return across_seeds(one)
 
 
 # ------------------------------------------------------------------------------------------------ axis 7
 
 def _worse(nb: float, all_: float, flags_all: bool) -> str:
     if flags_all:
-        return " (it flags every casualty at this threshold, so it scores exactly as treating all)"
-    return (" (worse than treating none)" if nb < 0 else " (below treating all)" if nb < all_ - 1e-9 else
-            " (no better than treating all)" if nb <= all_ + 1e-9 else "")
+        return f" (it flags every casualty at this threshold, so it scores exactly as {FLAGGING_ALL})"
+    return (f" (worse than {FLAGGING_NONE})" if nb < 0 else f" (below {FLAGGING_ALL})" if nb < all_ - 1e-9 else
+            f" (no better than {FLAGGING_ALL})" if nb <= all_ + 1e-9 else "")
 
 
 def _nb_text(nb: float, all_: float, t: float, costs: Mapping[str, float], flags_all: bool = False) -> str:
     return (f"Net benefit {100 * nb:.1f} per 100 at a threshold of {t:.2f}{_worse(nb, all_, flags_all)}, with a miss "
-            f"weighed {costs['miss'] / costs['false alarm']:g} times a false alarm (an assumption); treat all "
-            f"{100 * all_:.1f}, treat none 0 (mechanism)")
+            f"weighed {costs['miss'] / costs['false alarm']:g} times a false alarm (an assumption); {FLAG_ALL} "
+            f"{100 * all_:.1f}, {FLAG_NONE} 0 (mechanism)")
 
 
 def decision_value(flag_or_p: np.ndarray, target: np.ndarray, costs: Mapping[str, float] = DEFAULT_COSTS,
@@ -434,16 +500,16 @@ def decision_value(flag_or_p: np.ndarray, target: np.ndarray, costs: Mapping[str
     """Axis 7 of D-21 for one lens's output: net benefit at 0.10 for every lens (D-26), the threshold the default
     costs set. Given `battle`, the battle casualties alone are reported too, since there the comparison reverses."""
     t = threshold(costs)
-    arr = np.asarray(flag_or_p)
-    flag = arr if arr.dtype == bool else arr >= t
+    flag = as_flag(flag_or_p, t)
     target = np.asarray(target, bool)
-    text = _nb_text(net_benefit(flag, target, t), treat_all(target, t), t, costs, bool(flag.all()))
+    text = _nb_text(net_benefit(flag, target, t), flag_all(target, t), t, costs, bool(flag.all()))
     if battle is not None:
         b = np.asarray(battle, bool)
-        nb, all_ = net_benefit(flag[b], target[b], t), treat_all(target[b], t)
+        nb, all_ = net_benefit(flag[b], target[b], t), flag_all(target[b], t)
         text += (f". Battle casualties alone, where a share of {target[b].mean():.3f} need it against a threshold of "
                  f"{t:.3f}: "
-                 f"net benefit {100 * nb:.1f}{_worse(nb, all_, bool(flag[b].all()))}, treat all {100 * all_:.1f}")
+                 f"net benefit {100 * nb:.1f} per 100{_worse(nb, all_, bool(flag[b].all()))}, {FLAG_ALL} "
+                 f"{100 * all_:.1f} (mechanism)")
     return text
 
 
@@ -459,8 +525,8 @@ def battle_reversal() -> pd.DataFrame:
     for name, flag in flags.items():
         rows[name] = {"every stream": 100 * net_benefit(flag, d["need"], t),
                       "battle casualties alone": 100 * net_benefit(flag[battle], d["need"][battle], t)}
-    rows["treat all"] = {"every stream": 100 * treat_all(d["need"], t),
-                         "battle casualties alone": 100 * treat_all(d["need"][battle], t)}
+    rows[FLAG_ALL] = {"every stream": 100 * flag_all(d["need"], t),
+                      "battle casualties alone": 100 * flag_all(d["need"][battle], t)}
     return pd.DataFrame.from_dict(rows, orient="index")
 
 
@@ -483,15 +549,37 @@ def battle_share_in_need() -> dict:
     return {"every stream": float(need.mean()), "battle casualties alone": float(need[battle].mean())}
 
 
+@lru_cache(maxsize=None)
+def bayesian_spread(setting: str) -> pd.DataFrame:
+    """Axis 7 for lens 03 on 20 further samples of 100,000 synthetic casualties, seeds 43 onward: net benefit per 100
+    of the belief after the scan and of the MPTT-24's Priority 1, against bleeding into the abdomen on the battle
+    casualties (mechanism)."""
+    from inference_labs.lenses import bayesian
+
+    t = threshold()
+
+    def one(seed: int) -> dict:
+        observed, truth = rules._battle(*generator.sample(baseline.EVAL_N, seed, setting=setting, return_truth=True))
+        target = truth["free_fluid"].to_numpy(bool)
+        return {"lens": 100 * net_benefit(bayesian.beliefs(observed, bayesian.default_prior()) >= t, target, t),
+                "baseline": 100 * net_benefit(baseline.priority_one(observed, "figure"), target, t),
+                FLAG_ALL: 100 * flag_all(target, t)}
+
+    return across_seeds(one)
+
+
 def bayesian_decision_value(setting: str) -> dict:
     """Axis 7 for lens 03: the belief after the scan, and the MPTT-24's Priority 1, against bleeding into the abdomen
-    on the evaluation sample's battle casualties."""
+    on the evaluation sample's battle casualties, each with its spread across 20 further samples."""
     from inference_labs.lenses import bayesian
 
     observed, truth = rules.battle_sample(setting)
     target = truth["free_fluid"].to_numpy(bool)
-    return {"lens": decision_value(bayesian.beliefs(observed, bayesian.default_prior()), target),
-            "baseline": decision_value(baseline.priority_one(observed, "figure"), target)}
+    sp = bayesian_spread(setting)
+    return {"lens": decision_value(bayesian.beliefs(observed, bayesian.default_prior()), target) + "; "
+                    + versus(sp["lens"] - sp["baseline"], "the MPTT-24's Priority 1 (figure)"),
+            "baseline": decision_value(baseline.priority_one(observed, "figure"), target) + "; "
+                        + versus(sp["baseline"] - sp[FLAG_ALL], FLAGGING_ALL)}
 
 
 # ------------------------------------------------------------------------------------------------ the lens
@@ -527,7 +615,8 @@ class DecisionLens:
             rule = d["flags"]["MPTT-24, figure (as published)"]
             for name, f in (("sensitivity", lambda x: float(x[d["need"]].mean())),
                             ("specificity", lambda x: float((~x[~d["need"]]).mean())),
-                            ("expected cost per 100", lambda x: expected_cost(x, d["need"], self.costs)),
+                            ("expected cost per 100, where lower is better",
+                             lambda x: expected_cost(x, d["need"], self.costs)),
                             ("net benefit per 100", lambda x: 100 * net_benefit(x, d["need"], t))):
                 rows.append(ScorecardRow(NAME, "diagnosis", f"{name}, lens 02's score at the cost threshold {t:.2f} "
                                          f"against need for a life-saving intervention, {SETTING_NAMES[setting]}",
@@ -536,7 +625,7 @@ class DecisionLens:
             r = aircraft_summary(setting)
             after = "" if setting == "pre_hospital" else ", belief after triage as the scan comes after the flight"
             rows.append(ScorecardRow(NAME, "treatment", "expected deaths before surgery from bleeding into the abdomen "
-                                     "per 100 pairs, one aircraft, belief and "
+                                     "per 100 pairs, where fewer is better, one aircraft, belief and "
                                      f"clock against MPTT-24 priority, mean over {r['seeds']} samples of "
                                      f"{SPREAD_N:,} casualties with {PAIRS:,} pairs from each, battle "
                                      f"casualties alive at the decision, assumed flight time, "
@@ -554,9 +643,24 @@ def _pct(x: float) -> str:
     return f"{100 * x:.1f}%"
 
 
+LENS02, FIGURE, TEXT = "logistic score (lens 02)", "MPTT-24, figure (as published)", "MPTT-24, text (as validated)"
+
+
+def _diagnosis_methods(observed: pd.DataFrame) -> dict:
+    return {LENS02: frequentist.probability(observed), FIGURE: baseline.priority_one(observed, "figure"),
+            TEXT: baseline.priority_one(observed, "text")}
+
+
+def diagnosis_spread() -> pd.DataFrame:
+    """The diagnosis comparison on 20 further samples of 100,000, seeds 43 onward (need_spread; mechanism)."""
+    return need_spread(_diagnosis_methods)
+
+
 def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
-    """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24)."""
+    """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Each comparison of the
+    decision with the rule is given with its spread across 20 further samples (lesson 12)."""
     t = threshold(costs)
+    sp = diagnosis_spread()
     d, d_in = diagnosis_inputs("pre_hospital"), diagnosis_inputs("in_hospital")
     p = d["probabilities"]["logistic score (lens 02)"]
     flag = p >= t
@@ -571,11 +675,20 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
         return f"sensitivity {_pct(f[need].mean())}, specificity {_pct((~f[~need]).mean())}"
 
     def cost(f):
-        return f"expected cost {expected_cost(f, need, costs):.1f} per 100 at the stated costs (assumptions)"
+        return (f"expected cost {expected_cost(f, need, costs):.1f} per 100 at the stated costs (assumptions), where "
+                f"lower is better")
 
+    def less(measure, unit, places, scale=1.0):
+        return spread_words(scale * (sp[f"{measure}: {LENS02}"] - sp[f"{measure}: {FIGURE}"]), unit, places,
+                            "lower", "higher")
+
+    against = ("Across 20 further samples, at the default costs, the decision's {} less the MPTT-24's (figure) is {}")
     group = "all 100,000 synthetic casualties of the military cohort, disease included"
     rows = [
-        ("1 Discrimination (mechanism)", f"{disc(flag)} at the cost threshold {t:.2f}; {group}", disc(fig), disc(txt),
+        ("1 Discrimination (mechanism)", f"{disc(flag)} at the cost threshold {t:.2f}; {group}. "
+         + against.format("sensitivity", less("sensitivity", " points", 1, 100)) + "; its specificity less the rule's "
+         f"is {less('specificity', ' points', 1, 100)}",
+         f"{disc(fig)}. " + rules.d23_sentence(), disc(txt),
          f"Not a classifier: expected deaths before surgery from bleeding into the abdomen per 100 pairs of battle "
          f"casualties alive at the "
          f"decision, at an assumed flight time, mean over {pre['seeds']} samples of {SPREAD_N:,} casualties with "
@@ -585,7 +698,8 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
          f"chance; {m_pre['knowing who is bleeding, and how badly']:.2f} if it were known who is bleeding and how "
          f"badly; scan before hospital"),
         ("2 Calibration (mechanism)", f"{cost(flag)}; the probability it acts on has calibration "
-         f"{frequentist.diagnosis_results('pre_hospital')['calibration']:+.3f}", cost(fig), cost(txt),
+         f"{frequentist.diagnosis_results('pre_hospital')['calibration']:+.3f}. "
+         + against.format("expected cost", less("expected cost", " per 100", 1)), cost(fig), cost(txt),
          "Not applicable"),
         ("3 Uncertainty expressed", "None in the decision; the costs are stated, not estimated", "None: a priority",
          "None: a priority", "The belief behind each casualty is a distribution (lens 03)"),
@@ -600,8 +714,12 @@ def seven_axes(costs: Mapping[str, float] = DEFAULT_COSTS) -> pd.DataFrame:
          f"generator the setting changes only the scan", "Unchanged", "Unchanged",
          f"Scan in hospital: the scan comes after the flight, so the choice rests on the belief after triage: "
          f"{m_in['belief and clock']:.2f} against {m_in[rule]:.2f} per 100 pairs, {inside['against the rule']}"),
-        ("7 Decision value", decision_value(p, need, costs, battle), decision_value(fig, need, costs, battle),
-         decision_value(txt, need, costs, battle), "Expected deaths are the decision value here: see axis 1"),
+        ("7 Decision value", decision_value(p, need, costs, battle) + "; "
+         + versus(sp[f"net benefit: {LENS02}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)") + "; among "
+         "the battle casualties alone, " + versus(sp[f"net benefit, battle: {LENS02}"]
+                                                  - sp[f"net benefit, battle: {FLAG_ALL}"], FLAGGING_ALL),
+         decision_value(fig, need, costs, battle), decision_value(txt, need, costs, battle),
+         "Expected deaths are the decision value here: see axis 1"),
     ]
     return pd.DataFrame(rows, columns=["axis", "diagnosis: decision on lens 02's score",
                                        "baseline: MPTT-24, figure (as published)",

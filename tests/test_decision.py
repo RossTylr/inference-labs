@@ -29,9 +29,9 @@ def test_net_benefit_matches_its_definition():
     need = np.array([True, True, False, False])
     flag = np.array([True, False, True, False])
     assert d.net_benefit(flag, need, 0.2) == pytest.approx((1 - 1 * 0.25) / 4)
-    assert d.treat_all(need, 0.2) == pytest.approx(0.5 - 0.5 * 0.25)
+    assert d.flag_all(need, 0.2) == pytest.approx(0.5 - 0.5 * 0.25)
     table = d.net_benefit_table()
-    assert (table["treat none"] == 0).all()
+    assert (table[d.FLAG_NONE] == 0).all()
     assert table.loc[0.1, "logistic score (lens 02)"] > table.loc[0.1, "MPTT-24, figure (as published)"]
 
 
@@ -106,12 +106,12 @@ def test_probabilities_and_thresholds_are_compared_at_full_precision_and_shown_a
     assert d.against_threshold(0.05, 0.1, show=False) == "below the threshold of 0.100"
 
 
-def test_the_battle_casualties_alone_reverse_the_comparison_with_treating_all():
-    """Lesson 16 and D-26: among battle casualties half need an intervention, and treating all beats every method."""
+def test_the_battle_casualties_alone_reverse_the_comparison_with_flagging_every_casualty():
+    """Lesson 16 and D-26: among battle casualties half need an intervention, and flagging every casualty beats every method."""
     table = d.battle_reversal()
     alone = table["battle casualties alone"]
-    assert (alone.drop("treat all") < alone["treat all"]).all()
-    assert table.loc["logistic score (lens 02)", "every stream"] > table.loc["treat all", "every stream"]
+    assert (alone.drop(d.FLAG_ALL) < alone[d.FLAG_ALL]).all()
+    assert table.loc["logistic score (lens 02)", "every stream"] > table.loc[d.FLAG_ALL, "every stream"]
     assert d.battle_share_in_need()["battle casualties alone"] > 0.4
     flags_all = d.decision_value(np.ones(4, bool), np.array([True, False, True, False]))
     assert "flags every casualty" in flags_all
@@ -151,3 +151,12 @@ def test_the_panel_calls_every_cost_an_assumption():
     assert "(mechanism)" in shown["costs"] and "(mechanism)" in shown["evacuation"]
     inside = d.panel({**record, "setting": "in_hospital"}, bayesian.belief_line({**record, "setting": "in_hospital"}))
     assert "after triage" in inside["evacuation"] and "after the scan" in shown["evacuation"]
+
+
+def test_every_spread_runs_through_one_helper_on_twenty_further_samples():
+    """Lesson 12: seeds 43 to 62, and the words for a tie."""
+    table = d.across_seeds(lambda seed: {"seed": float(seed)})
+    assert list(table.index) == list(range(43, 63)) and len(table) == d.SEEDS
+    assert d.spread_words([-1.0, -0.5], " per 100", 1, "lower", "higher").startswith("lower")
+    assert "flag every casualty" in d.decision_value(np.array([True, False]), np.array([True, False]))
+    assert "treat all" not in d.decision_value(np.array([True, False]), np.array([True, False]))

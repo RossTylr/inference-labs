@@ -92,3 +92,14 @@ def test_the_panel_states_both_readings_and_labels_its_published_figures():
         assert "reading the published figure" in shown["priority"] and "Reading the paper's text" in shown["priority"]
         assert "(E-09, E-11)" in shown["published"] and "not at the point of injury" in shown["published"]
         assert "an assumption" in shown["transfusion"] and "(E-86)" in shown["txa"]
+
+
+def test_the_seven_axes_show_both_readings_and_the_shared_d23_sentence():
+    """D-24 and D-23: the published figure and the text reading as validated, each with its own column."""
+    axes = r.seven_axes()
+    assert "diagnosis: MPTT-24, figure (as published)" in axes.columns
+    assert "diagnosis: MPTT-24, text (as validated)" in axes.columns
+    sentence = r.d23_sentence()
+    assert "26.5%" in sentence and "47.6%" in sentence and "(D-23)" in sentence
+    assert sentence in axes.iloc[0, 0]
+    assert "across 20 seeds" in axes.iloc[6, 0]

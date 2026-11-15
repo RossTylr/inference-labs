@@ -561,7 +561,7 @@ def scan_word(value: Any) -> bool | None:
     return bool(value)
 
 
-DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score"),
+DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score, where lower is better"),
                      ("calibration", "share positive minus share with free fluid"))
 
 
@@ -623,14 +623,10 @@ def seven_axes() -> pd.DataFrame:
     sp, si = scan_spread("pre_hospital"), scan_spread("in_hospital")
     e = estimates()[ALL]
     t = decision.threshold()
-    registry = rules.PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
     every, p1, conf = SELECTIONS
     group = (f"{pre['battle casualties']:,} synthetic battle casualties, {pre[every]['with free fluid']:,} with free "
              f"fluid")
-    d23 = (f"Among the generator's injured in the military cohort, battle and non-battle injury together, "
-           f"{_pct(baseline.calibration_need('military'))} need a life-saving intervention, against "
-           f"{_pct(registry)} Priority 1 in the military registry (E-01, E-09), so the generator's injured are a milder "
-           f"cohort than the one the rule was validated on (D-23)")
+    d23 = rules.d23_sentence("the battle casualties of the military cohort")
 
     def scan_disc(r):
         return (f"on every casualty sensitivity {_pct(r[every]['sensitivity'])}, specificity "
@@ -643,8 +639,9 @@ def seven_axes() -> pd.DataFrame:
 
     def rule_cal(r):
         gap = r["calibration"]
-        return (f"Brier {r['brier']:.3f}; it flags {100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than "
-                f"have free fluid. A rule gives no probability, so the Brier score is the share misclassified")
+        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points "
+                f"{'more' if gap > 0 else 'fewer'} than have free fluid. A rule gives no probability, so the Brier "
+                f"score is the share misclassified")
 
     def diff(name):
         return spread_words(spread_of(ALL, name), 2, " per 100")
@@ -664,12 +661,13 @@ def seven_axes() -> pd.DataFrame:
          f"{e[ESTIMATORS[1]].direction()}. Adjusted on the recorded signs alone: {e[ESTIMATORS[2]].direction()}. "
          f"{TRUE_SOURCE}"),
         ("2 Calibration (mechanism)",
-         f"Brier {pre['scan metrics']['brier']:.3f}; share positive minus share with free fluid "
+         f"Brier {pre['scan metrics']['brier']:.3f}, where lower is better; share positive minus share with free fluid "
          f"{pre['scan metrics']['calibration']:+.3f}, on every casualty. What a positive scan means moves with who is "
          f"scanned: positive predictive value {_pct(pre[every]['positive predictive value'])} on every casualty, "
          f"{_pct(pre[p1]['positive predictive value'])} when {p1}, which less every casualty is "
          f"{spread_words(100 * (sp[f'{p1}: positive predictive value'] - sp[f'{every}: positive predictive value']), 1, ' points')}. "
-         f"The scan's Brier score less the rule's is {spread_words(sp['scan Brier'] - sp['rule Brier'], 3)}",
+         f"The scan's Brier score less the rule's, where lower is better, is "
+         f"{spread_words(sp['scan Brier'] - sp['rule Brier'], 3)}",
          rule_cal(pre["figure"]), rule_cal(pre["text"]),
          f"Each estimate less the true value, per 100, across {SEEDS} further samples. Naive: {diff(ESTIMATORS[0])}. "
          f"Adjusted for every variable the allocation uses: {diff(ESTIMATORS[1])}. Adjusted on the recorded signs "
@@ -688,7 +686,8 @@ def seven_axes() -> pd.DataFrame:
          "Six yes-or-no steps", "Six yes-or-no steps",
          "One diagram: the arrows into treatment, and whether each is recorded"),
         ("6 Robustness, setting changed (mechanism)",
-         f"Scan in hospital: {scan_disc(inside)}. The scan's Brier score less the rule's, in hospital, is "
+         f"Scan in hospital: {scan_disc(inside)}. The scan's Brier score less the rule's, in hospital, where lower is "
+         f"better, is "
          f"{spread_words(si['scan Brier'] - si['rule Brier'], 3)}",
          f"Scan in hospital: {rule_disc(inside['figure'])}, unchanged because the setting changes only the scan",
          f"Scan in hospital: {rule_disc(inside['text'])}, unchanged",
@@ -728,7 +727,8 @@ def panel(record: Mapping[str, Any]) -> dict:
                          f"{_pct(r[sel]['specificity'])}" for sel in SELECTIONS)
     source = ("before hospital the generator's scan accuracy is set from E-16, a civilian helicopter service"
               if reading.setting == "pre_hospital" else
-              "in hospital the generator's scan accuracy is set from E-14's pooled figures")
+              "in hospital the generator's scan accuracy is set from E-14, pooled from in-hospital studies, 52 of "
+              "them for free fluid within 75 studies of 24,350 patients")
     return {
         "heading": "Causal panel: what a record would show, and what is true",
         "allocation": (f"Pre-hospital care at {minutes:.1f} minutes after injury puts this casualty in the band "

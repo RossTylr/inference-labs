@@ -1,8 +1,8 @@
 """Planted defects for G-10: an evidence id that does not resolve, an id cited but not listed, a NOT READ
 entry quoted as a number, a CARRIED entry without the word provisional (in the notebook and in the app), and a
-civilian source cited without the word civilian (in a notebook markdown cell and in a panel string). A READ entry
-whose status note mentions papers not read is still READ. A source with no recognised population cannot be
-evaluated."""
+civilian source cited without the word civilian (in a notebook markdown cell, in what a code cell prints and in a
+panel string). A READ entry whose status note mentions papers not read is still READ. A source with no recognised
+population cannot be evaluated."""
 import nbformat
 
 from harness.gates import g10_evidence
@@ -29,13 +29,17 @@ GOOD_LINES = [
 
 
 def _check(tmp_path, lines=GOOD_LINES, evidence=("E-14", "E-18", "E-33", "E-70", "E-20"), app=None, cells=None,
-           panel=None, curated=CURATED):
+           panel=None, curated=CURATED, printed=None):
     (tmp_path / "EVIDENCE.md").write_text(REGISTER)
     (tmp_path / "curated.yaml").write_text(curated)
     nb = nbformat.v4.new_notebook()
     nb.metadata["evidence"] = list(evidence)
     for text in cells if cells is not None else ["\n".join(lines)]:
         nb.cells.append(nbformat.v4.new_markdown_cell(text))
+    for text in printed or []:
+        cell = nbformat.v4.new_code_cell("print(table)")
+        cell.outputs = [nbformat.v4.new_output("stream", name="stdout", text=text)]
+        nb.cells.append(cell)
     path = tmp_path / "nb.ipynb"
     nbformat.write(nb, path)
     app_files = []
@@ -88,6 +92,16 @@ def test_the_word_civilian_must_be_in_the_same_cell(tmp_path):
     cells = ["CRASH-2 was a civilian trial.", "CRASH-2 found a risk ratio of 0.91 (E-20)."]
     result = _check(tmp_path, cells=cells)
     assert not result.passed and "nb.ipynb cell 1" in result.reason
+
+
+def test_a_civilian_source_cited_in_a_printout_without_the_word_fails(tmp_path):
+    result = _check(tmp_path, printed=["CRASH-2  0.91 (0.85 to 0.97)  recomputed  E-20\n"])
+    assert not result.passed and "nb.ipynb cell 1 printout" in result.reason and "E-20" in result.reason
+
+
+def test_a_printout_that_says_civilian_passes(tmp_path):
+    result = _check(tmp_path, printed=["CRASH-2, a civilian trial  0.91 (0.85 to 0.97)  E-20\n"])
+    assert result.passed, result.reason
 
 
 def test_a_civilian_source_cited_in_a_panel_string_without_the_word_fails(tmp_path):

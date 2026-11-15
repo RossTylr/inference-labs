@@ -757,7 +757,7 @@ def treatment_table(setting: str = "pre_hospital") -> pd.DataFrame:
             within = (float((observed[col].to_numpy()[m] <= link.minutes).mean())
                       if col is not None and link.minutes is not None and m.any() else float("nan"))
             rows.append({"condition": injury, "casualties": int(m.sum()), "intervention": link.intervention,
-                         "edge label": link.edge.label, "echelon": link.echelon or "not on the route",
+                         "edge label": shown_label(link.edge), "echelon": link.echelon or "not on the route",
                          "timeline": link.timeline, "share within the timeline": within})
     return pd.DataFrame(rows)
 
@@ -825,12 +825,19 @@ def map_of_care(injury: str, start: str = POINT) -> dict:
     return {"route": route,
             "legs": [(name_of(e.src), name_of(e.dst), e.props["timeline"], e.label) for e in g.edges(type="leads_to")],
             "held": {e: list(options_at(e)["intervention"]) for e in route},
-            "lit": [(link.intervention, link.echelon, link.edge.label) for link in links],
+            "lit": [(link.intervention, link.echelon, shown_label(link.edge)) for link in links],
             "behind": route[:route.index(start)],
             "first response": FIRST_RESPONSE}
 
 
-EDGE_STYLES = {"doctrine": "-", "trial evidence": "-.", "registry evidence": "--", "assumption": ":"}
+EDGE_STYLES = {"doctrine": "-", "US doctrine": "-", "trial evidence": "-.", "registry evidence": "--",
+               "assumption": ":"}
+
+
+def shown_label(e: Edge) -> str:
+    """An edge's label as it is shown: an edge from E-86 is US doctrine, and is shown as US doctrine wherever it
+    appears."""
+    return "US doctrine" if e.label == "doctrine" and "E-86" in str(e.source) else e.label
 
 
 # ------------------------------------------------------------------------------------------------ the rule as a traversal
@@ -901,7 +908,7 @@ def parameter_sources() -> pd.DataFrame:
     for k in g.nodes("parameter"):
         e = g.edges(src=k, type="taken_from")
         rows.append({"parameter": name_of(k), "source": ", ".join(name_of(x.dst) for x in e),
-                     "label": e[0].label if e else ""})
+                     "label": e[0].label if e else "", "population": e[0].population if e else ""})
     return pd.DataFrame(rows).set_index("parameter")
 
 
@@ -945,7 +952,7 @@ class KnowledgeLens:
         rows = []
         for setting in SETTINGS:
             r = diagnosis_results(setting)
-            for key, name in (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score"),
+            for key, name in (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score, where lower is better"),
                               ("calibration", "share flagged minus share in need")):
                 rows.append(ScorecardRow(NAME, "diagnosis",
                                          f"{name}, any candidate against need for a life-saving intervention, "
@@ -958,10 +965,10 @@ class KnowledgeLens:
         table = treatment_table()
         for _, row in table.dropna(subset=["share within the timeline"]).iterrows():
             rows.append(ScorecardRow(NAME, "treatment", f"share of casualties with {row['condition']} whose assumed "
-                                     f"time to {row['echelon']}, read from injury, is within the timeline on the edge "
-                                     f"into {row['echelon']} ({row['timeline']}); {row['echelon']} is the first "
-                                     f"echelon on the route holding {row['intervention']}, and the timeline is not a "
-                                     f"target for it",
+                                     f"time to {row['echelon']} is within the timeline on the edge into "
+                                     f"{row['echelon']} ({row['timeline']}), the timeline read as time from injury, an "
+                                     f"assumption; {row['echelon']} is the first echelon on the route holding "
+                                     f"{row['intervention']}, and the timeline is not a target for it",
                                      round(row["share within the timeline"], 4), NO_BASELINE, "mechanism", "native",
                                      "generator"))
         return rows
@@ -972,14 +979,6 @@ LENS = KnowledgeLens()
 
 HOSPITAL = ("The generator's physiology is an assumption, tuned until the rule landed within 0.05 of E-09's accuracy, "
             "which was measured on first recorded hospital respiratory rate and registry GCS, not at the point of injury")
-
-
-def d23_statement() -> str:
-    registry = rules.PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
-    return (f"Among the generator's injured in the military cohort, battle and non-battle injury together, "
-            f"{_pct(baseline.calibration_need('military'))} need a life-saving intervention, against "
-            f"{_pct(registry)} Priority 1 in the military registry (E-01, E-09), so the generator's injured are a milder "
-            f"cohort than the one the rule was validated on (D-23)")
 
 
 def seven_axes() -> pd.DataFrame:
@@ -993,8 +992,8 @@ def seven_axes() -> pd.DataFrame:
     n_edges = int(labels.sum())
 
     def flag_disc(r):
-        m = r["flag metrics"]
-        return f"sensitivity {_pct(m['sensitivity'])}, specificity {_pct(m['specificity'])}"
+        m = r["flag metrics"]     # to four places, as the scorecard rows give them (lesson 14)
+        return f"sensitivity {_pct(m['sensitivity'], 2)}, specificity {_pct(m['specificity'], 2)}"
 
     def lists(r):
         return (f"of the {r['with a condition']:,} casualties with a condition needing a life-saving intervention, the "
@@ -1006,8 +1005,9 @@ def seven_axes() -> pd.DataFrame:
 
     def cal(m, what):
         gap = m["calibration"]
-        return (f"Brier {m['brier']:.3f}; it flags {100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than "
-                f"are in need. {what} gives no probability, so the Brier score is the share misclassified")
+        return (f"Brier {m['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points "
+                f"{'more' if gap > 0 else 'fewer'} than are in need. {what} gives no probability, so the Brier score "
+                f"is the share misclassified")
 
     def timely(row):
         return f"{row['intervention']} at {row['echelon']}, {_pct(row['share within the timeline'])} within its timeline"
@@ -1022,7 +1022,7 @@ def seven_axes() -> pd.DataFrame:
          f"intervention, on the military cohort's 100,000 synthetic casualties; {lists(pre)}. Sensitivity less the "
          f"rule's (figure) is {spread_words(100 * sp['sensitivity, graph less rule'], 1, ' points')}; specificity less "
          f"the rule's is {spread_words(100 * sp['specificity, graph less rule'], 1, ' points')}",
-         f"{rule_disc(pre['figure'])}. {d23_statement()}. {HOSPITAL}", rule_disc(pre["text"]),
+         f"{rule_disc(pre['figure'])}. {rules.d23_sentence()} {HOSPITAL}", rule_disc(pre["text"]),
          f"Not a classifier: the chain from the point of injury for each condition, and the share of the generator's "
          f"casualties with it whose assumed time to the nearest echelon holding the intervention is within the timeline "
          f"on the edge into that echelon (E-42), {FROM_INJURY}. The timeline belongs to the edge, as E-42 states it, and "
@@ -1030,7 +1030,8 @@ def seven_axes() -> pd.DataFrame:
          f"assumptions, drawn for every casualty, including those it has dead from bleeding before then; time to "
          f"pre-hospital care stands in for reaching Role 1, and the generator holds no time for care at the point of "
          f"injury or for reaching Role 3"),
-        ("2 Calibration (mechanism)", cal(pre["flag metrics"], "A list") + f". Brier less the rule's is "
+        ("2 Calibration (mechanism)", cal(pre["flag metrics"], "A list") + f". Brier less the rule's, where lower is "
+         f"better, is "
          f"{spread_words(sp['Brier, graph less rule'], 3)}",
          cal(pre["figure"], "A rule"), cal(pre["text"], "A rule"),
          "Does not apply: a chain gives no probability"),
@@ -1043,7 +1044,8 @@ def seven_axes() -> pd.DataFrame:
          f"A hand-built graph and no labelled cases: {len(SUGGESTS)} suggests edges, every one an assumption written "
          f"from what the generator's code does",
          "Rules only (E-08)", "Rules only (E-08)",
-         f"Edges from AJP-4.10 (E-42 to E-44, currency not confirmed), US doctrine (E-86), CRASH-2 (E-19, E-20), "
+         f"Edges from AJP-4.10 (E-42 to E-44, currency not confirmed), US doctrine (E-86), CRASH-2, a civilian trial "
+         f"(E-19, E-20), "
          f"E-104 and assumptions: {assumed} of the graph's {n_edges} edges are assumptions. Nodes: "
          f"{sum(counts[t] for t in CHAIN_TYPES)} in the capability chain and {sum(counts[t] for t in RULE_TYPES)} in "
          f"the rule"),
@@ -1077,7 +1079,9 @@ def _edge_words(e: Edge) -> str:
     if e.label == "assumption":
         return "assumption"
     if e.source == "E-86":
-        return f"{e.label}, E-86, US doctrine, not UK practice"
+        return "US doctrine, E-86, not UK practice"
+    if e.source == "E-104":
+        return f"{e.label}, E-104, measured on CT of 100 male military cases"
     return f"{e.label}, {e.source}"
 
 

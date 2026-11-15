@@ -43,7 +43,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from inference_labs import baseline
+from inference_labs import baseline, generator
 from inference_labs.baseline import DEFAULT_READING, SETTING_NAMES, SETTINGS
 from inference_labs.interface import ScorecardRow
 
@@ -161,6 +161,17 @@ def ppv(sensitivity: float, specificity: float, prevalence: float) -> float:
     return hit / (hit + (1 - specificity) * (1 - prevalence))
 
 
+def d23_sentence(scored: str = "every stream of the military cohort, disease included",
+                 subject: str = "The scorecard's figures are") -> str:
+    """D-23's statement, one sentence for every lens wherever the rule's accuracy on the generator is quoted (lesson
+    16): what the figures are measured on, and the injured, on whom the comparison with E-09 holds."""
+    registry = PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
+    return (f"{subject} on {scored}; the comparison with E-09 holds for the injured only, of whom "
+            f"{_pct(baseline.calibration_need('military'))} need a life-saving intervention against {_pct(registry)} "
+            f"Priority 1 in the military registry (E-09), so the generator's injured are a milder cohort than the one "
+            f"the rule was validated on (D-23).")
+
+
 # ------------------------------------------------------------------------------------------------ the needle (E-104, E-106)
 
 CHEST_WALL_MEAN_CM, CHEST_WALL_SD_CM = 5.36, 1.19   # E-104: CT of 100 male military cases
@@ -264,15 +275,56 @@ def _pct(x: float) -> str:
     return f"{100 * x:.1f}%"
 
 
-def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
-    """The scorecard on the seven axes of D-21. Axes 1, 2 and 6 are computed on the generator (mechanism); axes 3,
-    4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's default costs set (mechanism)."""
+@lru_cache(maxsize=None)
+def scorecard_spread() -> pd.DataFrame:
+    """The scorecard's comparisons on 20 further samples of 100,000 synthetic casualties, seeds 43 onward (lesson
+    12), through decision.across_seeds: the two readings against need for a life-saving intervention on every
+    stream, and the ABC score against the MPTT-24's Priority 1 for significant bleeding on the battle casualties,
+    scan before hospital, each with its net benefit at the common threshold (mechanism)."""
     from inference_labs.lenses import decision
 
-    pre_dx, in_dx = (baseline.diagnosis_results(s, reading) for s in SETTINGS)
+    t = decision.threshold()
+
+    def one(seed: int) -> dict:
+        observed, truth = generator.sample(baseline.EVAL_N, seed, return_truth=True)
+        need = truth["needs_lsi"].to_numpy(bool)
+        battle = (observed["stream"] == "battle").to_numpy()
+        row = {"net benefit: flag every casualty": 100 * decision.flag_all(need, t),
+               "net benefit, battle: flag every casualty": 100 * decision.flag_all(need[battle], t)}
+        for reading in baseline.READINGS:
+            flag = baseline.priority_one(observed, reading)
+            row[f"sensitivity: {reading}"] = float(flag[need].mean())
+            row[f"specificity: {reading}"] = float((~flag[~need]).mean())
+            row[f"net benefit: {reading}"] = 100 * decision.net_benefit(flag, need, t)
+            row[f"net benefit, battle: {reading}"] = 100 * decision.net_benefit(flag[battle], need[battle], t)
+        b_obs, b_truth = _battle(observed, truth)
+        bleed = b_truth["bleeding"].to_numpy(bool)
+        abc = (abc_table(b_obs)["score"] >= ABC_ACTIVATES_AT).to_numpy()
+        rule = baseline.priority_one(b_obs, DEFAULT_READING)
+        for name, flag in (("ABC score", abc), ("MPTT-24 for bleeding", rule)):
+            row[f"sensitivity: {name}"] = float(flag[bleed].mean())
+            row[f"specificity: {name}"] = float((~flag[~bleed]).mean())
+            row[f"net benefit: {name}"] = 100 * decision.net_benefit(flag, bleed, t)
+        row["net benefit: flag every battle casualty for bleeding"] = 100 * decision.flag_all(bleed, t)
+        return row
+
+    return decision.across_seeds(one)
+
+
+def seven_axes() -> pd.DataFrame:
+    """The scorecard on the seven axes of D-21, with the MPTT-24 under both readings (D-24): the published figure, and
+    the paper's text, the reading E-09 was measured under. Axes 1, 2 and 6 are computed on the generator (mechanism);
+    axes 3, 4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's default costs set (mechanism). Each
+    comparison is given with its spread across 20 further samples (lesson 12)."""
+    from inference_labs.lenses import decision
+
     observed, truth = baseline.generator_sample()
+    battle = (observed["stream"] == "battle").to_numpy()
     battle_obs, battle_truth = battle_sample("pre_hospital")
-    pre_tx, in_tx = (treatment_results(s, reading)["abc"] for s in SETTINGS)
+    dx = {r: tuple(baseline.diagnosis_results(s, r) for s in SETTINGS) for r in baseline.READINGS}
+    pre_tx, in_tx = (treatment_results(s)["abc"] for s in SETTINGS)
+    rule_tx = treatment_results("pre_hospital")["mptt24"]
+    sp = scorecard_spread()
 
     def disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
@@ -280,37 +332,70 @@ def seven_axes(reading: str = DEFAULT_READING) -> pd.DataFrame:
     def cal(r):
         gap = r["calibration"]
         side = "more" if gap > 0 else "fewer"
-        return (f"Brier {r['brier']:.3f}; it flags {100 * abs(gap):.1f} points {side} of the casualties than are in "
-                f"need (share flagged minus share in need {gap:+.3f})")
+        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points {side} of the "
+                f"casualties than are in need (share flagged minus share in need {gap:+.3f})")
+
+    def points(a, b, what):
+        return decision.spread_words(100 * (sp[a] - sp[b]), " points", 1, "lower", "higher") + what
+
+    def nb(a, b, against):
+        return decision.versus(sp[a] - sp[b], against)
+
+    every = "all 100,000 synthetic casualties, disease included"
+    figure_dx = (f"{disc(dx['figure'][0])}: Priority 1 against need for a life-saving intervention, {every}. "
+                 + d23_sentence())
+    text_dx = (f"{disc(dx['text'][0])} on the same casualties. Across 20 further samples the text reading's "
+               f"sensitivity less the figure's is {points('sensitivity: text', 'sensitivity: figure', '')}; its "
+               f"specificity less the figure's is {points('specificity: text', 'specificity: figure', '')}")
+    tx = (f"{disc(pre_tx)}: score 2 or more against significant bleeding, battle casualties, scan before hospital. "
+          f"The MPTT-24's Priority 1 (figure) against the same target: {disc(rule_tx)}. Across 20 further samples the "
+          f"score's sensitivity less the MPTT-24's is "
+          f"{points('sensitivity: ABC score', 'sensitivity: MPTT-24 for bleeding', '')}; its specificity less the "
+          f"MPTT-24's is {points('specificity: ABC score', 'specificity: MPTT-24 for bleeding', '')}")
+
+    def rule7(reading):
+        flag = baseline.priority_one(observed, reading)
+        return (decision.decision_value(flag, truth["needs_lsi"], battle=battle) + ". On every stream, "
+                + nb(f"net benefit: {reading}", "net benefit: flag every casualty", decision.FLAGGING_ALL)
+                + "; among the battle casualties alone, "
+                + nb(f"net benefit, battle: {reading}", "net benefit, battle: flag every casualty",
+                     decision.FLAGGING_ALL))
+
+    def ruled(reading):
+        pre, inside = dx[reading]
+        return (f"With the scan in hospital: {disc(inside)}; {cal(inside)}. Unchanged, because the generator draws the "
+                "same physiology in either setting, so this axis cannot show what moving from hospital observations "
+                "to the point of injury would do (E-11)")
 
     rows = [
-        ("1 Discrimination (mechanism)",
-         f"{disc(pre_dx)}: Priority 1 against need for a life-saving intervention, all 100,000 synthetic casualties, "
-         "disease included",
-         f"{disc(pre_tx)}: score 2 or more against significant bleeding, battle casualties, scan before hospital"),
+        ("1 Discrimination (mechanism)", figure_dx, text_dx, tx),
         ("2 Calibration (mechanism)",
-         f"{cal(pre_dx)}. A rule gives no probability, so the Brier score is the share misclassified",
-         f"{cal(pre_tx)}"),
+         f"{cal(dx['figure'][0])}. A rule gives no probability, so the Brier score is the share misclassified",
+         cal(dx["text"][0]), cal(pre_tx)),
         ("3 Uncertainty expressed", "None: a priority, not a probability or an interval",
-         "None: activate or not"),
+         "None: a priority, not a probability or an interval", "None: activate or not"),
         ("4 What it needed",
          "Rules only at the point of use. Its thresholds descend from the MPTT, derived by logistic regression on "
          "3,654 patients with complete data (E-01, E-02, E-08)",
+         "Rules only at the point of use (E-08); this is the reading that matches the GCS on which E-09 was "
+         "measured",
          "Rules only at the point of use. Its published accuracy, 75% sensitive and 86% specific at a score of 2 "
          "or more, comes from 596 patients (E-31)"),
         ("5 Readability", "A medic can follow it at the point of care: six yes-or-no steps, one observation each",
+         "A medic can follow it at the point of care: six yes-or-no steps, one observation each",
          "A medic can follow it: four yes-or-no items, counted"),
-        ("6 Robustness, setting changed (mechanism)",
-         f"With the scan in hospital: {disc(in_dx)}; {cal(in_dx)}. Unchanged, because the generator draws the same "
-         "physiology in either setting, so this axis cannot show what moving from hospital observations to the "
-         "point of injury would do (E-11)",
+        ("6 Robustness, setting changed (mechanism)", ruled("figure"), ruled("text"),
          f"With the scan in hospital: {disc(in_tx)}; {cal(in_tx)}. The scan item is more often right in hospital"),
-        ("7 Decision value", decision.decision_value(baseline.priority_one(observed, reading), truth["needs_lsi"],
-                                                     battle=(observed["stream"] == "battle").to_numpy()),
-         decision.decision_value(abc_table(battle_obs)["score"].to_numpy() >= ABC_ACTIVATES_AT, battle_truth["bleeding"]) +
-         ", against significant bleeding, battle casualties, scan before hospital"),
+        ("7 Decision value", rule7("figure"), rule7("text"),
+         decision.decision_value(abc_table(battle_obs)["score"].to_numpy() >= ABC_ACTIVATES_AT, battle_truth["bleeding"])
+         + ", against significant bleeding, battle casualties, scan before hospital. "
+         + "A" + nb("net benefit: ABC score", "net benefit: MPTT-24 for bleeding", "the MPTT-24's Priority 1 (figure)")[1:]
+         + "; " + nb("net benefit: ABC score", "net benefit: flag every battle casualty for bleeding",
+                     "flagging every battle casualty")),
     ]
-    return pd.DataFrame(rows, columns=["axis", "diagnosis: MPTT-24", "treatment: ABC score"]).set_index("axis")
+    return pd.DataFrame(rows, columns=["axis", "diagnosis: MPTT-24, figure (as published)",
+                                       "diagnosis: MPTT-24, text (as validated)", "treatment: ABC score"]
+                        ).set_index("axis")
 
 
 # ------------------------------------------------------------------------------------------------ app page 1

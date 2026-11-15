@@ -169,6 +169,28 @@ def generator_sample(setting: str = "pre_hospital", cohort: str = "military") ->
     return generator.sample(EVAL_N, EVAL_SEED, setting=setting, cohort=cohort, return_truth=True)
 
 
+def died_before_care(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
+    """True for a casualty whose bleeding death without tranexamic acid, in the generator, falls at or before the time
+    of pre-hospital care. The generator still draws their signs and scan, so they keep their place and their number."""
+    died = truth["died_if_untreated"].to_numpy(bool)
+    return died & (60 * truth["t_death_potential_h"].to_numpy(float) <= observed["t_phec_min"].to_numpy(float))
+
+
+def died_before_care_count(observed: pd.DataFrame, truth: pd.DataFrame, keep: np.ndarray | None = None) -> int:
+    """How many of the casualties kept died from bleeding before pre-hospital care (mechanism)."""
+    dead = died_before_care(observed, truth)
+    return int(dead.sum() if keep is None else dead[np.asarray(keep, bool)].sum())
+
+
+def died_before_care_note(count: int, of: str) -> str:
+    """The scorecard's statement of how many casualties dead before pre-hospital care it includes."""
+    if count == 0:
+        return (f"No casualty the generator has dead from bleeding before pre-hospital care is among {of}: those "
+                f"casualties are left out")
+    return (f"{count:,} of {of} died from bleeding before pre-hospital care in the generator, without tranexamic acid, "
+            f"and are included")
+
+
 def calibration_cohort(observed: pd.DataFrame) -> np.ndarray:
     """True for the casualties the rule is held to E-09 on: the injured."""
     return observed["stream"].isin(CALIBRATION_STREAMS).to_numpy()
@@ -202,7 +224,7 @@ def calibration_check(cohort: str = "military") -> pd.DataFrame:
 DIAGNOSIS_METRICS = (
     ("sensitivity", "sensitivity"),
     ("specificity", "specificity"),
-    ("brier", "Brier score"),
+    ("brier", "Brier score, where lower is better"),
     ("calibration", "share flagged minus share in need"),
 )
 

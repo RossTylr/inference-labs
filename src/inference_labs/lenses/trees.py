@@ -401,7 +401,7 @@ class TreeAnswer:
     tree_path: tuple[str, ...]
 
 
-DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score"),
+DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score, where lower is better"),
                      ("calibration", "mean probability minus share in need"))
 
 
@@ -449,11 +449,44 @@ def _pct(x: float) -> str:
     return f"{100 * x:.1f}%"
 
 
+TREE, FOREST, SCORE = "single tree", "forest", "logistic score (lens 02)"
+FIGURE, TEXT = "MPTT-24, figure (as published)", "MPTT-24, text (as validated)"
+
+
+def _methods(observed: pd.DataFrame) -> dict:
+    p = probabilities(observed)
+    return {TREE: p["single tree"], FOREST: p["forest"], SCORE: frequentist.probability(observed),
+            FIGURE: baseline.priority_one(observed, "figure"), TEXT: baseline.priority_one(observed, "text")}
+
+
+def scorecard_spread() -> pd.DataFrame:
+    """The trees, lens 02's score and the rule on 20 further samples of 100,000, seeds 43 onward
+    (decision.need_spread): each model at its own threshold for sensitivity and specificity, and at 0.10 for net
+    benefit (mechanism)."""
+    from inference_labs.lenses import decision
+
+    m = models()
+    return decision.need_spread(_methods, ((TREE, m.tree_threshold), (FOREST, m.forest_threshold),
+                                           (SCORE, frequentist.fitted_score().threshold)))
+
+
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
     computed on the generator (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold lens 10's
-    default costs set (mechanism)."""
+    default costs set (mechanism). Each comparison is given with its spread across 20 further samples (lesson 12)."""
     from inference_labs.lenses import decision
+
+    sp = scorecard_spread()
+
+    def auc_less(a, b):
+        return decision.spread_words(sp[f"area under the curve: {a}"] - sp[f"area under the curve: {b}"], "", 4,
+                                     "lower", "higher")
+
+    def nb_less(name):
+        return (decision.versus(sp[f"net benefit: {name}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)")
+                + "; among the battle casualties alone, "
+                + decision.versus(sp[f"net benefit, battle: {name}"] - sp[f"net benefit, battle: {decision.FLAG_ALL}"],
+                                  decision.FLAGGING_ALL))
 
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     observed, truth = baseline.generator_sample()
@@ -470,19 +503,22 @@ def seven_axes() -> pd.DataFrame:
                 f"curve {r['auc']:.3f}")
 
     def cal(r):
-        return f"Brier {r['brier']:.3f}; mean probability minus share in need {r['calibration']:+.3f}"
+        return f"Brier {r['brier']:.3f}, where lower is better; mean probability minus share in need {r['calibration']:+.3f}"
 
     def rule_disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
 
     def rule_cal(r):
         gap = r["calibration"]
-        return f"Brier {r['brier']:.3f}; it flags {100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than are in need"
+        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points "
+                f"{'more' if gap > 0 else 'fewer'} than are in need")
 
     group = "all 100,000 synthetic casualties of the military cohort, disease included"
     rows = [
-        ("1 Discrimination (mechanism)", f"{disc(pre['single tree'])}; {group}", f"{disc(pre['forest'])}; {group}",
-         rule_disc(fig), rule_disc(txt),
+        ("1 Discrimination (mechanism)", f"{disc(pre['single tree'])}; {group}",
+         f"{disc(pre['forest'])}; {group}. Across 20 further samples the forest's area under the curve less the single "
+         f"tree's is {auc_less(FOREST, TREE)}; less lens 02's score's it is {auc_less(FOREST, SCORE)}",
+         rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"{disc(tx_pre['tree'])}; significant bleeding, battle casualties, scan before hospital. ABC score: "
          f"{rule_disc({k: tx_pre['abc'][k][0] for k in ('sensitivity', 'specificity')})}"),
         ("2 Calibration (mechanism)", cal(pre["single tree"]), cal(pre["forest"]),
@@ -503,8 +539,8 @@ def seven_axes() -> pd.DataFrame:
          f"only the scan", f"Scan in hospital: {disc(inside['forest'])}, unchanged for the same reason",
          "Unchanged", "Unchanged",
          f"Scan in hospital: {disc(tx_in['tree'])}. The scan item is more often right in hospital"),
-        ("7 Decision value", decision.decision_value(p_all["single tree"], need, battle=battle),
-         decision.decision_value(p_all["forest"], need, battle=battle),
+        ("7 Decision value", decision.decision_value(p_all["single tree"], need, battle=battle) + "; " + nb_less(TREE),
+         decision.decision_value(p_all["forest"], need, battle=battle) + "; " + nb_less(FOREST),
          decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
          decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
          decision.decision_value(treatment_tree("pre_hospital").predict_proba(tx_matrix(battle_obs))[:, 1],

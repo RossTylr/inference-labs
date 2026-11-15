@@ -337,11 +337,12 @@ CRASH3_HEAD_INJURY_DEATH = LogNormalSummary.from_interval(0.94, 0.86, 1.02)     
 CRASH3_MILD_TO_MODERATE = LogNormalSummary.from_interval(0.78, 0.64, 0.95)      # E-28
 CRASH2_ALL_CAUSE_DEATH = LogNormalSummary.from_interval(0.91, 0.85, 0.97)       # E-20
 REPHILL_DEATH_3H = LogNormalSummary.from_interval(0.75, 0.50, 1.13)             # E-77
+CRASH2_PRIOR = "CRASH-2 (civilian)"     # the prior borrowed from CRASH-2, a trial in a civilian population
 PRIORS = {
     "minimally informative": LogNormalSummary(0.0, 10.0),                         # assumption
     "sceptical": LogNormalSummary(0.0, SCEPTICAL_SD),                            # assumption
     "enthusiastic": LogNormalSummary(math.log(0.8), SCEPTICAL_SD),               # assumption
-    "CRASH-2": CRASH2_ALL_CAUSE_DEATH,                                           # E-20
+    "CRASH-2 (civilian)": CRASH2_ALL_CAUSE_DEATH,                                           # E-20
 }
 
 
@@ -379,10 +380,39 @@ def evaluate(setting: str, prior: float | None = None) -> dict:
     }
 
 
+@lru_cache(maxsize=None)
+def scorecard_spread(setting: str) -> pd.DataFrame:
+    """evaluate's comparison of the lens with the MPTT-24 on 20 further samples of EVAL_N synthetic casualties, seeds
+    43 onward (lesson 12), through decision.across_seeds: sensitivity and specificity for bleeding into the abdomen, and
+    the Brier score, on the battle casualties (mechanism). The prior stays the one from the mix."""
+    from inference_labs.lenses import decision
+
+    def one(seed: int) -> dict:
+        observed, truth = _battle(*generator.sample(EVAL_N, seed, setting=setting, return_truth=True))
+        target = truth["free_fluid"].to_numpy(bool)
+        belief = beliefs(observed, prior_from_mix())
+        flagged = belief > EVACUATE_ABOVE
+        rule = baseline.flag_metrics(baseline.priority_one(observed), target)
+        return {"lens sensitivity": float(flagged[target].mean()), "lens specificity": float((~flagged[~target]).mean()),
+                "lens Brier": float(np.mean((belief - target) ** 2)), "rule sensitivity": rule["sensitivity"],
+                "rule specificity": rule["specificity"], "rule Brier": rule["brier"]}
+
+    return decision.across_seeds(one)
+
+
+def comparison_spread(setting: str) -> dict[str, str]:
+    """The lens less the MPTT-24 across the further samples, in words."""
+    from inference_labs.lenses import decision
+
+    sp = scorecard_spread(setting)
+    return {measure: decision.spread_words(sp[f"lens {measure}"] - sp[f"rule {measure}"], "", 3, "lower", "higher")
+            for measure in ("sensitivity", "specificity", "Brier")}
+
+
 DIAGNOSIS_METRICS = (
     ("sensitivity", "sensitivity, belief above one half"),
     ("specificity", "specificity, belief above one half"),
-    ("brier", "Brier score"),
+    ("brier", "Brier score, where lower is better"),
     ("calibration", "mean belief minus observed share"),
 )
 
@@ -412,14 +442,16 @@ class BayesianLens:
                 rows.append(ScorecardRow(LENS_NAME, "diagnosis", f"{metric}, {SETTING_NAMES[setting]}",
                                          round(result[key], 4), round(result["baseline"][key], 4), "mechanism",
                                          "native", "generator"))
-        metric = "probability tranexamic acid reduces head injury death, CRASH-2 prior"
-        fixture = reread_trial(summary_from_file(FIXTURE_CRASH3), PRIORS["CRASH-2"])
+        metric = ("probability tranexamic acid reduces head injury death on the synthetic fixture under the prior "
+                  "from CRASH-2, a civilian trial: a figure that reflects the prior, since the fixture's rows are "
+                  "random and the prior alone gives nearly the same")
+        fixture = reread_trial(summary_from_file(FIXTURE_CRASH3), PRIORS[CRASH2_PRIOR])
         rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(fixture.prob_benefit(), 4), NO_BASELINE,
                                  "mechanism", "weak", f"fixture:{FIXTURE_CRASH3.name}"))
         if self.crash3_path is not None:
             if not is_real_data_path(self.crash3_path, REPO_ROOT):
                 raise ValueError("a real-data path must be an absolute path outside the repository")
-            real = reread_trial(summary_from_file(self.crash3_path), PRIORS["CRASH-2"])
+            real = reread_trial(summary_from_file(self.crash3_path), PRIORS[CRASH2_PRIOR])
             rows.append(ScorecardRow(LENS_NAME, "treatment", metric, round(real.prob_benefit(), 4), NO_BASELINE,
                                      "evidence", "weak", self.crash3_path))
         return rows
@@ -449,6 +481,33 @@ def casualties_available(patient_type: str, setting: str = "pre_hospital") -> in
     return int((truth["patient_type"] == patient_type).sum())
 
 
+DIED_BEFORE_CARE = "died before pre-hospital care"
+
+
+def died_before_care(patient_type: str, setting: str = "pre_hospital") -> tuple[int, ...]:
+    """The walk-through numbers of the casualties of `patient_type` whom the generator has dead from bleeding before
+    pre-hospital care. They keep their numbers; the app marks them and does not select them by default."""
+    observed, truth = _walk_sample(setting)
+    rows = (truth["patient_type"] == patient_type).to_numpy()
+    dead = baseline.died_before_care(observed, truth)[rows]
+    return tuple(int(k) + 1 for k in np.flatnonzero(dead))
+
+
+def marked_note(patient_type: str, setting: str = "pre_hospital") -> str:
+    """Which casualty numbers the app marks as dead before pre-hospital care, for one patient type and setting."""
+    dead = died_before_care(patient_type, setting)
+    if not dead:
+        return f"None of the {patient_type} casualties here {DIED_BEFORE_CARE} in the generator."
+    return (f"Marked '{DIED_BEFORE_CARE}', and not selected by default: {patient_type} casualties "
+            f"{', '.join(str(k) for k in dead)}.")
+
+
+def default_casualty(patient_type: str, setting: str = "pre_hospital") -> int:
+    """The app's default selection: the first casualty of `patient_type` alive at pre-hospital care."""
+    dead = set(died_before_care(patient_type, setting))
+    return next(k for k in range(1, casualties_available(patient_type, setting) + 1) if k not in dead)
+
+
 @dataclass(frozen=True)
 class Walkthrough:
     patient_type: str
@@ -462,6 +521,7 @@ class Walkthrough:
     band_name: str
     needs_lsi: bool = False
     significant_bleeding: bool = False
+    died_before_care: bool = False
 
     def band(self) -> list[dict]:
         """The belief line as a band: mean and 95% interval at each step."""
@@ -522,6 +582,17 @@ class Walkthrough:
             "scan_source": SCAN_SOURCE_NOTE[self.setting],
             "scan_sources": SCAN_SOURCES,
             "band": self.band(),
+            "marked": marked_note(self.patient_type, self.setting),
+            "status": (f"Marked: {DIED_BEFORE_CARE}. In the generator this casualty's bleeding death, without "
+                       "tranexamic acid, falls at or before the time of pre-hospital care, so they would not be alive "
+                       "to be triaged or scanned. The generator still draws their signs and scan, and each panel on "
+                       "this page applies its lens to those findings as it would to anyone else's (mechanism)."
+                       if self.died_before_care else ""),
+            "in_hospital": ("" if self.setting == "pre_hospital" else
+                            f"In hospital the scan is done on arrival, after the flight. The decision panel below "
+                            f"therefore works from the belief after triage, "
+                            f"{percent(self.line['triage'].mean())}, while the band's Evacuation point shows the "
+                            f"belief after the scan in hospital, {percent(self.line['evacuation'].mean())}."),
         }
 
 
@@ -545,6 +616,7 @@ def walkthrough(patient_type: str = "haemorrhage", setting: str = "pre_hospital"
     prior = default_prior() if prior is None else float(prior)
     line = belief_line(record, prior)
     band_name, _ = delay_band(float(record["t_phec_min"]))
+    dead = bool(baseline.died_before_care(observed.iloc[[i]], truth.iloc[[i]])[0])
     return Walkthrough(patient_type, setting, prior, casualty, record, bool(truth["free_fluid"].iloc[i]), line,
                        weighted_reduction(line["treatment"], float(record["t_phec_min"])), band_name,
-                       bool(truth["needs_lsi"].iloc[i]), bool(truth["bleeding"].iloc[i]))
+                       bool(truth["needs_lsi"].iloc[i]), bool(truth["bleeding"].iloc[i]), dead)

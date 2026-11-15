@@ -24,21 +24,7 @@ open_items:
   O-9: {status: closed, reason: "Read the full papers behind E-76, E-79, E-81 and the 2022 RePHILL report"}
 
 # Changes that cross lenses, held for a consolidation pass (BUILD.md section 7). One line each.
-deferred:
-  - "1. Net benefit wording. In the shared axis 7 code and every string built from it, \"treat all\" and \"treat none\" become \"flag every casualty\" and \"flag none\". Where axis 7 first appears in each notebook, one sentence says what net benefit is and cites E-93."
-  - "2. The D-23 statement as one shared sentence: scorecard figures are on every stream of the military cohort, disease included; the comparison with E-09 holds for the injured only, of whom 26.5% need an intervention against 47.6% in the registry."
-  - "3. Casualties the generator has dead from bleeding before pre-hospital care. Keep every casualty's number as it is. On the app, mark them \"died before pre-hospital care\" and leave them out of the default selection. In each scorecard note, state how many are included. Notebook 10's references to casualties by number and gate G-8's parity cases must still point at the same people. Recompute no scorecard."
-  - "4. Late harm. Notebooks 03 and 07 show E-22's result for treatment after 3 hours, 4.4% against 3.1%, relative risk 1.44 (1.12 to 1.84), in words as more deaths with the drug, exploratory (E-23), civilian, and separate from any generator figure. Notebook 07 says the generator cannot show it, and why."
-  - "5. Populations where cited, in every notebook from 01 to 10: every markdown cell, code-cell printout, figure label and panel string that cites a source recorded as civilian names it as civilian. This includes the printouts in notebook 02 cells 11 and 22, notebook 05 cells 22 and 37, and notebook 08 cells 24, 27 and 34. Edges from E-86 display as \"US doctrine\"; the needle line gives E-104's population; give PROPPR's and E-14's as their register rows state them."
-  - "6. Gate G-10 reads code-cell text outputs as well as markdown cells, with a planted-defect test. Do item 5 first; the gate change and any remaining fixes it exposes go in one commit series, and every slice must pass G-10 at the end."
-  - "7. Slice 2's scorecard shows both readings of the MPTT-24 (D-24)."
-  - "8. Spread across 20 seeds for axis 7's comparisons and each notebook's headline comparison, through one shared helper (lesson 12)."
-  - "9. Notebook 03 figure titles at cells 15, 20, 23, 37 and 39 describe what is plotted."
-  - "10. Metric names. Slice 1's scorecard row giving 0.998 is renamed to say it reflects the prior. Slice 6's \"mean chance minus observed share\" baseline entry is renamed for what it is. Where a higher score is worse, say so."
-  - "11. Errors. Notebook 02: PROPPR's \"4.2 points\" against percentages that differ by 4.3 (give the published difference as E-72 has it and say the rounded percentages differ); the right-hand row labels in the figure at cell 25. Background file 05: RePHILL's death figure to agree with E-77. Notebook 07: the seed-42 marker in cell 24 against the range in cell 25; the legend over the bars in cell 16. Notebook 08: the count of treated-by edges in cell 5; the type counts in cell 2; 32.8% against 0.329."
-  - "12. Register row E-104: add what docs/background/_notes.md records for that source on how the cases were measured and the perpendicular mean, in the note's own terms."
-  - "13. Notebook 08: say that reading E-42's timelines as time from injury is an assumption, and label as assumptions the role names not in E-43's row."
-  - "14. Slice 1 panel, in-hospital setting: say which belief the decision uses and which the band's evacuation point shows."
+deferred: []
 
 slices:
   0:

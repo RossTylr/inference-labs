@@ -25,6 +25,8 @@ BAND = {
 def render(st, walk) -> None:
     shown = SOURCE(walk)
     st.subheader("Bayesian panel: is this casualty bleeding into the abdomen?")
+    if shown["status"]:
+        st.warning(shown["status"])
     for column, (label, value) in zip(st.columns(len(shown["metrics"])), shown["metrics"].items()):
         column.metric(label, value)
     st.caption(shown["scan_source"])
@@ -32,6 +34,9 @@ def render(st, walk) -> None:
     st.vega_lite_chart(shown["band"], BAND, width="stretch")
     st.caption("The band holds the middle of the draws at each step; the dotted line is one half. Treatment and "
                "evacuation use the belief without changing it.")
+    if shown["in_hospital"]:
+        st.caption(shown["in_hospital"])
     st.table(shown["table"])
     st.markdown(shown["findings"])
     st.markdown(f"**{shown['truth']}**")
+    st.caption(shown["marked"])

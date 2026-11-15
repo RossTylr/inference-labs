@@ -89,7 +89,7 @@ def test_published_summaries_round_trip_to_their_intervals():
 def test_a_flat_prior_leaves_the_trial_as_it_was_and_crash2_tightens_it():
     flat = b.reread_trial(b.CRASH3_HEAD_INJURY_DEATH, b.PRIORS["minimally informative"])
     assert flat.posterior.mean == pytest.approx(b.CRASH3_HEAD_INJURY_DEATH.mean, abs=1e-4)
-    borrowed = b.reread_trial(b.CRASH3_HEAD_INJURY_DEATH, b.PRIORS["CRASH-2"])
+    borrowed = b.reread_trial(b.CRASH3_HEAD_INJURY_DEATH, b.PRIORS[b.CRASH2_PRIOR])
     assert borrowed.posterior.sd < flat.posterior.sd
     assert borrowed.prob_benefit() > flat.prob_benefit()
 
@@ -175,3 +175,21 @@ def test_rephill_with_a_flat_prior_gives_about_92_percent():
     """The figure the background file derives from E-77's interval: calculated, not reported by the trial."""
     flat = b.reread_trial(b.REPHILL_DEATH_3H, b.PRIORS["minimally informative"])
     assert flat.prob_benefit() == pytest.approx(0.92, abs=POINT)
+
+
+def test_casualties_dead_before_care_keep_their_numbers_and_are_marked():
+    """Consolidation after slice 8: a casualty the generator has dead from bleeding before pre-hospital care keeps
+    its number, is marked on the page and is not the default selection."""
+    dead = b.died_before_care("haemorrhage", "pre_hospital")
+    assert dead and b.default_casualty("haemorrhage", "pre_hospital") not in dead
+    marked = b.walkthrough("haemorrhage", "pre_hospital", None, dead[0])
+    assert marked.casualty == dead[0] and marked.died_before_care
+    assert b.DIED_BEFORE_CARE in marked.display()["status"]
+    assert b.walkthrough("haemorrhage", "pre_hospital", None, 1).display()["status"] == ""
+    assert str(dead[0]) in marked.display()["marked"]
+
+
+def test_in_hospital_the_panel_says_which_belief_each_part_shows():
+    shown = b.walkthrough("haemorrhage", "in_hospital", None, 1).display()
+    assert "after triage" in shown["in_hospital"] and "Evacuation point" in shown["in_hospital"]
+    assert b.walkthrough("haemorrhage", "pre_hospital", None, 1).display()["in_hospital"] == ""

@@ -349,7 +349,7 @@ def diagnosis_results(setting: str) -> dict:
             "auc": float(roc_auc_score(need, p))}
 
 
-DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score"),
+DIAGNOSIS_METRICS = (("sensitivity", "sensitivity"), ("specificity", "specificity"), ("brier", "Brier score, where lower is better"),
                      ("calibration", "mean probability minus share in need"))
 
 
@@ -408,11 +408,34 @@ def difference_words(d: tuple, what: str = "deaths") -> str:
     return f"{side(d[0])} {what} in every 100 with the treatment (from {side(d[1])} to {side(d[2])})"
 
 
+SCORE, FIGURE, TEXT = "logistic score", "MPTT-24, figure (as published)", "MPTT-24, text (as validated)"
+
+
+def _methods(observed: pd.DataFrame) -> dict:
+    return {SCORE: probability(observed), FIGURE: baseline.priority_one(observed, "figure"),
+            TEXT: baseline.priority_one(observed, "text")}
+
+
+def scorecard_spread() -> pd.DataFrame:
+    """The score against the rule on 20 further samples of 100,000, seeds 43 onward (decision.need_spread): the
+    score at its own threshold for sensitivity and specificity, and at 0.10 for net benefit (mechanism)."""
+    from inference_labs.lenses import decision
+
+    return decision.need_spread(_methods, ((SCORE, fitted_score().threshold),))
+
+
 def seven_axes() -> pd.DataFrame:
     """The scorecard on the seven axes of D-21, with the baseline under both readings (D-24). Axes 1, 2 and 6 are
     computed on the generator or the fixture (mechanism); 3, 4 and 5 are stated; axis 7 is net benefit at the threshold
-    lens 10's default costs set (mechanism)."""
-    from inference_labs.lenses import decision
+    lens 10's default costs set (mechanism). Each comparison of the score with the rule is given with its spread
+    across 20 further samples (lesson 12)."""
+    from inference_labs.lenses import decision, rules
+
+    sp = scorecard_spread()
+
+    def less(measure, other=FIGURE):
+        return decision.spread_words(100 * (sp[f"{measure}: {SCORE}"] - sp[f"{measure}: {other}"]), " points", 1,
+                                     "lower", "higher")
 
     observed, truth = baseline.generator_sample()
     need = truth["needs_lsi"].to_numpy(bool)
@@ -429,17 +452,20 @@ def seven_axes() -> pd.DataFrame:
     def rule_cal(r):
         gap = r["calibration"]
         side = "more" if gap > 0 else "fewer"
-        return f"Brier {r['brier']:.3f}; it flags {100 * abs(gap):.1f} points {side} than are in need"
+        return f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points {side} than are in need"
 
     rows = [
         ("1 Discrimination (mechanism)",
          f"sensitivity {_ci(pre['sensitivity'])}, specificity {_ci(pre['specificity'])}; area under the curve "
-         f"{pre['auc']:.3f}; all 100,000 synthetic casualties of the military cohort, disease included",
-         rule_disc(fig), rule_disc(txt),
+         f"{pre['auc']:.3f}; all 100,000 synthetic casualties of the military cohort, disease included. Across 20 "
+         f"further samples, at the score's own threshold, its sensitivity less the MPTT-24's (figure) is "
+         f"{less('sensitivity')}; its specificity less the rule's is {less('specificity')}",
+         rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"Not a classifier. On the CRASH-2 fixture, {k1} of {n1} died with tranexamic acid and {k0} of {n0} with "
          f"placebo: {difference_words(d)}; synthetic rows, not trial data"),
         ("2 Calibration (mechanism)",
-         f"Brier {pre['brier']:.3f}; mean probability minus share in need {pre['calibration']:+.3f}",
+         f"Brier {pre['brier']:.3f}, where lower is better; mean probability minus share in need "
+         f"{pre['calibration']:+.3f}",
          rule_cal(fig) + ". A rule gives no probability, so the Brier score is the share misclassified",
          rule_cal(txt), "Not applicable"),
         ("3 Uncertainty expressed", "An interval on every rate",
@@ -462,7 +488,11 @@ def seven_axes() -> pd.DataFrame:
          f"Civilian cohort: sensitivity {_pct(civ['MPTT-24, text (as validated)']['sensitivity'][0])}, "
          f"specificity {_pct(civ['MPTT-24, text (as validated)']['specificity'][0])}",
          "Not applicable: the setting does not enter"),
-        ("7 Decision value", decision.decision_value(probability(observed), need, battle=battle),
+        ("7 Decision value", decision.decision_value(probability(observed), need, battle=battle) + "; "
+         + decision.versus(sp[f"net benefit: {SCORE}"] - sp[f"net benefit: {FIGURE}"], "the MPTT-24 (figure)")
+         + "; among the battle casualties alone, "
+         + decision.versus(sp[f"net benefit, battle: {SCORE}"] - sp[f"net benefit, battle: {decision.FLAG_ALL}"],
+                           decision.FLAGGING_ALL),
          decision.decision_value(baseline.priority_one(observed, "figure"), need, battle=battle),
          decision.decision_value(baseline.priority_one(observed, "text"), need, battle=battle),
          "Not applicable: a trial read as an interval is not a decision on one casualty"),
@@ -496,7 +526,6 @@ def panel(record: Mapping[str, Any]) -> dict:
     rr, d = crash2.relative_risk, crash2.difference
     mean_p, share = battle_calibration()
     from inference_labs.lenses import rules
-    registry = rules.PUBLISHED["MPTT-24, military"].prevalence
     return {
         "heading": "Frequentist panel: a score, its sensitivity and specificity, and a trial read as an interval",
         "score": (f"Logistic score from walking, conscious level, respiratory rate and heart rate: probability "
@@ -509,9 +538,9 @@ def panel(record: Mapping[str, Any]) -> dict:
                    f"(mechanism): sensitivity {_ci(pre['sensitivity'])}, "
                    f"specificity {_ci(pre['specificity'])}. The MPTT-24 as published, on the same casualties: "
                    f"sensitivity {_pct(rule['sensitivity'])}, specificity {_pct(rule['specificity'])} "
-                   f"(mechanism). Among the generator's injured, {_pct(baseline.calibration_need('military'))} need a "
-                   f"life-saving intervention, against {_pct(registry)} Priority 1 in the military registry (E-09), "
-                   f"so the generator's injured are a milder cohort than the one the rule was validated on (D-23)."),
+                   f"(mechanism). "
+                   + rules.d23_sentence("all 100,000 synthetic casualties of the military cohort, every stream, "
+                                        "disease included", "These figures are")),
         "trial": (f"CRASH-2, death from bleeding: {crash2.treated_pct:.1f}% with tranexamic acid against "
                   f"{crash2.control_pct:.1f}% with placebo: {difference_words(d)}, a relative risk of {rr[0]:.2f} "
                   f"({rr[1]:.2f} to {rr[2]:.2f}), recomputed from the counts (E-19, E-21). CRASH-2 is civilian, so using it for a military casualty is an "

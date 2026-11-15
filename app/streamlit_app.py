@@ -23,9 +23,10 @@ with st.sidebar:
     prior = st.slider("Prior: belief before any finding", min_value=0.01, max_value=0.99,
                       value=bayesian.default_prior(), step=0.01, key="prior")
     casualty = st.number_input("Casualty", min_value=1, max_value=bayesian.casualties_available(patient_type, setting),
-                               value=1, step=1, key="casualty")
+                               value=bayesian.default_casualty(patient_type, setting), step=1, key="casualty")
     st.caption("The prior starts at the share of the generator's battle casualties bleeding into the abdomen. "
-               "Moving it recomputes every draw.")
+               "Moving it recomputes every draw. Casualties who died before pre-hospital care in the generator keep "
+               "their numbers, are marked in the Bayesian panel and are not selected by default.")
 
 walk = bayesian.walkthrough(patient_type, setting, prior, int(casualty))
 for panel in panels.discovered():

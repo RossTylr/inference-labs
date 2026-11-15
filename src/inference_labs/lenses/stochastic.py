@@ -100,13 +100,8 @@ def _pct(x: float, places: int = 1) -> str:
 
 def spread_words(differences, places: int = 2, unit: str = "") -> str:
     """A difference reported with its spread across seeds, to `places` decimals: a tie where the spread covers no
-    difference (as decision.spread_words, with the precision a small quantity needs)."""
-    d = np.asarray(differences, float)
-    lo, hi = float(d.min()), float(d.max())
-    span = f"from {lo:+.{places}f} to {hi:+.{places}f}{unit} across {d.size} seeds"
-    if lo <= 0 <= hi:
-        return f"a tie: no detectable difference (the difference runs {span})"
-    return f"{'lower' if hi < 0 else 'higher'}: the difference runs {span}"
+    difference, through the one shared helper, decision.spread_words."""
+    return decision.spread_words(differences, unit, places, "lower", "higher")
 
 
 # ------------------------------------------------------------------------------------------------ the chains
@@ -394,26 +389,27 @@ def diagnosis_results(setting: str = "pre_hospital", seed: int = EVAL_SEED, n: i
 
 
 def axis7(flag_or_p, target, words: str = "") -> str:
-    """Net benefit per 100 at the common threshold, 0.10 (D-26), with treat all and treat none, in words."""
+    """Net benefit per 100 at the common threshold, 0.10 (D-26), beside flagging every casualty and flagging none,
+    in words."""
     t = decision.threshold()
-    arr = np.asarray(flag_or_p)
-    flag = arr if arr.dtype == bool else arr >= t
+    flag = decision.as_flag(flag_or_p, t)
     target = np.asarray(target, bool)
-    nb, everyone = 100 * decision.net_benefit(flag, target, t), 100 * decision.treat_all(target, t)
+    nb, everyone = 100 * decision.net_benefit(flag, target, t), 100 * decision.flag_all(target, t)
+    every, none = decision.FLAGGING_ALL, decision.FLAGGING_NONE
     if not flag.any():
-        how = "it flags no casualty at this threshold, so it scores exactly as treating none"
+        how = f"it flags no casualty at this threshold, so it scores exactly as {none}"
     elif flag.all():
-        how = "it flags every casualty at this threshold, so it scores exactly as treating all"
+        how = f"it flags every casualty at this threshold, so it scores exactly as {every}"
     elif nb < 0:
-        how = "worse than treating none"
+        how = f"worse than {none}"
     elif nb < everyone:
-        how = "below treating all"
+        how = f"below {every}"
     else:
-        how = "above treating none, and at or above treating all" if nb > 0 else "no better than treating none"
-    all_words = "worse than treating none" if everyone < 0 else "better than treating none"
+        how = f"above {none}, and at or above {every}" if nb > 0 else f"no better than {none}"
+    all_words = f"worse than {none}" if everyone < 0 else f"better than {none}"
     return (f"Net benefit {nb:.1f} per 100 at a threshold of {t:.2f} ({how}), with a miss weighed "
             f"{decision.DEFAULT_COSTS['miss'] / decision.DEFAULT_COSTS['false alarm']:g} times a false alarm (an "
-            f"assumption); treat all {everyone:.1f} ({all_words}), treat none 0 (mechanism){words}")
+            f"assumption); {decision.FLAG_ALL} {everyone:.1f} ({all_words}), {decision.FLAG_NONE} 0 (mechanism){words}")
 
 
 # ------------------------------------------------------------------------------------------------ treatment
@@ -745,7 +741,9 @@ class Clock:
 
 
 DIAGNOSIS_METRICS = (("sensitivity", "sensitivity at 0.10"), ("specificity", "specificity at 0.10"),
-                     ("brier", "Brier score"), ("calibration", "mean chance minus observed share"))
+                     ("brier", "Brier score, where lower is better"),
+                     ("calibration", "mean chance minus observed share; for the baseline, share flagged minus observed "
+                                     "share"))
 
 
 def diagnosis_metric(name: str, setting: str) -> str:
@@ -797,23 +795,20 @@ def seven_axes() -> pd.DataFrame:
     t = decision.threshold()
     group = (f"{pre['casualties']:,} synthetic battle casualties bleeding significantly and alive at pre-hospital "
              f"care, of whom {pre['died in the next hour']:,} die from bleeding within the hour")
-    registry = rules.PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
-
     def rule_disc(r):
         return f"sensitivity {_pct(r['sensitivity'])}, specificity {_pct(r['specificity'])}"
 
     def rule_cal(r):
         gap = r["calibration"]
-        return (f"Brier {r['brier']:.3f}; it flags {100 * abs(gap):.1f} points {'more' if gap > 0 else 'fewer'} than "
-                f"die within the hour. A rule gives no probability, so the Brier score is the share misclassified")
+        return (f"Brier {r['brier']:.3f}, where lower is better; it flags {100 * abs(gap):.1f} points "
+                f"{'more' if gap > 0 else 'fewer'} than die within the hour. A rule gives no probability, so the Brier "
+                f"score is the share misclassified")
 
     own, later, count = tx["own delay"], tx["30 minutes later"], tx["generator count"]
     olo, ohi = own.interval()
     llo, lhi = later.interval()
-    d23 = (f"Among the generator's injured in the military cohort, battle and non-battle injury together, "
-           f"{_pct(baseline.calibration_need('military'))} need a life-saving intervention, against "
-           f"{_pct(registry)} Priority 1 in the military registry (E-01, E-09), so the generator's injured are a milder "
-           f"cohort than the one the rule was validated on (D-23)")
+    d23 = rules.d23_sentence("the battle casualties of the military cohort bleeding significantly and alive at "
+                             "pre-hospital care")
     rows = [
         ("1 Discrimination (mechanism)",
          f"It flags none at the threshold of {t:.2f}: the highest chance among them is "
@@ -828,16 +823,17 @@ def seven_axes() -> pd.DataFrame:
          f"{spread_words(spread['averted 30 minutes later, lens'] - spread['averted, lens'], 2, ' per 100')}; the "
          f"generator's own count on the same casualties at their own delay, {count:.2f}"),
         ("2 Calibration (mechanism)",
-         f"Brier {pre['lens']['brier']:.4f}; mean chance minus observed share {pre['lens']['calibration']:+.4f}. The "
-         f"lens's hazard is the generator's, so this holds by construction. The lens's Brier score less the rule's, "
-         f"across {len(spread)} further samples: {spread_words(spread['lens Brier'] - spread['rule Brier'], 3)}",
+         f"Brier {pre['lens']['brier']:.4f}, where lower is better; mean chance minus observed share "
+         f"{pre['lens']['calibration']:+.4f}. The lens's hazard is the generator's, so this holds by construction. The "
+         f"lens's Brier score less the rule's, across {len(spread)} further samples, where lower is better: "
+         f"{spread_words(spread['lens Brier'] - spread['rule Brier'], 3)}",
          rule_cal(pre["figure"]), rule_cal(pre["text"]),
          f"The lens's expected deaths averted less the generator's count: {own.mean() - count:+.2f} per 100; across "
          f"{len(spread)} further samples, {spread_words(spread['averted, lens'] - spread['averted, generator'], 2, ' per 100')}. "
          f"The lens's line and the generator were both set from E-22 (CRASH-2, a civilian trial), so agreement is by "
          f"construction"),
         ("3 Uncertainty expressed", "None: one chance for each casualty", "None: a priority", "None: a priority",
-         f"A distribution: E-22's bands carried as {DRAWS:,} draws"),
+         f"A distribution: E-22's bands, from CRASH-2, a civilian trial, carried as {DRAWS:,} draws"),
         ("4 What it needed",
          f"A hazard through three published hourly rates ({E85_SOURCE}, run here from injury and applied to battle "
          f"casualties, both assumptions), the time since injury, and who is bleeding significantly, which the generator supplies and no medic knows for "
