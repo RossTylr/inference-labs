@@ -255,10 +255,20 @@ slices:
       - app/panels/reinforcement.py
   10:
     title: Lens 06, Connectionist
-    approved: null
+    approved: 2026-11-16
     blocked_by: []
+    note: "R-10.1: the image task runs on constructed images, not on a published image set"
+    background: docs/background/06-connectionist.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    review_sources:
+      - notebooks/06_connectionist.ipynb
+      - src/inference_labs/lenses/connectionist.py
+      - app/panels/connectionist.py
+    files:
+      - src/inference_labs/lenses/connectionist.py
+      - tests/test_connectionist.py
+      - notebooks/06_connectionist.ipynb
+      - app/panels/connectionist.py
   11:
     title: Notebooks 00 and 11; app pages 2 to 4
     approved: null
