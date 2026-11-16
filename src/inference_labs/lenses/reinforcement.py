@@ -61,6 +61,7 @@ EVAL_N, EVAL_SEED = baseline.EVAL_N, baseline.EVAL_SEED      # 100,000 synthetic
 TRAIN_N, TRAIN_SEED = frequentist.TRAIN_N, frequentist.TRAIN_SEED   # the training sample lens 02 fits on
 SEEDS = decision.SEEDS              # further samples behind every spread, seeds 43 onward
 CONSTRUCTED = "constructed decision process"
+STREAM_WORDS = {"battle": "battle casualties", "non_battle": "non-battle injuries", "disease": "disease admissions"}
 
 
 def _pct(x: float, places: int = 1) -> str:
@@ -133,13 +134,15 @@ def answers(observed: pd.DataFrame) -> np.ndarray:
     ])
 
 
-@lru_cache(maxsize=1)
-def answer_counts() -> np.ndarray:
+@lru_cache(maxsize=None)
+def answer_counts(stream: str | None = None) -> np.ndarray:
     """Counts of the training sample's casualties by their five answers and by need for a life-saving intervention:
-    100,000 synthetic casualties, seed 7, every stream, the sample lens 02's score is fitted on."""
+    100,000 synthetic casualties, seed 7, every stream, the sample lens 02's score is fitted on. Given `stream`, the
+    casualties of that stream alone."""
     observed, truth = generator.sample(TRAIN_N, TRAIN_SEED, return_truth=True)
+    keep = np.ones(len(observed), bool) if stream is None else (observed["stream"] == stream).to_numpy()
     counts = np.zeros(LEVELS + (2,))
-    np.add.at(counts, tuple(answers(observed).T) + (truth["needs_lsi"].to_numpy(int),), 1)
+    np.add.at(counts, tuple(answers(observed[keep]).T) + (truth["needs_lsi"].to_numpy(int)[keep],), 1)
     return counts
 
 
@@ -147,10 +150,11 @@ def _known(state: tuple) -> tuple:
     return tuple(slice(None) if v == UNKNOWN else v for v in state)
 
 
-def share_in_need(state: tuple) -> float:
-    """The share in need among the training casualties who gave the answers known so far."""
-    m = answer_counts()[_known(state)].reshape(-1, 2).sum(0)
-    return float(m[1] / m.sum())
+def share_in_need(state: tuple, stream: str | None = None) -> float:
+    """The share in need among the training casualties who gave the answers known so far: every stream, or the
+    casualties of `stream` alone. Not a number where none of them gave those answers."""
+    m = answer_counts(stream)[_known(state)].reshape(-1, 2).sum(0)
+    return float(m[1] / m.sum()) if m.sum() else float("nan")
 
 
 def stop_value(p: float, costs: Mapping[str, float] = COSTS) -> tuple[float, str]:
@@ -202,6 +206,7 @@ class Route:
     asked: tuple
     decision: str
     share: float
+    state: tuple = ()
 
     @property
     def questions(self) -> int:
@@ -221,11 +226,11 @@ def route(codes, cost: float = QUESTION_COST) -> Route:
     while True:
         _, action = policy[tuple(state)]
         if action in (FLAG, NO_FLAG):
-            return Route(tuple(asked), action, share_in_need(tuple(state)))
+            return Route(tuple(asked), action, share_in_need(tuple(state)), tuple(state))
         nxt = state[:action] + [int(codes[action])] + state[action + 1:]
         if tuple(nxt) not in policy:
             p = share_in_need(tuple(state))
-            return Route(tuple(asked), stop_value(p)[1], p)
+            return Route(tuple(asked), stop_value(p)[1], p, tuple(state))
         state = nxt
         asked.append((QUESTIONS[action], ANSWERS[action][int(codes[action])]))
 
@@ -944,11 +949,19 @@ def panel(record: Mapping[str, Any]) -> dict:
     ts = treatment_spread()
     nothing_spread = spread_words(ts["naive: do nothing"] - ts["naive: clinicians"], 3)
     asked = "; ".join(f"{q}: {a}" for q, a in r.asked) or "no question"
+    t, line = decision.threshold(), "the threshold the costs set"
+    group = STREAM_WORDS[record["stream"]]
+    own = share_in_need(r.state, record["stream"])
+    own_words = (f"Among the {group} of that sample with these answers, {own:.3f} needed one, "
+                 f"{decision.against_threshold(own, t, 3, show=False, name=line)}" if own == own
+                 else f"No {group[:-1]} of that sample gave these answers")
     return {
         "heading": "Reinforcement learning panel: which question next, and a policy learned from logs",
-        "route": (f"Questions asked by the policy, in its order: {asked}. It stops and decides: {r.decision}. Of the "
-                  f"training casualties with these answers, {r.share:.3f} needed a life-saving intervention, "
-                  f"{decision.against_threshold(r.share, decision.threshold(), 3, show=False, name='the threshold the costs set')} "
+        "route": (f"Questions asked by the policy, in its order: {asked}. It stops and decides: {r.decision}, on the "
+                  f"share in need among the casualties of its training sample with these answers: {TRAIN_N:,} "
+                  f"synthetic casualties of the military cohort, every stream, disease admissions and non-battle "
+                  f"injuries included. Of those, {r.share:.3f} needed a life-saving intervention, "
+                  f"{decision.against_threshold(r.share, t, 3, show=False, name=line)}. {own_words} "
                   f"(mechanism, weak fit). {COST_WORDS}."),
         "rule": (f"MPTT-24 for this casualty: {fig.priority} under the published figure, leaving at step {fig.step}; "
                  f"{txt.priority} under the text, leaving at step {txt.step}."),
