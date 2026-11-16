@@ -329,17 +329,22 @@ def diagnosis_results(setting: str = "pre_hospital", cost: float = QUESTION_COST
 @lru_cache(maxsize=None)
 def diagnosis_spread(cost: float = QUESTION_COST) -> pd.DataFrame:
     """Every measure of the policy and of both readings of the rule on 20 further samples of 100,000 synthetic
-    casualties of the military cohort, seeds 43 onward, every stream and battle casualties alone (mechanism)."""
+    casualties of the military cohort, seeds 43 onward, every stream and battle casualties alone, with the net benefit
+    of flagging every casualty beside them (mechanism)."""
     def one(seed: int) -> dict:
         observed, truth = generator.sample(EVAL_N, seed, return_truth=True)
-        return {f"{key}: {name}": v for name, m in _measured(observed, truth, cost).items() for key, v in m.items()}
+        need, t = truth["needs_lsi"].to_numpy(bool), decision.threshold()
+        battle = (observed["stream"] == "battle").to_numpy()
+        return {**{f"{key}: {name}": v for name, m in _measured(observed, truth, cost).items() for key, v in m.items()},
+                f"net benefit: {decision.FLAG_ALL}": 100 * decision.flag_all(need, t),
+                f"net benefit: {decision.FLAG_ALL}, battle": 100 * decision.flag_all(need[battle], t)}
 
     return decision.across_seeds(one)
 
 
-def less(spread: pd.DataFrame, measure: str, other: str = FIGURE, group: str = "") -> np.ndarray:
-    """The policy's measure less another method's, on each further sample."""
-    return (spread[f"{measure}: {POLICY}{group}"] - spread[f"{measure}: {other}{group}"]).to_numpy()
+def less(spread: pd.DataFrame, measure: str, other: str = FIGURE, group: str = "", method: str = POLICY) -> np.ndarray:
+    """A method's measure (by default the policy's) less another method's, on each further sample."""
+    return (spread[f"{measure}: {method}{group}"] - spread[f"{measure}: {other}{group}"]).to_numpy()
 
 
 COST_GRID = (0.0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2)
@@ -865,8 +870,20 @@ def seven_axes() -> pd.DataFrame:
                 f"{'more' if gap > 0 else 'fewer'} than are in need. A rule gives no probability, so the Brier score "
                 f"is the share misclassified")
 
-    def vs(measure, other, group="", places=3, unit=""):
-        return spread_words(less(sp, measure, other, group), places, unit)
+    def vs(measure, other, group="", places=3, unit="", method=POLICY):
+        return spread_words(less(sp, measure, other, group, method), places, unit)
+
+    def battle7(method, flag):
+        """Axis 7 among the battle casualties alone, where each method falls below flagging every casualty (lesson
+        15), and the method's net benefit less flagging every casualty's across the further samples."""
+        b, need, t = pre["battle"], pre["need"], decision.threshold()
+        nb, everyone = 100 * decision.net_benefit(flag[b], need[b], t), 100 * decision.flag_all(need[b], t)
+        return (f". Among the {int(b.sum()):,} battle casualties alone, {_pct(need[b].mean())} of whom are in need: net "
+                f"benefit {nb:.1f} per 100 ({'below' if nb < everyone else 'at or above'} {decision.FLAGGING_ALL}), "
+                f"{decision.FLAG_ALL} {everyone:.1f} (mechanism). Net benefit less that of {decision.FLAGGING_ALL}, "
+                f"across {len(sp)} further samples, on every stream: "
+                f"{vs('net benefit', decision.FLAG_ALL, '', 1, ' per 100', method)}; among the battle casualties "
+                f"alone: {vs('net benefit', decision.FLAG_ALL, ', battle', 1, ' per 100', method)}")
 
     def gap(name):
         return spread_words(ts[f"naive: {name}"] - ts[f"true: {name}"], 3)
@@ -887,12 +904,14 @@ def seven_axes() -> pd.DataFrame:
          f"drives the clinicians' doses and the outcomes, by construction"),
         ("2 Calibration (mechanism)",
          f"Brier {m[POLICY]['brier']:.3f}, where lower is better; share in need where it stopped minus share in need "
-         f"{m[POLICY]['calibration']:+.4f}. Its Brier score less the rule's (figure), every stream, is "
+         f"{m[POLICY]['calibration']:+.4f}. That gap less the rule's share flagged minus share in need (figure), every "
+         f"stream, is {vs('calibration', FIGURE)}. Its Brier score less the rule's (figure), every stream, is "
          f"{vs('brier', FIGURE)}. Among battle casualties alone this reverses: its Brier score is "
          f"{battle['brier']:.3f} against the rule's {m[FIGURE + ', battle']['brier']:.3f}, and the difference is "
          f"{vs('brier', FIGURE, ', battle')}. Its shares in need are counted on every stream of the training sample; "
          f"among battle casualties they fall {abs(battle['calibration']):.3f} below the share in need, where the "
-         f"rule's share flagged falls {abs(m[FIGURE + ', battle']['calibration']):.3f} below it",
+         f"rule's share flagged falls {abs(m[FIGURE + ', battle']['calibration']):.3f} below it; the policy's gap less "
+         f"the rule's is {vs('calibration', FIGURE, ', battle')}",
          rule_cal(m[FIGURE]), rule_cal(m[TEXT]),
          f"Of the value estimate from logs: naive estimate less true value across {len(ts)} further sets of logs. "
          f"Learned policy: {gap('learned')}. Doing nothing: {gap('do nothing')}. Learned while reading the response "
@@ -922,11 +941,14 @@ def seven_axes() -> pd.DataFrame:
          "Unchanged: the setting changes only the scan", "Unchanged: the setting changes only the scan",
          "Does not apply: the constructed process has no care setting"),
         ("7 Decision value",
-         stochastic.axis7(pre["flag"], pre["need"]) + ", against need for a life-saving intervention. Net benefit less "
-         f"the rule's (figure) is {vs('net benefit', FIGURE, places=1, unit=' per 100')}; the policy is built to "
-         f"minimise the expected cost that net benefit at 0.10 scores, so this is its own measure",
-         stochastic.axis7(pre["figure flag"], pre["need"]) + ", against need",
-         stochastic.axis7(pre["text flag"], pre["need"]) + ", against need",
+         stochastic.axis7(pre["flag"], pre["need"]) + ", against need for a life-saving intervention, every stream. "
+         f"Net benefit less the rule's (figure), every stream, is {vs('net benefit', FIGURE, places=1, unit=' per 100')}"
+         f"; the policy is built to minimise the expected cost that net benefit at 0.10 scores, so this is its own "
+         f"measure" + battle7(POLICY, pre["flag"]),
+         stochastic.axis7(pre["figure flag"], pre["need"]) + ", against need, every stream"
+         + battle7(FIGURE, pre["figure flag"]),
+         stochastic.axis7(pre["text flag"], pre["need"]) + ", against need, every stream"
+         + battle7(TEXT, pre["text flag"]),
          "Does not apply: net benefit scores a flag, not a policy. A policy's decision value is its share surviving, "
          "in axis 1"),
     ]
