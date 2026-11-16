@@ -15,8 +15,8 @@ The constructed images
 - An image is 16 by 16 pixels. Each constructed subject gives 8 frames. Every frame of a subject carries the subject's
   own fixed texture (standard deviation 0.12) and fresh noise (0.15), on a background whose brightness is set by the
   site. A coin decides whether a subject carries a dark oval, darker than the background by 0.25. A second coin makes
-  the oval small or large. The oval sits at a row set by the site and a column fixed for the subject, and moves a
-  little from frame to frame.
+  the oval small or large. The oval's row and column are drawn once for each subject, the row from a band set by the
+  site and the column from the same band at every site, and the oval moves a little from frame to frame.
 - Three sites: A and B, on which the image network is trained, and C, which it never sees. They differ in brightness
   and in the rows at which the oval sits; C's rows lie mostly below those of A and B. Subjects alternate between the
   sites of a set.
@@ -769,6 +769,9 @@ def seven_axes() -> pd.DataFrame:
                 f"{decision.FLAGGING_ALL}), {decision.FLAG_ALL} {all_b:.1f} (mechanism)")
 
     held = f"{m['held-out frames']:,} frames of {m['held-out subjects']} held-out subjects of sites A and B"
+    nb_img, nb_all = m["net benefit: by subject"], m["net benefit: flag every frame"]
+    nb_less = decision.spread_words(image_less("net benefit: by subject", "net benefit: flag every frame"),
+                                    " per 100", 2, "lower", "higher")
     rows = [
         ("1 Discrimination (mechanism)",
          f"Area under the curve {m['auc: by subject']:.3f}, sensitivity {_pct(m['sensitivity: by subject'])}, "
@@ -814,10 +817,11 @@ def seven_axes() -> pd.DataFrame:
          "Unchanged: the network does not read the scan, and the generator draws the same signs in either setting",
          "Unchanged: the setting changes only the scan", "Unchanged: the setting changes only the scan"),
         ("7 Decision value",
-         f"Net benefit {m['net benefit: by subject']:.1f} per 100 held-out frames at a threshold of "
-         f"{decision.threshold():.2f}, against the oval; flag every frame {m['net benefit: flag every frame']:.1f}, "
-         f"flag none 0 ({CONSTRUCTED}, mechanism). A coin decides whether each subject carries the oval, so "
-         f"about half do, and the figure says nothing about casualties",
+         f"Net benefit {nb_img:.1f} per 100 held-out frames at a threshold of {decision.threshold():.2f}, against "
+         f"the oval ({'below' if nb_img < nb_all else 'at or above'} flagging every frame); flag every frame "
+         f"{nb_all:.1f}, flag none 0 ({CONSTRUCTED}, mechanism). The network less flagging every frame, on {len(sp)} "
+         f"further seeds, is {nb_less}. A coin decides whether each subject carries the oval, so about half do, and "
+         f"the figure says nothing about casualties",
          axis7(NET) + f". Net benefit {both('net benefit', (SCORE, FOREST, FIGURE, decision.FLAG_ALL))}",
          axis7(FIGURE), axis7(TEXT)),
     ]
