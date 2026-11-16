@@ -239,10 +239,20 @@ slices:
       - app/panels/knowledge.py
   9:
     title: Lens 09, Reinforcement learning
-    approved: null
+    approved: 2026-11-16
     blocked_by: []
+    note: "R-9.1: the treatment case runs on a constructed decision process, not ICU-Sepsis (E-49)"
+    background: docs/background/09-reinforcement-learning.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    review_sources:
+      - notebooks/09_reinforcement_learning.ipynb
+      - src/inference_labs/lenses/reinforcement.py
+      - app/panels/reinforcement.py
+    files:
+      - src/inference_labs/lenses/reinforcement.py
+      - tests/test_reinforcement.py
+      - notebooks/09_reinforcement_learning.ipynb
+      - app/panels/reinforcement.py
   10:
     title: Lens 06, Connectionist
     approved: null
