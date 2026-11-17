@@ -13,6 +13,10 @@ def test_page_two_rescores_on_the_mix_chosen():
     assert shown["table"][0]["sensitivity"] == f"{100 * m['sensitivity']:.1f}%"
     assert "D-23" in shown["rule"]
     assert pages.mix_and_setting(0, 0, 0)["status"]
+    assert "not a milder cohort" in pages.mix_and_setting(0, 100, 0)["rule"]     # the injured of the mix chosen
+    disease = pages.mix_and_setting(100, 0, 0)["table"]
+    assert all("worse than flagging none" in row["net benefit per 100 at the threshold"]
+               for row in disease if row["net benefit per 100 at the threshold"].startswith("-"))
 
 
 def test_page_three_is_the_lens_table():
@@ -33,6 +37,9 @@ def test_each_lens_page_holds_the_explainer_and_central_figure():
         shown = pages.lens_page(lens)
         assert any("**Plain.**" in text for text in shown["explainer"])
         assert shown["figure"][:8] == b"\x89PNG\r\n\x1a\n"
+    assert "D-23" in pages.lens_page("01")["figure caption"]
+    assert "civilian" in pages.lens_page("03")["figure caption"] and "assumed prior" in pages.lens_page("03")["figure caption"]
+    assert "US doctrine, not UK practice" in pages.lens_page("08")["figure caption"]
 
 
 def test_the_gallery_shows_every_central_figure():

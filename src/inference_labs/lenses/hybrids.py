@@ -373,8 +373,19 @@ def diagnosis_metric(name: str, model: str, setting: str) -> str:
             f"intervention, {SETTING_NAMES[setting]}")
 
 
-def treatment_metric(name: str, setting: str) -> str:
-    return f"{name}, battle casualties, {SETTING_NAMES[setting]}"
+SCAN_SOURCES = {"pre_hospital": ("the scan's accuracy in one civilian helicopter service (E-16), an assumption for a "
+                                 "military casualty"),
+                "in_hospital": "a scan accuracy assumed, centred on pooled in-hospital figures (E-14)"}
+
+
+def belief_source(setting: str) -> str:
+    """What lens 03's belief after a positive scan rests on in `setting`: the assumed prior and the scan's accuracy."""
+    return f"from notebook 03's assumed prior of {PRIOR:.2f} and {SCAN_SOURCES[setting]}"
+
+
+def treatment_metric(name: str, setting: str, key: str = "") -> str:
+    text = f"{name}, battle casualties, {SETTING_NAMES[setting]}"
+    return f"{text}, {belief_source(setting)}" if key == "belief" else text
 
 
 def _baseline_value(key: str, setting: str) -> float:
@@ -458,8 +469,8 @@ def seven_axes() -> pd.DataFrame:
          f"{spread_words(100 * (sp[f'coverage: {TREE}'] - sp[f'coverage: {RULE}']))}",
          rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
          f"ABC score: {rule_disc(abc_pre)} against significant bleeding, battle casualties, scan before hospital, the "
-         f"positive scan behind its item a belief of {_pct(b_pre['belief after a positive scan'])} from a prior of "
-         f"{PRIOR:.2f}"),
+         f"positive scan behind its item a belief of {_pct(b_pre['belief after a positive scan'])} "
+         f"{belief_source('pre_hospital')}"),
         ("2 Calibration (mechanism)", cal(RULE), cal(TREE), rule_cal(fig), rule_cal(txt),
          f"The score gives no probability: Brier {baseline.flag_metrics(activated, bleed)['brier']:.3f}, the share "
          f"misclassified, where lower is better"),
@@ -488,8 +499,9 @@ def seven_axes() -> pd.DataFrame:
          f"changed to {_pct(SHIFTED['battle'], 0)} battle casualties: across 20 samples coverage runs "
          f"{spread_range(f'coverage, shifted: {TREE}', 1, 100).replace(' across', ' per cent across')}, below the level",
          "Unchanged", "Unchanged",
-         f"Scan in hospital: the belief behind a positive scan is {_pct(b_in['belief after a positive scan'])} against "
-         f"{_pct(b_pre['belief after a positive scan'])}, and the score's sensitivity "
+         f"Scan in hospital: the belief behind a positive scan is {_pct(b_in['belief after a positive scan'])}, "
+         f"{belief_source('in_hospital')}, against {_pct(b_pre['belief after a positive scan'])} before hospital, "
+         f"{belief_source('pre_hospital')}; and the score's sensitivity "
          f"{_pct(b_in['ABC score sensitivity'])} against {_pct(b_pre['ABC score sensitivity'])}; the score counts the "
          f"item the same in both"),
         ("7 Decision value", nb_rows(RULE), nb_rows(TREE),
@@ -563,7 +575,8 @@ class HybridsLens:
                       "specificity": (t["ABC score specificity"], mptt["specificity"])}
             for key, name in TREATMENT_METRICS:
                 value, base = values[key]
-                rows.append(ScorecardRow(LENS_NAME, "treatment", treatment_metric(name, setting), round(float(value), 4),
+                rows.append(ScorecardRow(LENS_NAME, "treatment", treatment_metric(name, setting, key),
+                                         round(float(value), 4),
                                          round(float(base), 4) if not math.isnan(base) else base,
                                          "mechanism", "weak", "generator"))
         return rows

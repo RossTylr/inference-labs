@@ -40,6 +40,7 @@ def test_common_is_not_lethal_on_the_generator():
 
 def test_both_outcomes_are_read_from_the_generator():
     both = thread.tranexamic_both_ways()
+    assert both["casualties"] + both["died before care"] == both["battle casualties"]   # lesson 13: alive at care
     assert both["deaths if all treated"] < both["deaths if none treated"]
     assert both["harmed"] == both["harmed, given after 3 hours"]
 

@@ -90,12 +90,42 @@ def _flags(observed: pd.DataFrame) -> dict[str, np.ndarray]:
     }
 
 
+def _net_benefit(nb: float) -> str:
+    """Net benefit per 100, with a value below zero said in words (lesson 4)."""
+    from inference_labs.lenses import decision
+
+    return f"{100 * nb:.1f}" + (f" (below zero: worse than {decision.FLAGGING_NONE})" if nb < 0 else "")
+
+
+def _mix_rule(observed: pd.DataFrame, need: np.ndarray) -> str:
+    """D-23's comparison made on the injured of the mix chosen, beside D-23's own statement for the default mix: the
+    share of the injured in need against the share Priority 1 in the military registry (E-09)."""
+    from inference_labs.lenses import rules
+
+    registry = rules.PUBLISHED["MPTT-24, military"].prevalence
+    injured = baseline.calibration_cohort(observed)
+    head = (f"The MPTT-24's figures on this page are on the {MIX_N:,} synthetic casualties of the mix chosen here; the "
+            f"comparison with E-09 holds for the injured only.")
+    if injured.any():
+        share = float(need[injured].mean())
+        kind = "a milder cohort than" if share < registry else "not a milder cohort than"
+        here = (f"Among the injured of this mix, {_pct(share)} need a life-saving intervention against "
+                f"{_pct(registry)} Priority 1 in the military registry (E-09), so here they are {kind} the one the "
+                f"rule was validated on.")
+    else:
+        here = "No casualty of this mix is injured, so the comparison cannot be made on it."
+    default = (f"D-23 describes the default mix: among the injured of its {baseline.EVAL_N:,} synthetic casualties "
+               f"(seed {baseline.EVAL_SEED}), {_pct(baseline.calibration_need('military'))} need one, a milder cohort "
+               f"than the one the rule was validated on.")
+    return " ".join((head, here, default))
+
+
 @lru_cache(maxsize=32)
 def mix_and_setting(disease: int = 44, battle: int = 30, non_battle: int = 27, setting: str = "pre_hospital") -> dict:
     """Page 2. The methods that flag need for a life-saving intervention, scored on 20,000 synthetic casualties (seed
     42) of the mix and setting chosen: sensitivity, specificity, positive predictive value and net benefit at 0.10, with
     flagging every casualty beside them (mechanism). The models were fitted on the default mix and are not refitted."""
-    from inference_labs.lenses import decision, rules
+    from inference_labs.lenses import decision
 
     raw = {"disease": float(disease), "battle": float(battle), "non_battle": float(non_battle)}
     total = sum(raw.values())
@@ -115,24 +145,23 @@ def mix_and_setting(disease: int = 44, battle: int = 30, non_battle: int = 27, s
                      "sensitivity": _pct(hits / need.sum()) if need.any() else "no one in need",
                      "specificity": _pct(float((~flag[~need]).mean())) if (~need).any() else "everyone in need",
                      "positive predictive value": _pct(hits / flag.sum()) if flag.any() else "flags no one",
-                     "net benefit per 100 at the threshold": f"{100 * decision.net_benefit(flag, need, t):.1f}"})
+                     "net benefit per 100 at the threshold": _net_benefit(decision.net_benefit(flag, need, t))})
     rows.append({"method": decision.FLAG_ALL, "sensitivity": _pct(1.0) if need.any() else "no one in need",
                  "specificity": _pct(0.0) if (~need).any() else "everyone in need",
                  "positive predictive value": _pct(float(need.mean())),
-                 "net benefit per 100 at the threshold": f"{100 * decision.flag_all(need, t):.1f}"})
+                 "net benefit per 100 at the threshold": _net_benefit(decision.flag_all(need, t))})
     shown = ", ".join(f"{thread.STREAM_NAMES[s]} {_pct(mix[s])}" for s in thread.STREAMS)
     return {
         **head, "status": "",
         "mix": (f"{MIX_N:,} synthetic casualties of the military cohort, seed {MIX_SEED}: {shown} of admissions, the "
-                f"shares scaled to sum to one; scan {SETTING_NAMES[setting]}. The default mix is the UK field hospital "
+                f"shares scaled to sum to one; {SETTING_NAMES[setting]}. The default mix is the UK field hospital "
                 f"admissions of one theatre (E-34 to E-36); any other mix is the reader's assumption."),
         "need": (f"{_pct(float(need.mean()))} of these casualties need a life-saving intervention (mechanism). Each "
                  f"model was fitted on the default mix and keeps its own threshold; net benefit is at a threshold of "
                  f"{t:.2f}, a miss weighed {decision.DEFAULT_COSTS['miss'] / decision.DEFAULT_COSTS['false alarm']:g} "
                  f"times a false alarm (an assumption), beside {decision.FLAGGING_ALL}."),
         "table": rows,
-        "rule": rules.d23_sentence(scored=f"the {MIX_N:,} synthetic casualties of the mix chosen here",
-                                   subject="The MPTT-24's figures on this page are"),
+        "rule": _mix_rule(observed, need),
         "not moved heading": ("Answers taken among battle casualties alone, or on constructed data, do not move with "
                               "the mix:"),
         "not moved": [f"{lens}: {why}." for lens, why in NOT_MOVED],
@@ -147,8 +176,6 @@ def mix_and_setting(disease: int = 44, battle: int = 30, non_battle: int = 27, s
 @lru_cache(maxsize=2)
 def lens_table(case: str = "diagnosis") -> dict:
     """Page 3. Every lens's scorecard rows for one case, generated from the scorecards; no number is typed by hand."""
-    from inference_labs.lenses import rules
-
     table = thread.lens_table(case)
     summary = thread.lens_summary().reset_index()
     return {
@@ -161,8 +188,7 @@ def lens_table(case: str = "diagnosis") -> dict:
                   "lenses the MPTT-24 under the figure reading. Read each metric's wording before comparing two rows: "
                   "the lenses do not all score the same target."),
         "table": _table(table),
-        "rule": rules.d23_sentence(scored="every stream of the military cohort, disease included",
-                                   subject="The MPTT-24's figures in this table are"),
+        "rule": thread.lens_table_rule((case,), subject="The MPTT-24's figures in this table are"),
         "summary heading": "Each lens's rows, fit, labels and data",
         "summary": _table(summary.astype(str)),
         "note": ("The seven axes of each lens, with the spread across 20 seeds behind each comparison, are in the "
@@ -340,10 +366,48 @@ def _figures(nb: dict) -> list[tuple[int, bytes, bool]]:
     return out
 
 
+@lru_cache(maxsize=1)
+def figure_notes() -> dict[tuple[str, int], str]:
+    """What a figure needs beside it once it is taken out of its notebook, keyed by notebook number and figure number
+    (as the gallery counts them): the source, population, assumption or D-23 statement that the notebook gives in the
+    cells around it (lessons 1, 5 and 16)."""
+    from inference_labs.lenses import hybrids, knowledge, rules
+
+    pre, inside, prior = hybrids.SCAN_SOURCES["pre_hospital"], hybrids.SCAN_SOURCES["in_hospital"], hybrids.PRIOR
+    hundred = "a hundred synthetic casualties of the military cohort, disease included"
+    every = f"all {baseline.EVAL_N:,} synthetic casualties of the military cohort, every stream"
+    us = sorted({link.intervention.split(":")[0] for injury in knowledge.INJURIES
+                 for link in knowledge.chain(injury).links if knowledge.shown_label(link.edge) == "US doctrine"})
+    return {
+        ("01", 1): rules.d23_sentence(scored=hundred, subject="The counts in this figure are"),
+        ("02", 1): rules.d23_sentence(scored=every, subject="The MPTT-24's point on the generator here is"),
+        ("02", 2): rules.d23_sentence(scored=hundred, subject="The MPTT-24's counts in this figure are"),
+        ("02", 3): rules.d23_sentence(scored="the military cohort, every stream and the injured alone, and on the "
+                                             "civilian cohort", subject="The rule's figures here are"),
+        ("02", 4): rules.d23_sentence(scored=every, subject="The MPTT-24's points on the generator here are"),
+        ("03", 1): (f"The counts use {pre}, and start from an assumed prior of {prior:.2f}: the share bleeding is "
+                    f"assumed, not counted."),
+        ("03", 2): (f"The hundred start from an assumed prior of {prior:.2f}. Before hospital the counts use {pre}; in "
+                    f"hospital, pooled in-hospital figures (E-14)."),
+        ("03", 4): (f"The draws start from an assumed prior of {prior:.2f}. Before hospital they use {pre}; in hospital, "
+                    f"{inside}."),
+        ("03", 5): (f"The belief starts from the share bleeding into the abdomen counted among the generator's battle "
+                    f"casualties (mechanism). Before hospital it uses {pre}; in hospital, {inside}."),
+        ("04", 3): rules.d23_sentence(scored=every, subject="The MPTT-24's points here are"),
+        ("08", 1): (f"The edges from the injury to {thread._and(us)} come from E-86, the US military's resuscitation "
+                    f"guideline: US doctrine, not UK practice, though the figure's legend draws US doctrine and doctrine "
+                    f"in the same solid line."),
+    }
+
+
+def _note(path: Path, figure: int) -> str:
+    return figure_notes().get((path.stem.split("_")[0], figure), "")
+
+
 @lru_cache(maxsize=None)
 def lens_page(lens: str = "01") -> dict:
     """A lens page: the notebook's general explainer, its markdown cells tagged explainer, and its central figure as
-    last run, with the statement of what that figure changes."""
+    last run, with the statement of what that figure changes and what the notebook says beside it."""
     path = _notebook_path(lens)
     nb = _notebook(str(path))
     title = str(nb.get("metadata", {}).get("title", path.stem))
@@ -353,11 +417,15 @@ def lens_page(lens: str = "01") -> dict:
                and _text(c.get("source", "")).lstrip().startswith("# Central figure")]
     image = _images(central[0])[0] if central and _images(central[0]) else b""
     concludes = str(central[0].get("metadata", {}).get("concludes", "")) if central else ""
+    number = next((k for k, (_, _, is_central) in enumerate(_figures(nb), start=1) if is_central), 0)
+    note = _note(path, number)
     return {"title": title, "caption": NOT_FOR_CLINICAL_USE,
             "intro": (f"From notebook {path.stem}: its general explainer and its central figure, as the notebook last "
                       f"ran them. Where the text says to change a control and run the cell again, that is done in the "
                       f"notebook."),
-            "explainer": texts, "figure": image, "figure caption": f"What the figure changes: {concludes}"}
+            "explainer": texts, "figure": image,
+            "figure caption": f"What the figure changes: {concludes}"
+                              + ((" " if concludes.endswith(".") else ". ") + note if note else "")}
 
 
 def gallery_choices() -> tuple[str, ...]:
@@ -387,9 +455,10 @@ def gallery(notebook: str = CENTRAL) -> dict:
         for k, (cell, image, central) in enumerate(figures, start=1):
             if notebook == CENTRAL and not central:
                 continue
+            note = _note(path, k)
             items.append({"image": image,
                           "caption": f"{title}: figure {k} of {len(figures)}, cell {cell}"
-                                     + (", the central figure" if central else "")})
+                                     + (", the central figure" if central else "") + (f". {note}" if note else "")})
     return {"title": "Gallery", "caption": NOT_FOR_CLINICAL_USE,
             "about": ("The figures of the executed notebooks, as each last ran. Each was drawn on synthetic or "
                       "constructed data, or from published figures, and each notebook states which beside it."),

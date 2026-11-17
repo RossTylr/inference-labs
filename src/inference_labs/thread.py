@@ -185,14 +185,20 @@ def site_split() -> pd.DataFrame:
 
 @lru_cache(maxsize=1)
 def tranexamic_both_ways() -> dict:
-    """On the evaluation sample's battle casualties, deaths from bleeding with every casualty given tranexamic acid and
-    with none given it, from the generator's two potential outcomes, which only a generator can hold (mechanism)."""
+    """On the evaluation sample's battle casualties alive at pre-hospital care, where the generator gives tranexamic
+    acid, deaths from bleeding with every casualty given it and with none given it, from the generator's two potential
+    outcomes, which only a generator can hold (mechanism). A casualty whose bleeding death without the drug falls at or
+    before that time is left out: the drug is not yet given, and the generator acts on the probability of death, not
+    on its timing, so counting them would credit the drug with deaths it could not reach."""
     observed, truth = baseline.generator_sample()
     battle = (observed["stream"] == "battle").to_numpy()
-    treated = truth["died_if_treated"].to_numpy(bool)[battle]
-    untreated = truth["died_if_untreated"].to_numpy(bool)[battle]
-    late = truth["txa_delay_min"].to_numpy(float)[battle] > generator.LATE_BAND_MIN
-    return {"casualties": int(battle.sum()), "deaths if all treated": int(treated.sum()),
+    before_care = baseline.died_before_care(observed, truth)
+    keep = battle & ~before_care
+    treated = truth["died_if_treated"].to_numpy(bool)[keep]
+    untreated = truth["died_if_untreated"].to_numpy(bool)[keep]
+    late = truth["txa_delay_min"].to_numpy(float)[keep] > generator.LATE_BAND_MIN
+    return {"battle casualties": int(battle.sum()), "died before care": int((battle & before_care).sum()),
+            "casualties": int(keep.sum()), "deaths if all treated": int(treated.sum()),
             "deaths if none treated": int(untreated.sum()),
             "per 100 if all treated": 100 * float(treated.mean()), "per 100 if none treated": 100 * float(untreated.mean()),
             "saved": int((untreated & ~treated).sum()), "harmed": int((treated & ~untreated).sum()),
@@ -211,13 +217,16 @@ def after_mix() -> dict[str, float]:
 
 def before_after(seed: int = baseline.EVAL_SEED) -> dict:
     """The failure, constructed. Before: 100,000 casualties at the default mix, none given tranexamic acid. After:
-    100,000 casualties of a different sample (seed + 100) at the after mix, every battle casualty given it. Deaths are
-    from bleeding, per 100 casualties, counted from injury; the drug's true effect is read from both potential outcomes of the after
-    casualties (mechanism)."""
+    100,000 casualties of a different sample (seed + 100) at the after mix, every battle casualty given it at
+    pre-hospital care. Deaths are from bleeding, per 100 casualties, counted from injury. A casualty whose bleeding death
+    falls at or before pre-hospital care dies before the drug is given, so dies in the after cohort whether or not it
+    was meant for them; the drug's true effect is read from both potential outcomes of the after casualties alive at
+    care (mechanism)."""
     _, before = generator.sample(baseline.EVAL_N, seed, return_truth=True)
-    _, after = generator.sample(baseline.EVAL_N, seed + 100, mix=after_mix(), return_truth=True)
+    after_observed, after = generator.sample(baseline.EVAL_N, seed + 100, mix=after_mix(), return_truth=True)
+    before_care = baseline.died_before_care(after_observed, after)
     b = 100 * float(before["died_if_untreated"].mean())
-    a_treated = 100 * float(after["died_if_treated"].mean())
+    a_treated = 100 * float((before_care | after["died_if_treated"].to_numpy(bool)).mean())
     a_untreated = 100 * float(after["died_if_untreated"].mean())
     return {"before": b, "after": a_treated, "after, none treated": a_untreated,
             "fall": b - a_treated, "drug": a_untreated - a_treated, "mix": b - a_untreated}
@@ -293,6 +302,27 @@ def lens_table(case: str = "diagnosis") -> pd.DataFrame:
                          "baseline": [_number(v) for v in card["baseline"]],
                          "label": card["label"].to_numpy(), "fit": card["fit"].to_numpy(),
                          "data": card["data_source"].to_numpy()})
+
+
+# The lenses whose baseline, in each case, is measured on battle casualties alone or a group within them, as each
+# lens's notebook says; every other row's baseline is on every stream of the military cohort.
+BATTLE_BASELINES = {"diagnosis": ("Bayesian", "Causal inference", "Stochastic processes"),
+                    "treatment": ("Rules", "Hybrids: prediction sets", "Decision trees", "Decision theory")}
+
+
+def _and(names) -> str:
+    names = list(names)
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+
+
+def lens_table_rule(cases=("diagnosis", "treatment"), subject: str = "The MPTT-24's figures in these tables are") -> str:
+    """D-23's statement for the lens table (lesson 16), naming the casualties the MPTT-24's figures in it are on."""
+    from inference_labs.lenses import rules
+
+    rows = _and(f"the {case} rows of {_and(BATTLE_BASELINES[case])}" for case in cases)
+    return rules.d23_sentence(scored=(f"every stream of the military cohort, disease included, except in {rows}, "
+                                      f"where they are on battle casualties alone or a group within them"),
+                              subject=subject)
 
 
 def lens_summary() -> pd.DataFrame:
