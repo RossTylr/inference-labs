@@ -75,6 +75,8 @@ MAP_CAUTION = ("A map shows where the network looked, not why, and can look the 
 EVERY, BATTLE = "every stream", "battle casualties alone"
 OWN_LINE = "the network's own threshold"
 TEN_LINE = "lens 10's threshold"
+WEIGHTING = (f"a miss weighed {decision.DEFAULT_COSTS['miss'] / decision.DEFAULT_COSTS['false alarm']:g} times a "
+             f"false alarm (an assumption)")
 
 
 def _pct(x: float, places: int = 1) -> str:
@@ -817,8 +819,9 @@ def seven_axes() -> pd.DataFrame:
          "Unchanged: the network does not read the scan, and the generator draws the same signs in either setting",
          "Unchanged: the setting changes only the scan", "Unchanged: the setting changes only the scan"),
         ("7 Decision value",
-         f"Net benefit {nb_img:.1f} per 100 held-out frames at a threshold of {decision.threshold():.2f}, against "
-         f"the oval ({'below' if nb_img < nb_all else 'at or above'} flagging every frame); flag every frame "
+         f"Net benefit {nb_img:.1f} per 100 held-out frames at a threshold of {decision.threshold():.2f}, with "
+         f"{WEIGHTING}, against the oval ({'below' if nb_img < nb_all else 'at or above'} flagging every frame, a "
+         f"result that rests on that weighting); flag every frame "
          f"{nb_all:.1f}, flag none 0 ({CONSTRUCTED}, mechanism). The network less flagging every frame, on {len(sp)} "
          f"further seeds, is {nb_less}. A coin decides whether each subject carries the oval, so about half do, and "
          f"the figure says nothing about casualties",
@@ -866,8 +869,8 @@ def panel(record: Mapping[str, Any]) -> dict:
                   f"{decision.against_threshold(p, own, 4, show=False, name=OWN_LINE)}, so it "
                   f"{flags(p, own)} this casualty there; it is "
                   f"{decision.against_threshold(p, t, 4, show=False, name=TEN_LINE)}, so there it {flags(p, t)} them "
-                  f"(mechanism, weak fit). For the same casualty lens 02's logistic score gives {score:.4f} and lens "
-                  f"04's forest {forest:.4f}. MPTT-24: {fig.priority} under the published figure, leaving at step "
+                  f"(mechanism, weak fit); {TEN_LINE} rests on {WEIGHTING}. For the same casualty lens 02's "
+                  f"logistic score gives {score:.4f} and lens 04's forest {forest:.4f}. MPTT-24: {fig.priority} under the published figure, leaving at step "
                   f"{fig.step}; {txt.priority} under the text, leaving at step {txt.step}."),
         "battle": (f"All three models were fitted on the whole military cohort, disease admissions and non-battle "
                    f"injuries included. On the battle casualties of the evaluation sample, "
