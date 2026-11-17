@@ -271,8 +271,60 @@ slices:
       - app/panels/connectionist.py
   11:
     title: Notebooks 00 and 11; app pages 2 to 4
-    approved: null
+    approved: 2026-11-17
     blocked_by: []
-    note: Starts only when at least five lenses are BUILT
+    note: Starts only when at least five lenses are BUILT; ten are
+    # Two background files: G-11 reads "What must not be claimed" from each.
+    background:
+      - docs/background/00-casualty-thread.md
+      - docs/background/11-hybrids.md
     gates: [G-1, G-2, G-3, G-4, G-5, G-6, G-7, G-8, G-9, G-10, G-11, G-12, G-13]
-    files: []
+    review_sources:
+      - notebooks/00_casualty_thread.ipynb
+      - notebooks/11_hybrids.ipynb
+      - src/inference_labs/thread.py
+      - src/inference_labs/lenses/hybrids.py
+      - src/inference_labs/pages.py
+      - app/pages/2_Mix_and_setting.py
+      - app/pages/3_Lens_table.py
+      - app/pages/4_Graph_explorer.py
+      - app/pages/5_Lens_01_Rules.py
+      - app/pages/6_Lens_02_Frequentist.py
+      - app/pages/7_Lens_03_Bayesian.py
+      - app/pages/8_Lens_04_Decision_trees.py
+      - app/pages/9_Lens_05_Stochastic.py
+      - app/pages/10_Lens_06_Connectionist.py
+      - app/pages/11_Lens_07_Causal.py
+      - app/pages/12_Lens_08_Knowledge_graph.py
+      - app/pages/13_Lens_09_Reinforcement_learning.py
+      - app/pages/14_Lens_10_Decision_theory.py
+      - app/pages/15_Gallery.py
+    files:
+      - src/inference_labs/thread.py
+      - src/inference_labs/lenses/hybrids.py
+      - src/inference_labs/pages.py
+      - tests/test_thread.py
+      - tests/test_hybrids.py
+      - tests/test_pages.py
+      - notebooks/00_casualty_thread.ipynb
+      - notebooks/11_hybrids.ipynb
+      - app/pages/2_Mix_and_setting.py
+      - app/pages/3_Lens_table.py
+      - app/pages/4_Graph_explorer.py
+      - app/pages/5_Lens_01_Rules.py
+      - app/pages/6_Lens_02_Frequentist.py
+      - app/pages/7_Lens_03_Bayesian.py
+      - app/pages/8_Lens_04_Decision_trees.py
+      - app/pages/9_Lens_05_Stochastic.py
+      - app/pages/10_Lens_06_Connectionist.py
+      - app/pages/11_Lens_07_Causal.py
+      - app/pages/12_Lens_08_Knowledge_graph.py
+      - app/pages/13_Lens_09_Reinforcement_learning.py
+      - app/pages/14_Lens_10_Decision_theory.py
+      - app/pages/15_Gallery.py
+      - harness/gates/g08_parity.py
+      - harness/gates/g10_evidence.py
+      - harness/gates/g11_sceptic.py
+      - tests/planted/test_g08_parity.py
+      - tests/planted/test_g10_evidence.py
+      - tests/planted/test_g11_sceptic.py
