@@ -52,3 +52,13 @@ O-2 (freeBIRD terms before real-data cells); a licence (none); deleting remote b
 1. Lens 04's forest averages in parallel (`trees.py` line 93, `n_jobs=-1`); with threshold ties, last digits in notebooks 04, 06 and 11 and page 2 vary between runs. The fix, `n_jobs=1`, crosses lenses: slices 4, 10 and 11 would need changed-lines re-reviews.
 2. D-23's "milder cohort": battle casualties alone, the walk-through's group, are 50.2% in need against E-09's 47.6%. Only notebooks 00 and 11 say so, not page 3's caption. D-23 may need revisiting.
 3. Slice 9 uses a constructed process, not ICU-Sepsis (MIMIC-III-derived tables' terms unconfirmed; R-9.1). Its review's limit: among battle casualties the policy's unflagged route holds 0.209 in need, above the 0.10 threshold, and its cost curve runs backwards; read strictly, R-9.5 makes that a breach.
+
+## Acceptance after the final pass
+
+Clean clone of 626cf57 in a fresh environment: passed. All 12 notebooks ran top to bottom and all 15 app pages loaded. The validator printed, by slice: 0 BUILT (7/7 pass); 1 BUILT (13/13 pass); 2 BUILT (13/13 pass); 3 BUILT (13/13 pass); 4 BUILT (13/13 pass); 5 BUILT (13/13 pass); 6 BUILT (13/13 pass); 7 BUILT (13/13 pass); 8 BUILT (13/13 pass); 9 BUILT (13/13 pass); 10 BUILT (13/13 pass); 11 BUILT (13/13 pass).
+
+Continuous integration: passed, run 44145839522.
+
+Repository checks: passed. Lens table generated, no number typed; teaching line on every notebook and page; `deferred` empty; all 62 `src/`, `notebooks/`, `app/` files in the manifest; no emoji in 174 tracked files; no real trial data (two 200-row synthetic fixtures).
+
+Counts: 12 notebooks, 11 lens modules, 15 app pages, 327 tests, 128 evidence rows (99 cited by notebooks, 29 not).
