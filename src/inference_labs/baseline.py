@@ -215,7 +215,7 @@ def calibration_check(cohort: str = "military") -> pd.DataFrame:
         for key in ("sensitivity", "specificity"):
             tol = param["tolerance"][key] if isinstance(param["tolerance"], dict) else param["tolerance"]
             target, tol = float(param["value"][key]), float(tol)
-            rows.append({"reading": reading, "measure": key, "E-09": target, "achieved": round(achieved[key], 4),
+            rows.append({"reading": reading, "measure": key, "E-09": target, "achieved": achieved[key],
                          "tolerance": tol, "held to E-09": reading == CALIBRATION_READING,
                          "within tolerance": abs(achieved[key] - target) <= tol})
     return pd.DataFrame(rows)

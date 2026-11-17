@@ -1,7 +1,7 @@
 {
   "slice": 0,
-  "attempt": 17,
-  "when": "2026-11-15T10:06",
+  "attempt": 18,
+  "when": "2026-11-17T05:13",
   "verdict": "BUILT",
   "tally": "7/7 pass",
   "open_items_unresolved": [],
@@ -9,13 +9,13 @@
     "G-1": {
       "passed": true,
       "evaluable": true,
-      "reason": "49 listed files present; nothing unlisted",
+      "reason": "50 listed files present; nothing unlisted",
       "detail": null
     },
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "270 tests, 0 skipped with a reason, none failing",
+      "reason": "326 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -987,13 +987,13 @@
     "G-6": {
       "passed": true,
       "evaluable": true,
-      "reason": "129 scorecard rows correctly labelled across 9 lenses",
+      "reason": "175 scorecard rows correctly labelled across 12 lenses",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (76 passed in 7.77s)",
+      "reason": "13 gates each fail their planted defect (81 passed in 8.16s)",
       "detail": null
     }
   }
