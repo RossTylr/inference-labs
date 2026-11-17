@@ -71,10 +71,14 @@ NOT_MOVED = (
 
 def _flags(observed: pd.DataFrame) -> dict[str, np.ndarray]:
     """Each method's flag for need of a life-saving intervention, each at the threshold its own lens sets."""
+    import joblib
+
     from inference_labs.lenses import connectionist, decision, frequentist, hybrids, knowledge, reinforcement, trees
 
     p_score = frequentist.probability(observed)
-    p_trees, m = trees.probabilities(observed), trees.models()
+    with joblib.parallel_config(backend="sequential"):
+        p_trees = trees.probabilities(observed)
+    m = trees.models()
     return {
         "MPTT-24, figure (as published)": baseline.priority_one(observed, "figure"),
         "MPTT-24, text (as validated)": baseline.priority_one(observed, "text"),

@@ -405,6 +405,8 @@ def seven_axes() -> pd.DataFrame:
     casualty whose set holds need. Across 20 further samples, each calibrated afresh (lesson 12), the spread is given
     of each model's coverage less the level, its coverage among the battle casualties alone less its coverage on every
     stream, the tree's coverage less the rule's, and each flag's net benefit less the MPTT-24's (figure)."""
+    from inference_labs import thread
+
     sp = spread()
     pre, inside = diagnosis_results("pre_hospital"), diagnosis_results("in_hospital")
     observed, truth = baseline.generator_sample()
@@ -467,7 +469,7 @@ def seven_axes() -> pd.DataFrame:
          disc(RULE) + ". The flag is the MPTT-24's Priority 1 itself: only a Priority 1 casualty's set holds need",
          disc(TREE) + f"; its coverage less the rule's is "
          f"{spread_words(100 * (sp[f'coverage: {TREE}'] - sp[f'coverage: {RULE}']))}",
-         rule_disc(fig) + ". " + rules.d23_sentence(), rule_disc(txt),
+         rule_disc(fig) + ". " + thread.rule_on_both("The scorecard's figures are"), rule_disc(txt),
          f"ABC score: {rule_disc(abc_pre)} against significant bleeding, battle casualties, scan before hospital, the "
          f"positive scan behind its item a belief of {_pct(b_pre['belief after a positive scan'])} "
          f"{belief_source('pre_hospital')}"),
