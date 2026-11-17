@@ -161,15 +161,56 @@ def ppv(sensitivity: float, specificity: float, prevalence: float) -> float:
     return hit / (hit + (1 - specificity) * (1 - prevalence))
 
 
+D23_GROUPS = ("every stream", "injured", "battle", "every stream and battle")
+
+
+def need_shares() -> dict[str, float]:
+    """The share needing a life-saving intervention among the military cohort's 100,000 synthetic casualties (seed
+    42): on every stream, among the injured, battle and non-battle, and among the battle casualties alone
+    (mechanism)."""
+    observed, truth = baseline.generator_sample("pre_hospital", "military")
+    need = truth["needs_lsi"].to_numpy(bool)
+    battle = (observed["stream"] == "battle").to_numpy()
+    return {"every stream": float(need.mean()), "injured": baseline.calibration_need("military"),
+            "battle": float(need[battle].mean())}
+
+
 def d23_sentence(scored: str = "every stream of the military cohort, disease included",
-                 subject: str = "The scorecard's figures are") -> str:
-    """D-23's statement, one sentence for every lens wherever the rule's accuracy on the generator is quoted (lesson
-    16): what the figures are measured on, and the injured, on whom the comparison with E-09 holds."""
+                 subject: str = "The scorecard's figures are", group: str = "every stream",
+                 share: float | None = None) -> str:
+    """D-23's statement as D-33 restates it, for every lens wherever the rule's accuracy on the generator is quoted
+    (lesson 16): what the figures are measured on, the share in need of the group they are on, and the comparison
+    with E-09. `group` is one of D23_GROUPS: every stream, the injured, battle casualties alone or a group within
+    them, or every stream with battle casualties alone beside it. `share` is the own share in need of a group within
+    the battle casualties."""
     registry = PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
-    return (f"{subject} on {scored}; the comparison with E-09 holds for the injured only, of whom "
-            f"{_pct(baseline.calibration_need('military'))} need a life-saving intervention against {_pct(registry)} "
-            f"Priority 1 in the military registry (E-09), so the generator's injured are a milder cohort than the one "
-            f"the rule was validated on (D-23).")
+    s = need_shares()
+    e09 = f"{_pct(registry)} Priority 1 in the military registry (E-09)"
+
+    def milder(x: float) -> str:
+        return "a milder cohort" if x < registry else "not a milder cohort"
+
+    def injured(need: str) -> str:
+        return (f"the comparison with E-09 holds for the injured only, of whom {_pct(s['injured'])} {need} against "
+                f"{e09}, so the generator's injured are {milder(s['injured'])} than the one the rule was validated on "
+                f"(D-23).")
+
+    lsi = "need a life-saving intervention"
+    every = f"On every stream of the military cohort, {_pct(s['every stream'])} of casualties {lsi}"
+    battle = (f"Of the battle casualties alone, {_pct(s['battle'])} {lsi} against {e09}, so they are "
+              f"{milder(s['battle'])} than the one the rule was validated on; of the injured as a whole, battle and "
+              f"non-battle, {_pct(s['injured'])} need one, so the generator's injured are {milder(s['injured'])} "
+              f"(D-23).")
+    if group == "injured":
+        return f"{subject} on {scored}; {injured(lsi)}"
+    if group == "every stream":
+        return f"{subject} on {scored}. {every}; {injured('need one')}"
+    if group == "battle":
+        own = ("" if share is None else f", all of whom {lsi}" if share == 1 else f", of whom {_pct(share)} {lsi}")
+        return f"{subject} on {scored}{own}. {battle}"
+    if group == "every stream and battle":
+        return f"{subject} on {scored}. {every}. {battle}"
+    raise ValueError(f"group must be one of {D23_GROUPS}")
 
 
 # ------------------------------------------------------------------------------------------------ the needle (E-104, E-106)

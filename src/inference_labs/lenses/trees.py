@@ -90,7 +90,7 @@ def models() -> Models:
     need = truth["needs_lsi"].to_numpy(bool)
     X = sign_matrix(observed)
     tree = DecisionTreeClassifier(max_depth=TREE_DEPTH, min_samples_leaf=TREE_LEAF, random_state=MODEL_SEED).fit(X, need)
-    forest = RandomForestClassifier(n_estimators=FOREST_TREES, min_samples_leaf=FOREST_LEAF, n_jobs=-1,
+    forest = RandomForestClassifier(n_estimators=FOREST_TREES, min_samples_leaf=FOREST_LEAF, n_jobs=1,
                                     random_state=MODEL_SEED).fit(X, need)
     target = frequentist.fitted_score().matched_specificity
     return Models(tree, forest, _matched_threshold(tree.predict_proba(X)[:, 1], need, target),

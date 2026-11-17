@@ -4,7 +4,7 @@ Ten ways of reasoning applied to one military casualty, from point of injury to 
 
 **Teaching material. Not for clinical use.**
 
-**Status:** slices 0 to 10 built; slice 11 built and under review · **Date:** 17 November 2026 · **Author:** Ross Taylor
+**Status:** every slice built; every slice with a notebook reviewed · **Date:** 17 November 2026 · **Author:** Ross Taylor
 
 ---
 
@@ -18,13 +18,11 @@ Ten ways of reasoning applied to one military casualty, from point of injury to 
 
 ## What is built
 
-Slices 0 to 10 are built: the foundations, then the ten lenses, each lens with its library module, its notebook and its panel on the app's first page. Each slice reads BUILT, and each lens has passed a review.
-
-Slice 11 is built and under review: notebooks 00 and 11, app pages 2 to 4, the lens pages and the gallery. They run, but they are not finished, and what they say may change before the review closes.
+Every slice is built. Slice 0 is the foundations, which hold no notebook and have no review (D-29). Slices 1 to 10 are the ten lenses, each with its library module, its notebook and its panel on the app's first page; slice 11 is notebooks 00 and 11, app pages 2 to 4, the lens pages and the gallery. Each of slices 1 to 11 has been reviewed.
 
 | Notebook | Title |
 |---|---|
-| `00_casualty_thread` | The casualty thread: three kinds of question (slice 11, under review) |
+| `00_casualty_thread` | The casualty thread: three kinds of question |
 | `01_rules` | Rules |
 | `02_frequentist` | Frequentist |
 | `03_bayesian` | Bayesian inference |
@@ -35,7 +33,7 @@ Slice 11 is built and under review: notebooks 00 and 11, app pages 2 to 4, the l
 | `08_knowledge_graph` | Knowledge graphs |
 | `09_reinforcement_learning` | Reinforcement learning |
 | `10_decision_theory` | Decision theory |
-| `11_hybrids` | Hybrids: when a model should say it is not sure (slice 11, under review) |
+| `11_hybrids` | Hybrids: when a model should say it is not sure |
 
 Every notebook follows the same pattern: a hook, a plain explainer with a central figure, a case worked by hand and checked against the library, a diagnosis case and a treatment case, the characteristic failure produced on purpose, the scorecard, and an analogy with where it breaks.
 
@@ -151,7 +149,7 @@ streamlit run app/streamlit_app.py
 | 5 to 14 | One page per lens: its notebook's explainer and central figure, as last run |
 | 15 Gallery | The figures of the executed notebooks |
 
-Pages 2 to 15 are part of slice 11 and are under review. Every number on a page comes from the library, and every page runs on synthetic casualties or on the notebooks as last executed.
+Pages 2 to 15 are part of slice 11. Every number on a page comes from the library, and every page runs on synthetic casualties or on the notebooks as last executed.
 
 ## Tests and the validator
 

@@ -739,7 +739,8 @@ def seven_axes() -> pd.DataFrame:
     seeds or samples (lesson 12), on every stream and among battle casualties alone (lesson 15)."""
     m, sp = image_measures(), image_spread()
     r, own = signs_results(), own_thresholds()
-    d23 = rules.d23_sentence()
+    d23 = rules.d23_sentence("every stream of the military cohort, disease included, and among battle casualties "
+                             "alone", group="every stream and battle")
     observed, truth = baseline.generator_sample()
     need = truth["needs_lsi"].to_numpy(bool)
     battle = (observed["stream"] == "battle").to_numpy()

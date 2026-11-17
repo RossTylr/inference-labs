@@ -262,11 +262,13 @@ def policy_output(observed: pd.DataFrame, cost: float = QUESTION_COST) -> dict:
 
 
 @lru_cache(maxsize=None)
-def question_tree(cost: float = QUESTION_COST) -> pd.DataFrame:
+def question_tree(cost: float = QUESTION_COST, stream: str | None = None) -> pd.DataFrame:
     """The policy's distinct routes, each with the number of training casualties who take it, the share of them in
-    need and the decision: the policy written out as a tree."""
+    need and the decision: the policy written out as a tree. The policy is the one solved on every stream; given
+    `stream`, the casualties counted on each route are that stream's alone, and a route none of them takes is left
+    out."""
     table = route_table(cost)
-    counts = answer_counts().reshape(-1, 2)
+    counts = answer_counts(stream).reshape(-1, 2)
     table = table.assign(casualties=counts.sum(1).astype(int), in_need=counts[:, 1].astype(int))
     tree = table.groupby(["route", "decision"], sort=False)[["casualties", "in_need"]].sum().reset_index()
     tree = tree[tree["casualties"] > 0].copy()
@@ -353,11 +355,13 @@ COST_GRID = (0.0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2)
 @lru_cache(maxsize=None)
 def cost_curve(costs: tuple = COST_GRID) -> pd.DataFrame:
     """The policy's questions asked and net benefit at 0.10 as the cost of a question changes, on the evaluation
-    sample (mechanism)."""
+    sample, every stream and battle casualties alone (mechanism)."""
     rows = []
     for c in costs:
-        m = diagnosis_results("pre_hospital", c)["measures"][POLICY]
+        measures = diagnosis_results("pre_hospital", c)["measures"]
+        m, b = measures[POLICY], measures[f"{POLICY}, battle"]
         rows.append({"question cost": c, "questions asked": m["questions"], "net benefit": m["net benefit"],
+                     "questions asked, battle": b["questions"], "net benefit, battle": b["net benefit"],
                      "sensitivity": m["sensitivity"], "specificity": m["specificity"],
                      "first question": QUESTIONS[question_policy(c)[(UNKNOWN,) * len(QUESTIONS)][1]]
                      if isinstance(question_policy(c)[(UNKNOWN,) * len(QUESTIONS)][1], int) else "none"})

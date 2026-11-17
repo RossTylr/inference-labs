@@ -1,9 +1,9 @@
 {
   "slice": 2,
-  "attempt": 33,
-  "when": "2026-11-17T05:28",
-  "verdict": "BUILT",
-  "tally": "13/13 pass",
+  "attempt": 34,
+  "when": "2026-11-17T10:37",
+  "verdict": "REVISE",
+  "tally": "12/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -15,7 +15,7 @@
     "G-2": {
       "passed": true,
       "evaluable": true,
-      "reason": "326 tests, 0 skipped with a reason, none failing",
+      "reason": "327 tests, 0 skipped with a reason, none failing",
       "detail": null
     },
     "G-3": {
@@ -993,7 +993,7 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "01_rules.ipynb ran in 5 s with 8 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "01_rules.ipynb ran in 6 s with 8 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
@@ -1015,9 +1015,9 @@
       "detail": null
     },
     "G-11": {
-      "passed": true,
+      "passed": false,
       "evaluable": true,
-      "reason": "reviews/slice-2.md matches its 3 review sources and records HOLDS against 6 checks",
+      "reason": "notebooks/01_rules.ipynb has changed since the review; src/inference_labs/lenses/rules.py has changed since the review",
       "detail": null
     },
     "G-12": {

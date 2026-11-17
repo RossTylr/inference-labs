@@ -346,23 +346,17 @@ def lens_table_rule(cases=("diagnosis", "treatment"), subject: str = "The MPTT-2
     rows = _and(f"the {case} rows of {_and(BATTLE_BASELINES[case])}" for case in cases)
     return rules.d23_sentence(scored=(f"every stream of the military cohort, disease included, except in {rows}, "
                                       f"where they are on battle casualties alone or a group within them"),
-                              subject=subject)
+                              subject=subject, group="every stream and battle")
 
 
 def rule_on_both(subject: str = "The MPTT-24's figures here are") -> str:
     """D-23's statement where the MPTT-24's figures are given on every stream and among battle casualties alone
-    (lesson 16): the comparison with E-09 on the injured, and beside it the battle casualties' own share in need, on the
-    evaluation sample (mechanism)."""
-    from inference_labs.lenses import decision, rules
+    (lesson 16): each group's share in need and the comparison with E-09, on the evaluation sample (mechanism)."""
+    from inference_labs.lenses import rules
 
-    registry = rules.PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
-    battle = decision.battle_share_in_need()["battle casualties alone"]
-    kind = "a milder cohort than" if battle < registry else "not a milder cohort than"
-    return (rules.d23_sentence(scored=("every stream of the military cohort, disease included, and, where they say "
-                                       "so, on battle casualties alone"), subject=subject)
-            + f" Battle casualties are among the injured; of them alone {100 * battle:.1f}% need a life-saving "
-              f"intervention, against {100 * registry:.1f}% Priority 1 in the military registry (E-09), so they are "
-              f"{kind} the one the rule was validated on.")
+    return rules.d23_sentence(scored=("every stream of the military cohort, disease included, and, where they say "
+                                      "so, on battle casualties alone"), subject=subject,
+                              group="every stream and battle")
 
 
 def yardstick() -> pd.DataFrame:

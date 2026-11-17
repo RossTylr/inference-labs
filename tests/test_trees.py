@@ -88,3 +88,16 @@ def test_the_panel_labels_its_numbers():
     shown = t.panel(observed[observed["stream"] == "battle"].iloc[0].to_dict())
     assert all("(mechanism)" in shown[k] for k in ("path", "forest", "treatment"))
     assert "an assumption" in shown["treatment"]
+
+
+def test_two_runs_give_identical_scorecards():
+    """The forest is fitted and averaged on one job, so a second run, fitted afresh, gives the same probabilities to
+    the last digit and the same scorecard; averaged in parallel, ties at a threshold moved the last printed digits."""
+    observed, _ = baseline.generator_sample()
+    assert t.models().forest.n_jobs == 1
+    first, p_first = t.LENS.scorecard(), t.probabilities(observed)["forest"]
+    t.models.cache_clear()
+    t.diagnosis_results.cache_clear()
+    second, p_second = t.LENS.scorecard(), t.probabilities(observed)["forest"]
+    assert first == second
+    assert np.array_equal(p_first, p_second)

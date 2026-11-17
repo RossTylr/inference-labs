@@ -101,5 +101,8 @@ def test_the_seven_axes_show_both_readings_and_the_shared_d23_sentence():
     assert "diagnosis: MPTT-24, text (as validated)" in axes.columns
     sentence = r.d23_sentence()
     assert "26.5%" in sentence and "47.6%" in sentence and "(D-23)" in sentence
+    assert "16.7%" in sentence                                                         # D-33: the group's own share
     assert sentence in axes.iloc[0, 0]
+    battle = r.d23_sentence("the battle casualties of the military cohort", group="battle")
+    assert "50.2%" in battle and "they are not a milder cohort" in battle               # D-33: never called milder
     assert "across 20 seeds" in axes.iloc[6, 0]

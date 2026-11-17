@@ -807,8 +807,9 @@ def seven_axes() -> pd.DataFrame:
     own, later, count = tx["own delay"], tx["30 minutes later"], tx["generator count"]
     olo, ohi = own.interval()
     llo, lhi = later.interval()
+    in_need = float(_sample(EVAL_SEED, EVAL_N)[1]["needs_lsi"].to_numpy(bool).mean())
     d23 = rules.d23_sentence("the battle casualties of the military cohort bleeding significantly and alive at "
-                             "pre-hospital care")
+                             "pre-hospital care", group="battle", share=in_need)
     rows = [
         ("1 Discrimination (mechanism)",
          f"It flags none at the threshold of {t:.2f}: the highest chance among them is "

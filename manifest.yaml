@@ -24,13 +24,7 @@ open_items:
   O-9: {status: closed, reason: "Read the full papers behind E-76, E-79, E-81 and the 2022 RePHILL report"}
 
 # Changes that cross lenses, held for a consolidation pass (BUILD.md section 7). One line each.
-deferred:
-  - "a. Apply D-33 through the shared sentence, so each scorecard states its own group and share."
-  - "b. Run the forest sequentially (`n_jobs=1`) so that printed figures in notebooks 04, 06 and 11 and on app page 2 are the same on every run. Add a test that two runs give identical scorecards."
-  - "c. Slice 9, R-9.5. A diagnosing worker follows BUILD.md section 10 on the reviewer's limit: among battle casualties the policy's unflagged route holds 0.209 in need, above the 0.10 threshold, and the cost curve runs backwards. If the fault is in slice 9's own code or wording, fix it. If the requirement is wrong, stop and report; do not change the requirement."
-  - "d. Notebook 00: one short paragraph saying that at the common threshold flagging every battle casualty beats every method, and that notebook 10 explains why."
-  - "e. README.md: correct the status. Every slice is built and reviewed."
-  - "f. Notebook 05: say that its relative risks by delay are expectations summed over casualties, where notebook 07's are counts of realised deaths."
+deferred: []
 
 slices:
   0:

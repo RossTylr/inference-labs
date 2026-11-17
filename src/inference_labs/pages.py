@@ -390,14 +390,15 @@ def figure_notes() -> dict[tuple[str, int], str]:
     return {
         ("01", 1): rules.d23_sentence(scored=hundred, subject="The counts in this figure are"),
         ("01", 3): rules.d23_sentence(scored=every, subject="The counts in this figure are"),
-        ("01", 4): rules.d23_sentence(scored=injured, subject="The MPTT-24's points on the generator here are"),
+        ("01", 4): rules.d23_sentence(scored=injured, subject="The MPTT-24's points on the generator here are",
+                                      group="injured"),
         ("02", 1): rules.d23_sentence(scored=every, subject="The MPTT-24's point on the generator here is"),
         ("02", 2): rules.d23_sentence(scored=hundred, subject="The MPTT-24's counts in this figure are"),
         ("02", 3): rules.d23_sentence(scored="the military cohort, every stream and the injured alone, and on the "
                                              "civilian cohort", subject="The rule's figures here are"),
         ("02", 4): rules.d23_sentence(scored=every, subject="The MPTT-24's points on the generator here are"),
         ("02", 6): rules.d23_sentence(scored=f"samples of {frequentist.BASTION_N} of the generator's injured",
-                                      subject="The MPTT-24's estimates in this figure are"),
+                                      subject="The MPTT-24's estimates in this figure are", group="injured"),
         ("03", 1): (f"The counts use {pre}, and start from an assumed prior of {prior:.2f}: the share bleeding is "
                     f"assumed, not counted."),
         ("03", 2): (f"The hundred start from an assumed prior of {prior:.2f}. Before hospital the counts use {pre}; in "

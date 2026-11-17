@@ -626,7 +626,7 @@ def seven_axes() -> pd.DataFrame:
     every, p1, conf = SELECTIONS
     group = (f"{pre['battle casualties']:,} synthetic battle casualties, {pre[every]['with free fluid']:,} with free "
              f"fluid")
-    d23 = rules.d23_sentence("the battle casualties of the military cohort")
+    d23 = rules.d23_sentence("the battle casualties of the military cohort", group="battle")
 
     def scan_disc(r):
         return (f"on every casualty sensitivity {_pct(r[every]['sensitivity'])}, specificity "
