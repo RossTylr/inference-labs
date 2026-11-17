@@ -1,9 +1,9 @@
 {
   "slice": 11,
-  "attempt": 10,
-  "when": "2026-11-17T11:20",
-  "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "attempt": 11,
+  "when": "2026-11-17T18:15",
+  "verdict": "BUILT",
+  "tally": "13/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -1015,15 +1015,15 @@
       "detail": null
     },
     "G-11": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "notebooks/00_casualty_thread.ipynb has changed since the review; notebooks/11_hybrids.ipynb has changed since the review; src/inference_labs/thread.py has changed since the review; src/inference_labs/pages.py has changed since the review",
+      "reason": "reviews/slice-11.md matches its 19 review sources and records HOLDS against 8 checks",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (81 passed in 8.05s)",
+      "reason": "13 gates each fail their planted defect (81 passed in 8.07s)",
       "detail": null
     },
     "G-13": {
