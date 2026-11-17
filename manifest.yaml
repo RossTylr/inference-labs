@@ -38,6 +38,7 @@ slices:
       - pyproject.toml
       - manifest.yaml
       - params.yaml
+      - .github/workflows/ci.yml
       - docs/ASSUMPTIONS.md
       - src/inference_labs/__init__.py
       - src/inference_labs/generator.py

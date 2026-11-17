@@ -1,0 +1,71 @@
+# Continuous integration: the tests, then the validator for every built slice.
+# Runs on fixtures only. No real-data path is set, so every notebook and test reads the synthetic generator
+# or tests/fixtures. The verdict files and ledger rows the validator writes here are discarded with the runner.
+
+name: CI
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install the package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Run the tests
+        run: python -m pytest -q
+
+  built:
+    name: Find built slices
+    runs-on: ubuntu-latest
+    outputs:
+      slices: ${{ steps.find.outputs.slices }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        name: Read the committed verdict files
+        run: |
+          python3 - >> "$GITHUB_OUTPUT" <<'EOF'
+          import json
+          from pathlib import Path
+
+          verdicts = [json.loads(p.read_text()) for p in Path("reviews").glob("slice-*.verdict.json")]
+          built = sorted(v["slice"] for v in verdicts if v["verdict"] == "BUILT")
+          print("slices=" + json.dumps(built))
+          EOF
+
+  validate:
+    name: Validate slice ${{ matrix.slice }}
+    needs: built
+    if: needs.built.outputs.slices != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        slice: ${{ fromJSON(needs.built.outputs.slices) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install the package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Run the validator
+        run: python -m harness.validate --slice ${{ matrix.slice }}
