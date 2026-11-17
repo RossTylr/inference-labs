@@ -52,6 +52,7 @@ inference-labs is a learning repository: its aim is to learn inference through u
 | D-30 | Gate G-10 also checks that a cited civilian source is called civilian where it is cited | The commonest review breach was mechanical |
 | D-31 | Reviewer limits are a record, not a work list. Only items Ross places on `deferred` are done at consolidation, and a re-review after consolidation covers changed lines only | After slice 8 the list held 157 items, most of them restatements |
 | D-32 | An unattended run may take several units in sequence, each in a fresh context, parking any slice that stops | One session per unit is a cost rule; a coordinator that holds only reports keeps to it |
+| D-33 | D-23 restated. In the generator, need for a life-saving intervention occurs only among battle casualties. Battle casualties alone are 50.2% in need against the registry's 47.6% (E-09); the injured, battle and non-battle together, are 26.5%. Each scorecard's sentence names the group it reports and gives that group's share. No scorecard of battle casualties alone calls them milder | The earlier wording was false where it sat on battle-casualty scorecards |
 
 ---
 
