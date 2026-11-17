@@ -1,9 +1,9 @@
 {
   "slice": 11,
-  "attempt": 4,
-  "when": "2026-11-17T02:23",
+  "attempt": 5,
+  "when": "2026-11-17T03:00",
   "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "tally": "11/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -993,13 +993,13 @@
     "G-7": {
       "passed": true,
       "evaluable": true,
-      "reason": "00_casualty_thread.ipynb ran in 38 s with 6 figures; 11_hybrids.ipynb ran in 42 s with 7 figures; eight parts in order, three registers, every figure concludes",
+      "reason": "00_casualty_thread.ipynb ran in 39 s with 6 figures; 11_hybrids.ipynb ran in 42 s with 7 figures; eight parts in order, three registers, every figure concludes",
       "detail": null
     },
     "G-8": {
-      "passed": true,
+      "passed": false,
       "evaluable": true,
-      "reason": "3 control settings: every metric, table cell, band point and number shown matches the library; 14 further pages under 18 settings show only numbers the library displayed; no numerical import under app/",
+      "reason": "2_Mix_and_setting.py {'disease': 10, 'battle': 80, 'non_battle': 10, 'setting': 'in_hospital'}: shows 27.8, 72.1%, which the library did not display",
       "detail": null
     },
     "G-9": {
@@ -1017,13 +1017,13 @@
     "G-11": {
       "passed": false,
       "evaluable": true,
-      "reason": "notebooks/00_casualty_thread.ipynb has changed since the review; notebooks/11_hybrids.ipynb has changed since the review; src/inference_labs/thread.py has changed since the review; src/inference_labs/lenses/hybrids.py has changed since the review; src/inference_labs/pages.py has changed since the review; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; BREACH recorded for the epistemic check 'civilian data read as military'; 12 further line(s) marked BREACH",
+      "reason": "notebooks/00_casualty_thread.ipynb has changed since the review; notebooks/11_hybrids.ipynb has changed since the review; src/inference_labs/thread.py has changed since the review; src/inference_labs/pages.py has changed since the review; BREACH recorded for the epistemic check 'accuracy quoted for the wrong cohort or setting'; BREACH recorded for the epistemic check 'civilian data read as military'; 12 further line(s) marked BREACH; the review's verdict is BREACH",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (81 passed in 8.05s)",
+      "reason": "13 gates each fail their planted defect (81 passed in 8.06s)",
       "detail": null
     },
     "G-13": {

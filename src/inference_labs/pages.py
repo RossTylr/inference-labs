@@ -124,7 +124,8 @@ def _mix_rule(observed: pd.DataFrame, need: np.ndarray) -> str:
 def mix_and_setting(disease: int = 44, battle: int = 30, non_battle: int = 27, setting: str = "pre_hospital") -> dict:
     """Page 2. The methods that flag need for a life-saving intervention, scored on 20,000 synthetic casualties (seed
     42) of the mix and setting chosen: sensitivity, specificity, positive predictive value and net benefit at 0.10, with
-    flagging every casualty beside them (mechanism). The models were fitted on the default mix and are not refitted."""
+    flagging every casualty beside them (mechanism). The fitted models were fitted on the default mix and are not
+    refitted; the MPTT-24 and lens 08's graph are not fitted."""
     from inference_labs.lenses import decision
 
     raw = {"disease": float(disease), "battle": float(battle), "non_battle": float(non_battle)}
@@ -156,8 +157,10 @@ def mix_and_setting(disease: int = 44, battle: int = 30, non_battle: int = 27, s
         "mix": (f"{MIX_N:,} synthetic casualties of the military cohort, seed {MIX_SEED}: {shown} of admissions, the "
                 f"shares scaled to sum to one; {SETTING_NAMES[setting]}. The default mix is the UK field hospital "
                 f"admissions of one theatre (E-34 to E-36); any other mix is the reader's assumption."),
-        "need": (f"{_pct(float(need.mean()))} of these casualties need a life-saving intervention (mechanism). Each "
-                 f"model was fitted on the default mix and keeps its own threshold; net benefit is at a threshold of "
+        "need": (f"{_pct(float(need.mean()))} of these casualties need a life-saving intervention (mechanism). The "
+                 f"MPTT-24 is the published rule under its two readings, and lens 08's graph flags any candidate from "
+                 f"weights read off its edges, with no threshold: neither was fitted. Every other method was fitted on "
+                 f"the default mix, is not refitted here and keeps its own threshold. Net benefit is at a threshold of "
                  f"{t:.2f}, a miss weighed {decision.DEFAULT_COSTS['miss'] / decision.DEFAULT_COSTS['false alarm']:g} "
                  f"times a false alarm (an assumption), beside {decision.FLAGGING_ALL}."),
         "table": rows,
@@ -371,24 +374,32 @@ def figure_notes() -> dict[tuple[str, int], str]:
     """What a figure needs beside it once it is taken out of its notebook, keyed by notebook number and figure number
     (as the gallery counts them): the source, population, assumption or D-23 statement that the notebook gives in the
     cells around it (lessons 1, 5 and 16)."""
-    from inference_labs.lenses import hybrids, knowledge, rules
+    from inference_labs.lenses import frequentist, hybrids, knowledge, rules
 
     pre, inside, prior = hybrids.SCAN_SOURCES["pre_hospital"], hybrids.SCAN_SOURCES["in_hospital"], hybrids.PRIOR
     hundred = "a hundred synthetic casualties of the military cohort, disease included"
     every = f"all {baseline.EVAL_N:,} synthetic casualties of the military cohort, every stream"
+    injured = (f"the injured, battle and non-battle, among {baseline.EVAL_N:,} synthetic casualties of the military "
+               f"cohort")
     us = sorted({link.intervention.split(":")[0] for injury in knowledge.INJURIES
                  for link in knowledge.chain(injury).links if knowledge.shown_label(link.edge) == "US doctrine"})
     return {
         ("01", 1): rules.d23_sentence(scored=hundred, subject="The counts in this figure are"),
+        ("01", 3): rules.d23_sentence(scored=every, subject="The counts in this figure are"),
+        ("01", 4): rules.d23_sentence(scored=injured, subject="The MPTT-24's points on the generator here are"),
         ("02", 1): rules.d23_sentence(scored=every, subject="The MPTT-24's point on the generator here is"),
         ("02", 2): rules.d23_sentence(scored=hundred, subject="The MPTT-24's counts in this figure are"),
         ("02", 3): rules.d23_sentence(scored="the military cohort, every stream and the injured alone, and on the "
                                              "civilian cohort", subject="The rule's figures here are"),
         ("02", 4): rules.d23_sentence(scored=every, subject="The MPTT-24's points on the generator here are"),
+        ("02", 6): rules.d23_sentence(scored=f"samples of {frequentist.BASTION_N} of the generator's injured",
+                                      subject="The MPTT-24's estimates in this figure are"),
         ("03", 1): (f"The counts use {pre}, and start from an assumed prior of {prior:.2f}: the share bleeding is "
                     f"assumed, not counted."),
         ("03", 2): (f"The hundred start from an assumed prior of {prior:.2f}. Before hospital the counts use {pre}; in "
                     f"hospital, pooled in-hospital figures (E-14)."),
+        ("03", 3): (f"Each plausible scan is drawn from the counts behind {pre}, and each belief starts from an assumed "
+                    f"prior of {prior:.2f}: the share bleeding is assumed, not counted."),
         ("03", 4): (f"The draws start from an assumed prior of {prior:.2f}. Before hospital they use {pre}; in hospital, "
                     f"{inside}."),
         ("03", 5): (f"The belief starts from the share bleeding into the abdomen counted among the generator's battle "
@@ -397,6 +408,8 @@ def figure_notes() -> dict[tuple[str, int], str]:
         ("08", 1): (f"The edges from the injury to {thread._and(us)} come from E-86, the US military's resuscitation "
                     f"guideline: US doctrine, not UK practice, though the figure's legend draws US doctrine and doctrine "
                     f"in the same solid line."),
+        ("08", 4): rules.d23_sentence(scored=every, subject="The MPTT-24's figures here are"),
+        ("10", 4): rules.d23_sentence(scored=every, subject="The MPTT-24's points on the generator here are"),
     }
 
 

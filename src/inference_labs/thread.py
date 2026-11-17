@@ -183,26 +183,44 @@ def site_split() -> pd.DataFrame:
 
 # ------------------------------------------------------------------------------------------------ the counterfactual
 
+def _death_before_care(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
+    """True for a casualty whose bleeding death, with or without tranexamic acid, falls at or before pre-hospital care.
+    The generator draws one time of death for both outcomes."""
+    return 60 * truth["t_death_potential_h"].to_numpy(float) <= observed["t_phec_min"].to_numpy(float)
+
+
+def _died_if_given(observed: pd.DataFrame, truth: pd.DataFrame) -> np.ndarray:
+    """Death from bleeding with tranexamic acid given at pre-hospital care (mechanism). The generator acts on the
+    probability of death, not on its timing, so a casualty whose bleeding death falls at or before that time has the
+    outcome it has without the drug, which is not yet given (lesson 13)."""
+    return np.where(_death_before_care(observed, truth), truth["died_if_untreated"].to_numpy(bool),
+                    truth["died_if_treated"].to_numpy(bool))
+
+
 @lru_cache(maxsize=1)
 def tranexamic_both_ways() -> dict:
     """On the evaluation sample's battle casualties alive at pre-hospital care, where the generator gives tranexamic
     acid, deaths from bleeding with every casualty given it and with none given it, from the generator's two potential
     outcomes, which only a generator can hold (mechanism). A casualty whose bleeding death without the drug falls at or
-    before that time is left out: the drug is not yet given, and the generator acts on the probability of death, not
-    on its timing, so counting them would credit the drug with deaths it could not reach."""
+    before that time is left out. A casualty whose bleeding death would come only with the drug, at or before that
+    time, is alive at care and is counted alive either way. The drug is not yet given, and the generator acts on the
+    probability of death, not on its timing, so counting either would put down to the drug deaths it could not reach."""
     observed, truth = baseline.generator_sample()
     battle = (observed["stream"] == "battle").to_numpy()
     before_care = baseline.died_before_care(observed, truth)
     keep = battle & ~before_care
-    treated = truth["died_if_treated"].to_numpy(bool)[keep]
+    treated = _died_if_given(observed, truth)[keep]
     untreated = truth["died_if_untreated"].to_numpy(bool)[keep]
+    only_if_given = (truth["died_if_treated"].to_numpy(bool) & ~truth["died_if_untreated"].to_numpy(bool))[keep]
+    early = _death_before_care(observed, truth)[keep]
     late = truth["txa_delay_min"].to_numpy(float)[keep] > generator.LATE_BAND_MIN
     return {"battle casualties": int(battle.sum()), "died before care": int((battle & before_care).sum()),
             "casualties": int(keep.sum()), "deaths if all treated": int(treated.sum()),
             "deaths if none treated": int(untreated.sum()),
             "per 100 if all treated": 100 * float(treated.mean()), "per 100 if none treated": 100 * float(untreated.mean()),
             "saved": int((untreated & ~treated).sum()), "harmed": int((treated & ~untreated).sum()),
-            "harmed, given after 3 hours": int((treated & ~untreated & late).sum())}
+            "harmed, given after 3 hours": int((treated & ~untreated & late).sum()),
+            "death with the drug before care": int((only_if_given & early).sum())}
 
 
 def after_mix() -> dict[str, float]:
@@ -219,14 +237,13 @@ def before_after(seed: int = baseline.EVAL_SEED) -> dict:
     """The failure, constructed. Before: 100,000 casualties at the default mix, none given tranexamic acid. After:
     100,000 casualties of a different sample (seed + 100) at the after mix, every battle casualty given it at
     pre-hospital care. Deaths are from bleeding, per 100 casualties, counted from injury. A casualty whose bleeding death
-    falls at or before pre-hospital care dies before the drug is given, so dies in the after cohort whether or not it
-    was meant for them; the drug's true effect is read from both potential outcomes of the after casualties alive at
-    care (mechanism)."""
+    falls at or before pre-hospital care has, in the after cohort, the outcome it has without the drug, which is not yet
+    given, whether or not the drug was meant for them; the drug's true effect is read from both potential outcomes of
+    the after casualties alive at care (mechanism)."""
     _, before = generator.sample(baseline.EVAL_N, seed, return_truth=True)
     after_observed, after = generator.sample(baseline.EVAL_N, seed + 100, mix=after_mix(), return_truth=True)
-    before_care = baseline.died_before_care(after_observed, after)
     b = 100 * float(before["died_if_untreated"].mean())
-    a_treated = 100 * float((before_care | after["died_if_treated"].to_numpy(bool)).mean())
+    a_treated = 100 * float(_died_if_given(after_observed, after).mean())
     a_untreated = 100 * float(after["died_if_untreated"].mean())
     return {"before": b, "after": a_treated, "after, none treated": a_untreated,
             "fall": b - a_treated, "drug": a_untreated - a_treated, "mix": b - a_untreated}
@@ -290,14 +307,21 @@ def _number(x) -> str:
     return f"{x:.4f}"
 
 
+# The target of a lens's rows whose metric wording does not name it, as the lens's module scores them (lesson 3): lens
+# 03's belief, and the MPTT-24's Priority 1 beside it, are scored against bleeding into the abdomen in battle casualties.
+UNNAMED_TARGETS = {("Bayesian", "diagnosis"): (", against bleeding into the abdomen: the belief is in it and the "
+                                               "observed share is the share with it, among battle casualties alone")}
+
+
 def lens_table(case: str = "diagnosis") -> pd.DataFrame:
     """Every lens's scorecard rows for one case, as the lenses return them, with values and baselines to four places
-    and no baseline shown as "none stated"."""
+    and no baseline shown as "none stated". Where a lens's metric does not name its target, the target is added."""
     if case not in ("diagnosis", "treatment"):
         raise ValueError("case must be diagnosis or treatment")
     card = scorecards()
     card = card[card["case"] == case]
-    return pd.DataFrame({"lens": card["lens"].to_numpy(), "metric": card["metric"].to_numpy(),
+    metric = [m + UNNAMED_TARGETS.get((lens, case), "") for lens, m in zip(card["lens"], card["metric"])]
+    return pd.DataFrame({"lens": card["lens"].to_numpy(), "metric": metric,
                          "value": [_number(v) for v in card["value"]],
                          "baseline": [_number(v) for v in card["baseline"]],
                          "label": card["label"].to_numpy(), "fit": card["fit"].to_numpy(),
@@ -323,6 +347,34 @@ def lens_table_rule(cases=("diagnosis", "treatment"), subject: str = "The MPTT-2
     return rules.d23_sentence(scored=(f"every stream of the military cohort, disease included, except in {rows}, "
                                       f"where they are on battle casualties alone or a group within them"),
                               subject=subject)
+
+
+def rule_on_both(subject: str = "The MPTT-24's figures here are") -> str:
+    """D-23's statement where the MPTT-24's figures are given on every stream and among battle casualties alone
+    (lesson 16): the comparison with E-09 on the injured, and beside it the battle casualties' own share in need, on the
+    evaluation sample (mechanism)."""
+    from inference_labs.lenses import decision, rules
+
+    registry = rules.PUBLISHED["MPTT-24, military"].prevalence     # E-09: Priority 1 in the military registry
+    battle = decision.battle_share_in_need()["battle casualties alone"]
+    kind = "a milder cohort than" if battle < registry else "not a milder cohort than"
+    return (rules.d23_sentence(scored=("every stream of the military cohort, disease included, and, where they say "
+                                       "so, on battle casualties alone"), subject=subject)
+            + f" Battle casualties are among the injured; of them alone {100 * battle:.1f}% need a life-saving "
+              f"intervention, against {100 * registry:.1f}% Priority 1 in the military registry (E-09), so they are "
+              f"{kind} the one the rule was validated on.")
+
+
+def yardstick() -> pd.DataFrame:
+    """The baseline's own two columns of lens 01's scorecard, for notebook 00, with D-23's statement naming both groups
+    the columns' figures are on: every stream, and battle casualties alone where a figure says so (lesson 16)."""
+    from inference_labs.lenses import rules
+
+    card = rules.seven_axes().iloc[:, :2]
+    old, new = rules.d23_sentence(), rule_on_both("The scorecard's figures are")
+    if not card.apply(lambda c: c.str.contains(old, regex=False)).to_numpy().any():
+        raise ValueError("lens 01's scorecard no longer carries D-23's statement")
+    return card.apply(lambda c: c.str.replace(old, new, regex=False))
 
 
 def lens_summary() -> pd.DataFrame:
