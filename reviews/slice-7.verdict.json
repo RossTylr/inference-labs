@@ -1,9 +1,9 @@
 {
   "slice": 7,
-  "attempt": 10,
-  "when": "2026-11-17T11:00",
-  "verdict": "REVISE",
-  "tally": "12/13 pass",
+  "attempt": 11,
+  "when": "2026-11-17T15:23",
+  "verdict": "BUILT",
+  "tally": "13/13 pass",
   "open_items_unresolved": [],
   "gates": {
     "G-1": {
@@ -1015,15 +1015,15 @@
       "detail": null
     },
     "G-11": {
-      "passed": false,
+      "passed": true,
       "evaluable": true,
-      "reason": "notebooks/07_causal.ipynb has changed since the review; src/inference_labs/lenses/causal.py has changed since the review",
+      "reason": "reviews/slice-7.md matches its 3 review sources and records HOLDS against 7 checks",
       "detail": null
     },
     "G-12": {
       "passed": true,
       "evaluable": true,
-      "reason": "13 gates each fail their planted defect (81 passed in 8.08s)",
+      "reason": "13 gates each fail their planted defect (81 passed in 8.03s)",
       "detail": null
     },
     "G-13": {
