@@ -1,4 +1,4 @@
-"""Planted defects for G-11: no review, no hash block, a review source whose content changed since the review
+"""Planted defects for G-11: no review, no hash block, a line of a second background file left unrecorded, a review source whose content changed since the review
 (notebook prose, a notebook text output, a lens module string), a check left unrecorded, a recorded breach, and a
 review without a final verdict. Also what must not make a review stale: a notebook re-executed with the same
 sources and text outputs, and a change to a harness file or another slice's file."""
@@ -166,3 +166,27 @@ def test_a_review_without_a_final_verdict_fails(tmp_path):
     _setup(tmp_path, review=REVIEW.replace("VERDICT: HOLDS\n", ""), stamp=False)
     result = _check(tmp_path)
     assert not result.passed and "VERDICT" in result.reason
+
+
+SECOND = """# 00 — Thread
+
+## What must not be claimed
+
+- That the attribution is measured. It is modelled.
+"""
+
+
+def test_an_unrecorded_line_of_a_second_background_file_fails(tmp_path):
+    """A slice built on two background files (slice 11) records a verdict against each line of each."""
+    _setup(tmp_path)
+    manifest = yaml.safe_load((tmp_path / "manifest.yaml").read_text())
+    manifest["slices"][1]["background"] = ["background.md", "second.md"]
+    (tmp_path / "manifest.yaml").write_text(yaml.safe_dump(manifest))
+    (tmp_path / "second.md").write_text(SECOND)
+    result = _check(tmp_path)
+    assert not result.passed and "the attribution is measured" in result.reason
+    review = REVIEW.replace("VERDICT: HOLDS", "- That the attribution is measured: HOLDS (cell 2)\n\nVERDICT: HOLDS")
+    (tmp_path / "reviews" / "slice-1.md").write_text(review)
+    g11_sceptic.write_hash_block(tmp_path, 1)
+    result = _check(tmp_path)
+    assert result.passed, result.reason

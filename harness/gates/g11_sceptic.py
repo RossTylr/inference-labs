@@ -4,7 +4,8 @@ plus the four epistemic checks in design section 9.
 
 Conventions checked here
 - The background file is named by the slice's `background` entry in the manifest, and the review sources by its
-  `review_sources` list: the slice's notebook, lens module and app panel (D-29).
+  `review_sources` list: the slice's notebook, lens module and app panel (D-29). A slice built on two background
+  files (slice 11) lists both, and the review records a verdict against each line of each.
 - A check is recorded by a line that quotes it and is marked HOLDS or BREACH. A line of "What must not be
   claimed" is quoted by its first sentence, with or without the opening "That".
 - The review ends with `VERDICT: HOLDS` or `VERDICT: BREACH`, followed by a block headed "Reviewed sources" that
@@ -134,7 +135,8 @@ def check(root: Path, slice_id: int, **_: object) -> GateResult:
     if not review.is_file():
         return GateResult(False, f"{review_rel} is missing: the sceptic has not reviewed this slice")
     background = config.get("background")
-    if not background or not (root / background).is_file():
+    backgrounds = [background] if isinstance(background, str) else list(background or [])
+    if not backgrounds or not all((root / b).is_file() for b in backgrounds):
         return GateResult(False, "the manifest names no background file for this slice", evaluable=False)
     sources = [str(f) for f in config.get("review_sources") or []]
     if not sources:
@@ -156,7 +158,7 @@ def check(root: Path, slice_id: int, **_: object) -> GateResult:
 
     raw = [l.strip() for l in body if l.strip()]
     marked = [(normalise(l), "BREACH" in MARK.findall(l)) for l in raw if MARK.search(l) and not FINAL.match(l)]
-    required = [("must not be claimed", k) for k in must_not_claim(root / background)]
+    required = [("must not be claimed", k) for b in backgrounds for k in must_not_claim(root / b)]
     required += [("epistemic check", k) for k in EPISTEMIC_CHECKS]
     for kind, key in required:
         hits = [breach for line, breach in marked if key in line]

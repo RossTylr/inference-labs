@@ -65,3 +65,54 @@ def test_a_panel_without_its_source_fails(tmp_path):
     panels.mkdir(parents=True)
     (panels / "bare.py").write_text("ORDER = 1\n\ndef render(st, walk):\n    pass\n")
     assert any("has no SOURCE" in p for p in g08_parity.panel_problems(tmp_path))
+
+
+# A further page (slice 11): its numbers must be ones its SOURCE returned for the case checked.
+PAGE = '''import streamlit as st
+
+from inference_labs.lenses import decision
+
+SOURCE = decision.threshold
+CASES = ({{}},)
+
+
+def render():
+    st.markdown(f"Threshold {{SOURCE()}}")
+    st.markdown({extra!r})
+
+
+if __name__ == "__main__":
+    render()
+'''
+
+
+def _page(tmp_path, extra, source=None):
+    pages = tmp_path / "app" / "pages"
+    pages.mkdir(parents=True, exist_ok=True)
+    text = PAGE.format(extra=extra)
+    if source is not None:
+        text = text.replace("SOURCE = decision.threshold", f"SOURCE = {source}")
+    (pages / "2_Page.py").write_text(text)
+    return g08_parity.check(tmp_path, 1, app=_app(tmp_path), cases=CASES, expected=_expected)
+
+
+def _app(tmp_path):
+    app = tmp_path / "app" / "streamlit_app.py"
+    app.parent.mkdir(parents=True, exist_ok=True)
+    app.write_text(GOOD)
+    return app
+
+
+def test_a_further_page_showing_only_library_values_passes(tmp_path):
+    result = _page(tmp_path, "No other number here.")
+    assert result.passed, result.reason
+
+
+def test_a_further_page_showing_a_number_its_source_did_not_return_fails(tmp_path):
+    result = _page(tmp_path, "Nine in ten: 0.90")
+    assert not result.passed and "2_Page.py" in result.reason and "0.90" in result.reason
+
+
+def test_a_further_page_whose_numbers_do_not_come_from_the_library_fails(tmp_path):
+    result = _page(tmp_path, "No other number here.", source="lambda: 0.1")
+    assert not result.passed and "not from inference_labs" in result.reason

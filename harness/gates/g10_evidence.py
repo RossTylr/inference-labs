@@ -14,7 +14,8 @@ Conventions checked here
   library/curated.yaml. Every markdown cell of the slice's notebook, the text every code cell prints (its stream
   and text outputs, read together), and every string the slice's own panel shows (its SOURCE applied to the
   walk-through casualty under each of gate G-8's control settings), that cites a civilian id must contain the word
-  "civilian" itself. A source the register names with no recognised population makes the gate not evaluable.
+  "civilian" itself. So must every string a further page of the slice under app/pages/ shows (its SOURCE under each of
+  its CASES). A source the register names with no recognised population makes the gate not evaluable.
 """
 from __future__ import annotations
 
@@ -140,10 +141,28 @@ def panel_strings(root: Path, panel_files: list[Path]) -> dict[str, str]:
     return out
 
 
+def page_strings(page_files: list[Path]) -> dict[str, str]:
+    """Every string each further page shows: its SOURCE under each of its CASES."""
+    from harness.gates import g08_parity
+
+    out: dict[str, str] = {}
+    seen: set[tuple[str, str]] = set()
+    for path in page_files:
+        module = g08_parity.page_module(path)
+        if not hasattr(module, "SOURCE"):
+            continue
+        for case in getattr(module, "CASES", ({},)):
+            for where, text in _strings(module.SOURCE(**dict(case)), path.name):
+                if (where, text) not in seen:
+                    seen.add((where, text))
+                    out[f"{where} {dict(case)}"] = text
+    return out
+
+
 def check(root: Path, slice_id: int, notebooks: list[Path] | None = None, app_files: list[Path] | None = None,
           evidence_path: Path | None = None, curated_path: Path | None = None,
           panel_text: dict[str, str] | None = None, **_: object) -> GateResult:
-    """`panel_text`, when given, stands in for the strings the slice's panel shows (location to text)."""
+    """`panel_text`, when given, stands in for the strings the slice's panels and pages show (location to text)."""
     import nbformat
 
     evidence_md = evidence_path or root / "docs" / "EVIDENCE.md"
@@ -169,7 +188,8 @@ def check(root: Path, slice_id: int, notebooks: list[Path] | None = None, app_fi
         files = files if files is not None else [str(f) for f in
                                                  slice_config(load_manifest(root), slice_id).get("files") or []]
         panels = [root / f for f in files if f.startswith("app/panels/") and not f.endswith("__init__.py")]
-        panel_text = panel_strings(root, panels)
+        pages = [root / f for f in files if f.startswith("app/pages/") and f.endswith(".py")]
+        panel_text = {**panel_strings(root, panels), **page_strings(pages)}
 
     problems, cited = [], 0
     for path in notebooks:
@@ -208,4 +228,4 @@ def check(root: Path, slice_id: int, notebooks: list[Path] | None = None, app_fi
         return GateResult(False, "; ".join(problems[:8]), detail=problems)
     return GateResult(True, f"{cited} evidence ids listed and resolved; no NOT READ entry quoted as a number; "
                             "every CARRIED entry marked provisional; every civilian source called civilian where "
-                            f"cited, in markdown cells, cell printouts and {len(panel_text)} panel strings")
+                            f"cited, in markdown cells, cell printouts and {len(panel_text)} panel and page strings")

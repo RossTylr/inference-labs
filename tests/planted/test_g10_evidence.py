@@ -119,3 +119,18 @@ def test_a_panel_string_that_says_civilian_passes(tmp_path):
 def test_a_source_without_a_recognised_population_cannot_be_evaluated(tmp_path):
     result = _check(tmp_path, curated=CURATED.replace("population: unstated", "population: unknown"))
     assert not result.passed and not result.evaluable and "netherton2019" in result.reason
+
+
+def test_a_civilian_source_cited_in_a_page_string_without_the_word_fails(tmp_path):
+    """A further page under app/pages/ (slice 11) is held to the same rule as a panel."""
+    pages = tmp_path / "app" / "pages"
+    pages.mkdir(parents=True)
+    page = pages / "2_Page.py"
+    page.write_text("from inference_labs.thread import STREAM_NAMES\n\n"
+                    "SOURCE = lambda case='a': {'text': TEXT}\nCASES = ({},)\nTEXT = 'CRASH-2 found 0.91 (E-20).'\n")
+    found = g10_evidence.page_strings([page])
+    result = _check(tmp_path, panel=found)
+    assert not result.passed and "2_Page.py" in result.reason
+    page.write_text(page.read_text().replace("CRASH-2 found", "CRASH-2, a civilian trial, found"))
+    result = _check(tmp_path, panel=g10_evidence.page_strings([page]))
+    assert result.passed, result.reason

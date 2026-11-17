@@ -62,6 +62,89 @@ def panel_modules(root: Path) -> list:
     return sorted(modules, key=lambda m: getattr(m, "ORDER", 0))
 
 
+PAGE_WIDGETS = ("selectbox", "radio", "slider", "number_input", "select_slider", "toggle", "checkbox")
+
+
+def page_files(root: Path) -> list[Path]:
+    """The further pages under app/pages/, in name order."""
+    folder = root / "app" / "pages"
+    return sorted(folder.glob("*.py")) if folder.is_dir() else []
+
+
+def page_module(path: Path):
+    """A page file imported under its own name, so its guarded drawing code does not run."""
+    spec = importlib.util.spec_from_file_location(f"_g08_page_{path.stem}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def page_definition_problems(paths: list[Path]) -> list[str]:
+    problems = []
+    for path in paths:
+        module = page_module(path)
+        missing = [a for a in ("SOURCE", "CASES") if not hasattr(module, a)]
+        if missing:
+            problems.append(f"page {path.name} has no {', '.join(missing)}")
+        elif not str(getattr(module.SOURCE, "__module__", "")).startswith("inference_labs."):
+            problems.append(f"page {path.name} takes its numbers from {module.SOURCE!r}, not from inference_labs")
+    return problems
+
+
+def _shown_tokens(value) -> set[str]:
+    """The numbers in what a library function returned, keys included; images and other bytes are left out."""
+    if isinstance(value, (bytes, bytearray)):
+        return set()
+    if isinstance(value, dict):
+        return set().union(*(_shown_tokens(v) | _shown_tokens(k) for k, v in value.items())) if value else set()
+    if isinstance(value, (list, tuple)):
+        return set().union(*(_shown_tokens(v) for v in value)) if value else set()
+    return set(NUMBER.findall(str(value)))
+
+
+def _widget(at, key: str):
+    for kind in PAGE_WIDGETS:
+        try:
+            return getattr(at, kind)(key=key)
+        except KeyError:
+            continue
+    return None
+
+
+def shown_on_page(at) -> list[str]:
+    """Every piece of text a page shows: its text elements, metric labels and values, and table and dataframe cells
+    with their column names."""
+    shown = [str(el.value) for kind in TEXT_ELEMENTS for el in getattr(at, kind)]
+    shown += [str(x) for m in at.metric for x in (m.label, m.value)]
+    for t in list(at.table) + list(at.dataframe):
+        frame = t.value
+        shown += [str(c) for c in frame.columns] + [str(v) for v in frame.to_numpy().ravel()]
+    return shown
+
+
+def other_page_problems(path: Path, case: dict, expected) -> list[str]:
+    """One further page under one case: run it, set each control the case names, and check every number shown."""
+    from streamlit.testing.v1 import AppTest
+
+    at = AppTest.from_file(str(Path(path).resolve()), default_timeout=300)
+    at.run()
+    if at.exception:
+        return [f"the page raised: {at.exception[0].value}"]
+    changed = False
+    for key, value in case.items():
+        widget = _widget(at, key)
+        if widget is not None:
+            widget.set_value(value)
+            changed = True
+    if changed:
+        at.run()
+    if at.exception:
+        return [f"the page raised: {at.exception[0].value}"]
+    allowed = _shown_tokens(expected)
+    stray = sorted({n for text in shown_on_page(at) for n in NUMBER.findall(text)} - allowed)
+    return [f"shows {', '.join(stray[:6])}, which the library did not display"] if stray else []
+
+
 def panel_problems(root: Path) -> list[str]:
     problems = []
     for module in panel_modules(root):
@@ -147,7 +230,8 @@ def page_problems(app: Path, inputs: dict, expected: dict) -> list[str]:
 
 
 def check(root: Path, slice_id: int, app: Path | None = None, cases=None,
-          expected: Callable[[dict], dict] | None = None, **_: object) -> GateResult:
+          expected: Callable[[dict], dict] | None = None, pages: list[Path] | None = None,
+          **_: object) -> GateResult:
     app_dir = root / "app"
     app = app_dir / "streamlit_app.py" if app is None else Path(app)
     if not app.is_file():
@@ -162,7 +246,20 @@ def check(root: Path, slice_id: int, app: Path | None = None, cases=None,
     for inputs in cases:
         resolved = dict(inputs)
         problems += [f"{resolved}: {p}" for p in page_problems(app, resolved, expected(resolved))]
+
+    pages = page_files(root) if pages is None else list(pages)
+    defined = page_definition_problems(pages)
+    problems += defined
+    checked = 0
+    if not defined:
+        for path in pages:
+            module = page_module(path)
+            for case in module.CASES:
+                checked += 1
+                problems += [f"{path.name} {dict(case)}: {p}"
+                             for p in other_page_problems(path, dict(case), module.SOURCE(**dict(case)))]
     if problems:
         return GateResult(False, "; ".join(problems[:6]))
+    further = f"; {len(pages)} further pages under {checked} settings show only numbers the library displayed" if pages else ""
     return GateResult(True, f"{len(cases)} control settings: every metric, table cell, band point and number shown "
-                            "matches the library; no numerical import under app/")
+                            f"matches the library{further}; no numerical import under app/")
